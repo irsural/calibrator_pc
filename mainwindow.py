@@ -3,6 +3,8 @@ from PyQt5.QtWidgets import QMainWindow
 from PyQt5.QtCore import QTimer
 import ctypes
 
+import calibrator_constants as clb
+
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -27,6 +29,14 @@ class MainWindow(QMainWindow):
 
         self.connect_signals()
 
+        self.clb_params = clb.ClbParams()
+        self.int_to_signal_type = {
+            clb.SignalType.ACI: self.ui.aci_radio,
+            clb.SignalType.ACV: self.ui.acv_radio,
+            clb.SignalType.DCI: self.ui.dci_radio,
+            clb.SignalType.DCV: self.ui.dcv_radio,
+        }
+
     @staticmethod
     def set_up_clb_driver_library(a_full_path):
         clb_driver_lib = ctypes.CDLL(a_full_path)
@@ -35,7 +45,24 @@ class MainWindow(QMainWindow):
         clb_driver_lib.get_usb_devices.restype = ctypes.c_wchar_p
 
         clb_driver_lib.connect_usb.argtypes = [ctypes.c_wchar_p]
+
         clb_driver_lib.set_amplitude.argtypes = [ctypes.c_double]
+        clb_driver_lib.get_amplitude.restype = ctypes.c_double
+
+        clb_driver_lib.set_frequency.argtypes = [ctypes.c_double]
+        clb_driver_lib.get_frequency.restype = ctypes.c_double
+
+        clb_driver_lib.set_signal_type.argtypes = [ctypes.c_int]
+        clb_driver_lib.get_signal_type.restype = ctypes.c_int
+
+        clb_driver_lib.set_polarity.argtypes = [ctypes.c_int]
+        clb_driver_lib.get_polarity.restype = ctypes.c_int
+
+        clb_driver_lib.set_polarity.argtypes = [ctypes.c_int]
+        clb_driver_lib.get_polarity.restype = ctypes.c_int
+
+        clb_driver_lib.signal_enable.argtypes = [ctypes.c_int]
+        clb_driver_lib.enabled.restype = ctypes.c_int
 
         return clb_driver_lib
 
@@ -53,11 +80,35 @@ class MainWindow(QMainWindow):
                 if clb_name:
                     self.ui.clb_list_combobox.addItem(clb_name)
 
+        self.sync_clb_parameters()
+
     def connect_to_clb(self, a_clb_name):
         if a_clb_name:
-            print(self.clb_driver.connect_usb(a_clb_name))
+            self.clb_driver.connect_usb(a_clb_name)
         else:
             self.clb_driver.disconnect_usb()
+
+    def sync_clb_parameters(self):
+        if self.clb_params.sync_parameter("amplitude", self.clb_driver.get_amplitude()):
+            self.ui.amplitude_spinbox.setValue(self.clb_params.amplitude)
+        if self.clb_params.sync_parameter("frequency", self.clb_driver.get_frequency()):
+            self.ui.frequency_spinbox.setValue(self.clb_params.frequency)
+        if self.clb_params.sync_parameter("signal_type", self.clb_driver.get_signal_type()):
+            self.int_to_signal_type[self.clb_params.signal_type].setChecked(True)
+        if self.clb_params.sync_parameter("dc_polarity", self.clb_driver.get_polarity()):
+            if self.clb_params.dc_polarity == clb.DcPolatiry.POS:
+                self.ui.polarity_button.setChecked(False)
+                self.ui.polarity_button.setText("+")
+            else:
+                self.ui.polarity_button.setChecked(True)
+                self.ui.polarity_button.setText("-")
+        if self.clb_params.sync_parameter("signal_on", self.clb_driver.enabled()):
+            if self.clb_params.signal_on:
+                self.ui.enable_button.setChecked(True)
+                self.ui.enable_button.setText("Disable")
+            else:
+                self.ui.enable_button.setChecked(False)
+                self.ui.enable_button.setText("Enable")
 
     def set_amplitude(self):
         amplitude = self.ui.amplitude_spinbox.value()
