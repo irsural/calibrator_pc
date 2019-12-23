@@ -1,0 +1,9 @@
+*.xml
+*.iml
+*.pyc
+*.db
+*.spec
+/build
+/venv
+/Lib
+/Scripts
