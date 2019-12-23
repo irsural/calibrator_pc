@@ -58,9 +58,6 @@ class MainWindow(QMainWindow):
         clb_driver_lib.set_polarity.argtypes = [ctypes.c_int]
         clb_driver_lib.get_polarity.restype = ctypes.c_int
 
-        clb_driver_lib.set_polarity.argtypes = [ctypes.c_int]
-        clb_driver_lib.get_polarity.restype = ctypes.c_int
-
         clb_driver_lib.signal_enable.argtypes = [ctypes.c_int]
         clb_driver_lib.enabled.restype = ctypes.c_int
 
@@ -69,6 +66,14 @@ class MainWindow(QMainWindow):
     def connect_signals(self):
         self.ui.clb_list_combobox.currentTextChanged.connect(self.connect_to_clb)
         self.ui.amplitude_spinbox.valueChanged.connect(self.set_amplitude)
+        self.ui.frequency_spinbox.valueChanged.connect(self.set_frequency)
+
+        self.ui.polarity_button.clicked.connect(self.polarity_button_clicked)
+
+        self.ui.aci_radio.toggled.connect(self.aci_radio_checked)
+        self.ui.acv_radio.toggled.connect(self.acv_radio_checked)
+        self.ui.dci_radio.toggled.connect(self.dci_radio_checked)
+        self.ui.dcv_radio.toggled.connect(self.dcv_radio_checked)
 
     def update_usb(self):
         self.clb_driver.usb_tick()
@@ -113,3 +118,32 @@ class MainWindow(QMainWindow):
     def set_amplitude(self):
         amplitude = self.ui.amplitude_spinbox.value()
         self.clb_driver.set_amplitude(amplitude)
+
+    def set_frequency(self):
+        frequency = self.ui.frequency_spinbox.value()
+        self.clb_driver.set_frequency(frequency)
+
+    def polarity_button_clicked(self, a_checked):
+        if a_checked:
+            self.clb_driver.set_polarity(clb.DcPolatiry.NEG)
+            self.ui.polarity_button.setText("-")
+        else:
+            self.clb_driver.set_polarity(clb.DcPolatiry.POS)
+            self.ui.polarity_button.setText("+")
+
+    def aci_radio_checked(self):
+        self.clb_driver.set_signal_type(clb.SignalType.ACI)
+        # pass
+
+    def acv_radio_checked(self):
+        self.clb_driver.set_signal_type(clb.SignalType.ACV)
+        # pass
+
+    def dci_radio_checked(self):
+        self.clb_driver.set_signal_type(clb.SignalType.DCI)
+        # pass
+
+    def dcv_radio_checked(self):
+        self.clb_driver.set_signal_type(clb.SignalType.DCV)
+        # pass
+
