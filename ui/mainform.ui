@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>403</width>
-    <height>221</height>
+    <width>212</width>
+    <height>123</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -26,6 +26,29 @@
         </property>
        </widget>
       </item>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout">
+        <item>
+         <widget class="QLabel" name="amplitude_label">
+          <property name="font">
+           <font>
+            <pointsize>15</pointsize>
+           </font>
+          </property>
+          <property name="text">
+           <string>Амплитуда</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QDoubleSpinBox" name="amplitude_spinbox">
+          <property name="maximum">
+           <double>600.000000000000000</double>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
      </layout>
     </item>
    </layout>
@@ -35,7 +58,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>403</width>
+     <width>212</width>
      <height>21</height>
     </rect>
    </property>
