@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>313</width>
-    <height>247</height>
+    <width>364</width>
+    <height>285</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -63,6 +63,9 @@
             <pointsize>15</pointsize>
            </font>
           </property>
+          <property name="decimals">
+           <number>9</number>
+          </property>
           <property name="maximum">
            <double>600.000000000000000</double>
           </property>
@@ -87,6 +90,15 @@
             <pointsize>15</pointsize>
            </font>
           </property>
+          <property name="decimals">
+           <number>9</number>
+          </property>
+          <property name="minimum">
+           <double>40.000000000000000</double>
+          </property>
+          <property name="maximum">
+           <double>2000.000000000000000</double>
+          </property>
          </widget>
         </item>
        </layout>
@@ -107,6 +119,9 @@
           <property name="text">
            <string>~U</string>
           </property>
+          <attribute name="buttonGroup">
+           <string notr="true">buttonGroup_2</string>
+          </attribute>
          </widget>
         </item>
         <item>
@@ -119,6 +134,9 @@
           <property name="text">
            <string>=U</string>
           </property>
+          <attribute name="buttonGroup">
+           <string notr="true">buttonGroup_2</string>
+          </attribute>
          </widget>
         </item>
         <item>
@@ -131,6 +149,9 @@
           <property name="text">
            <string>~I</string>
           </property>
+          <attribute name="buttonGroup">
+           <string notr="true">buttonGroup_2</string>
+          </attribute>
          </widget>
         </item>
         <item>
@@ -143,6 +164,9 @@
           <property name="text">
            <string>=I</string>
           </property>
+          <attribute name="buttonGroup">
+           <string notr="true">buttonGroup_2</string>
+          </attribute>
          </widget>
         </item>
         <item>
@@ -164,7 +188,7 @@
       </item>
      </layout>
     </item>
-    <item row="2" column="0">
+    <item row="3" column="0">
      <widget class="QPushButton" name="enable_button">
       <property name="font">
        <font>
@@ -179,6 +203,59 @@
       </property>
      </widget>
     </item>
+    <item row="2" column="0">
+     <layout class="QHBoxLayout" name="horizontalLayout_4">
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_5">
+        <item>
+         <widget class="QRadioButton" name="source_mode_radio">
+          <property name="font">
+           <font>
+            <pointsize>15</pointsize>
+           </font>
+          </property>
+          <property name="text">
+           <string>Источник</string>
+          </property>
+          <attribute name="buttonGroup">
+           <string notr="true">buttonGroup</string>
+          </attribute>
+         </widget>
+        </item>
+        <item>
+         <widget class="QRadioButton" name="fixed_mode_radio">
+          <property name="font">
+           <font>
+            <pointsize>15</pointsize>
+           </font>
+          </property>
+          <property name="text">
+           <string>Фиксир.</string>
+          </property>
+          <attribute name="buttonGroup">
+           <string notr="true">buttonGroup</string>
+          </attribute>
+         </widget>
+        </item>
+        <item>
+         <widget class="QRadioButton" name="detuning_radio">
+          <property name="font">
+           <font>
+            <pointsize>15</pointsize>
+           </font>
+          </property>
+          <property name="text">
+           <string>Расстройка</string>
+          </property>
+          <attribute name="buttonGroup">
+           <string notr="true">buttonGroup</string>
+          </attribute>
+         </widget>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </item>
    </layout>
   </widget>
   <widget class="QMenuBar" name="menubar">
@@ -186,7 +263,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>313</width>
+     <width>364</width>
      <height>21</height>
     </rect>
    </property>
@@ -195,4 +272,8 @@
  </widget>
  <resources/>
  <connections/>
+ <buttongroups>
+  <buttongroup name="buttonGroup"/>
+  <buttongroup name="buttonGroup_2"/>
+ </buttongroups>
 </ui>
