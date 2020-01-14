@@ -51,14 +51,14 @@ class NewNoTemplateMeasureDialog(QDialog):
         ok = 0
         no_calibrator = 1
         upper_less_than_lower = 2
-        upper_lezz_than_zero = 3
+        upper_less_than_zero = 3
         step_is_zero = 4
 
     input_status_to_msg = {
         InputStatus.ok: "Ввод корректен",
         InputStatus.no_calibrator: "Калибратор не выбран",
         InputStatus.upper_less_than_lower: "Значение верхней точки должно быть больше значения нижней точки",
-        InputStatus.upper_lezz_than_zero: "В режиме переменного тока напряжение/сила тока должны быть положительными",
+        InputStatus.upper_less_than_zero: "В режиме переменного тока напряжение/сила тока должны быть положительными",
         InputStatus.step_is_zero: "Шаг поверки не должен быть равен нулю",
     }
 
@@ -152,7 +152,7 @@ class NewNoTemplateMeasureDialog(QDialog):
             return self.InputStatus.upper_less_than_lower
         elif (a_config.signal_type == clb.SignalType.ACI or a_config.signal_type == clb.SignalType.ACV) and \
                 (a_config.upper_bound < 0 or a_config.lower_bound < 0):
-            return self.InputStatus.upper_lezz_than_zero
+            return self.InputStatus.upper_less_than_zero
         elif a_config.auto_calc_points and a_config.points_step == 0:
             return self.InputStatus.step_is_zero
         else:

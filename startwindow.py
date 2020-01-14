@@ -81,7 +81,7 @@ class StartWindow(QMainWindow):
             self.active_window = NoTemplateWindow(self.calibrator, measure_config)
             self.change_window()
 
-        except AssertionError as err:
+        except Exception as err:
             print(err)
 
     @pyqtSlot()

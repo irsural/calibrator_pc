@@ -20,7 +20,6 @@ class SourceModeWindow(QWidget):
 
         self.connect_signals()
 
-        self.clb_params = clb.ClbParams()
         self.int_to_signal_type = {
             clb.SignalType.ACI: self.ui.aci_radio,
             clb.SignalType.ACV: self.ui.acv_radio,
