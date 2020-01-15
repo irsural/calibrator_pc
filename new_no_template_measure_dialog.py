@@ -9,28 +9,28 @@ import utils
 
 class NoTemplateConfig:
     class DisplayResolution(enum.IntEnum):
-        xxx = 0
-        xx = 1
-        x = 2
-        x_0 = 3
-        x_00 = 4
-        x_000 = 5
+        XXX = 0
+        XX = 1
+        X = 2
+        X_0 = 3
+        X_00 = 4
+        X_000 = 5
 
-    class ApproachSide(enum.IntEnum):
-        Down = 0
-        Up = 1
+    class StartPoint(enum.IntEnum):
+        LOWER = 0
+        UPPER = 1
 
     def __init__(self):
         self.signal_type = clb.SignalType.ACI
         self.clb_name = ""
         self.lower_bound = 0.
         self.upper_bound = 0.
-        self.display_resolution = self.DisplayResolution.x
+        self.display_resolution = self.DisplayResolution.X
         self.point_approach_accuracy = 10.
 
         self.auto_calc_points = False
         self.points_step = 0.
-        self.approach_side = self.ApproachSide.Up
+        self.start_point = self.StartPoint.UPPER
 
     def __str__(self):
         return f"Signal type: {self.signal_type.name}\n" \
@@ -41,7 +41,7 @@ class NoTemplateConfig:
             f"Accuracy: {self.point_approach_accuracy}\n" \
             f"Auto calc: {self.auto_calc_points}\n" \
             f"Step: {self.points_step}\n" \
-            f"Side: {self.approach_side.name}\n"
+            f"Side: {self.start_point.name}\n"
 
 
 class NewNoTemplateMeasureDialog(QDialog):
@@ -53,6 +53,7 @@ class NewNoTemplateMeasureDialog(QDialog):
         upper_less_than_lower = 2
         upper_less_than_zero = 3
         step_is_zero = 4
+        empty_fields = 5
 
     input_status_to_msg = {
         InputStatus.ok: "Ввод корректен",
@@ -60,6 +61,7 @@ class NewNoTemplateMeasureDialog(QDialog):
         InputStatus.upper_less_than_lower: "Значение верхней точки должно быть больше значения нижней точки",
         InputStatus.upper_less_than_zero: "В режиме переменного тока напряжение/сила тока должны быть положительными",
         InputStatus.step_is_zero: "Шаг поверки не должен быть равен нулю",
+        InputStatus.empty_fields: "Необходимо заполнить все поля"
     }
 
     def __init__(self, a_calibrator: clb_dll.ClbDrv):
@@ -80,6 +82,8 @@ class NewNoTemplateMeasureDialog(QDialog):
 
         self.ui.step_help_button.clicked.connect(self.show_step_help)
 
+        self.ui.clb_list_combobox.currentTextChanged.connect(self.connect_to_clb)
+
     @pyqtSlot(list)
     def update_clb_list(self, a_clb_list: list):
         self.ui.clb_list_combobox.clear()
@@ -90,6 +94,9 @@ class NewNoTemplateMeasureDialog(QDialog):
     def update_clb_status(self, a_status: str):
         # self.ui.usb_state_label.setText(a_status)
         pass
+
+    def connect_to_clb(self, a_clb_name):
+        self.calibrator.connect(a_clb_name)
 
     def restore_config(self, a_measure_config: NoTemplateConfig):
         # self.measure_config = a_measure_config
@@ -104,8 +111,8 @@ class NewNoTemplateMeasureDialog(QDialog):
 
         self.measure_config.auto_calc_points = bool(self.ui.auto_calc_points_checkbox.isChecked())
         self.measure_config.points_step = utils.parse_input(self.ui.step_edit.text())
-        self.measure_config.approach_side = NoTemplateConfig.ApproachSide.Up if self.ui.approach_up_radio.isChecked() \
-            else NoTemplateConfig.ApproachSide.Down
+        self.measure_config.start_point = NoTemplateConfig.StartPoint.UPPER if self.ui.approach_up_radio.isChecked() \
+            else NoTemplateConfig.StartPoint.LOWER
 
     def get_config(self):
         return self.measure_config

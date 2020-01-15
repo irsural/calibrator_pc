@@ -43,10 +43,10 @@ class SourceModeWindow(QWidget):
         self.ui.amplitude_edit.textChanged.connect(self.amplitude_edit_text_changed)
         self.ui.frequency_spinbox.valueChanged.connect(self.set_frequency)
 
-        self.ui.aci_radio.toggled.connect(self.aci_radio_checked)
-        self.ui.acv_radio.toggled.connect(self.acv_radio_checked)
-        self.ui.dci_radio.toggled.connect(self.dci_radio_checked)
-        self.ui.dcv_radio.toggled.connect(self.dcv_radio_checked)
+        self.ui.aci_radio.clicked.connect(self.aci_radio_checked)
+        self.ui.acv_radio.clicked.connect(self.acv_radio_checked)
+        self.ui.dci_radio.clicked.connect(self.dci_radio_checked)
+        self.ui.dcv_radio.clicked.connect(self.dcv_radio_checked)
 
         self.ui.polarity_button.clicked.connect(self.polarity_button_clicked)
 
@@ -79,6 +79,7 @@ class SourceModeWindow(QWidget):
             self.ui.frequency_spinbox.setValue(self.calibrator.frequency)
 
         if self.calibrator.signal_type_changed():
+            print(self.int_to_signal_type[self.calibrator.signal_type].text())
             self.int_to_signal_type[self.calibrator.signal_type].setChecked(True)
 
         if self.calibrator.polarity_changed():
@@ -110,18 +111,22 @@ class SourceModeWindow(QWidget):
             self.calibrator.frequency = self.ui.frequency_spinbox.value()
 
     def aci_radio_checked(self):
+        print("aci")
         if not self.block_signals:
             self.calibrator.signal_type = clb.SignalType.ACI
 
     def acv_radio_checked(self):
+        print("acv")
         if not self.block_signals:
             self.calibrator.signal_type = clb.SignalType.ACV
 
     def dci_radio_checked(self):
+        print("dci")
         if not self.block_signals:
             self.calibrator.signal_type = clb.SignalType.DCI
 
     def dcv_radio_checked(self):
+        print("dcv")
         if not self.block_signals:
             self.calibrator.signal_type = clb.SignalType.DCV
 
@@ -154,4 +159,5 @@ class SourceModeWindow(QWidget):
         print("here1")
         self.hide()
         self.window_is_closed.emit()
+        event.accept()
         print("here3")

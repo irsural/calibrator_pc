@@ -113,6 +113,24 @@
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout_2">
      <item>
+      <widget class="QRadioButton" name="aci_radio">
+       <property name="font">
+        <font>
+         <pointsize>15</pointsize>
+        </font>
+       </property>
+       <property name="text">
+        <string>~I</string>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
+       </property>
+       <attribute name="buttonGroup">
+        <string notr="true">signal_group</string>
+       </attribute>
+      </widget>
+     </item>
+     <item>
       <widget class="QRadioButton" name="acv_radio">
        <property name="font">
         <font>
@@ -123,7 +141,7 @@
         <string>~U</string>
        </property>
        <property name="checked">
-        <bool>true</bool>
+        <bool>false</bool>
        </property>
        <attribute name="buttonGroup">
         <string notr="true">signal_group</string>
@@ -139,21 +157,6 @@
        </property>
        <property name="text">
         <string>=U</string>
-       </property>
-       <attribute name="buttonGroup">
-        <string notr="true">signal_group</string>
-       </attribute>
-      </widget>
-     </item>
-     <item>
-      <widget class="QRadioButton" name="aci_radio">
-       <property name="font">
-        <font>
-         <pointsize>15</pointsize>
-        </font>
-       </property>
-       <property name="text">
-        <string>~I</string>
        </property>
        <attribute name="buttonGroup">
         <string notr="true">signal_group</string>

@@ -1,4 +1,5 @@
 import enum
+from collections import namedtuple
 
 
 class Polatiry(enum.IntEnum):
@@ -38,22 +39,5 @@ enum_to_signal_type = {
     SignalType.DCV: "Постоянное напряжение"
 }
 
-
-# class ClbParams:
-#     def __init__(self):
-#         self.amplitude = 0
-#         self.frequency = 0
-#         self.signal_type = SignalType.ACI
-#         self.dc_polarity = Polatiry.POS
-#         self.signal_on = False
-#         self.mode = Mode.SOURCE
-#
-#     def sync_parameter(self, param_name: str, value):
-#         variable = getattr(self, param_name)
-#         if variable != value:
-#             setattr(self, param_name, value)
-#             return True
-#         else:
-#             return False
-
-
+Step = namedtuple("Step", "ROUGH COMMON EXACT")
+AmplitudeStep = Step(0.005, 0.0005, 0.00002)

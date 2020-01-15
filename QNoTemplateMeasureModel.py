@@ -3,23 +3,21 @@ import enum
 
 
 class PointData:
-    def __init__(self):
-        self.point = 0
-        self.up_value = 0
-        self.up_deviation = 0
-        self.up_deviation_percent = 0
-        self.down_value = 0
-        self.down_deviation = 0
-        self.down_deviation_percent = 0
+    # Определяет, куда записать значение, в UP_VALUE или в DOWN_VALUE
+    class ApproachSize(enum.IntEnum):
+        UP = 0
+        DOWN = 1
+        NONE = 2
+
+    def __init__(self, a_point=0., a_value=0., a_side=ApproachSize.NONE):
+        self.point = a_point
+        self.value = a_value
+        self.side = self.ApproachSize.UP
 
     def __str__(self):
         return f"Point: {self.point}\n" \
-            f"Up: {self.up_value}\n" \
-            f"Up dev{self.up_deviation}\n" \
-            f"Up dev percent{self.up_deviation_percent}\n" \
-            f"Down: {self.down_value}\n" \
-            f"Down dev{self.down_deviation}\n" \
-            f"Down dev percent{self.down_deviation_percent}\n"
+            f"Value: {self.value}\n" \
+            f"Side: {self.side.name}\n"
 
 
 class QNoTemplateMeasureModel(QAbstractTableModel):
@@ -52,11 +50,10 @@ class QNoTemplateMeasureModel(QAbstractTableModel):
 
         self.__points: list[list[str]] = []
 
-    def appendPoint(self, a_point: PointData):
-        point_data = [str(a_point.point), str(a_point.up_value), str(a_point.up_deviation),
-                      str(a_point.up_deviation_percent), str(a_point.down_value), str(a_point.down_deviation),
-                      str(a_point.down_deviation_percent)
-                      ]
+    def appendPoint(self, a_point_data: PointData):
+        # if
+
+        point_data = [str(a_point_data.point), str(a_point_data.value), "0", "0", str(a_point_data.value), "0", "0"]
 
         row = self.rowCount()
         self.beginInsertRows(QModelIndex(), row, row)

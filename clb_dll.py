@@ -1,5 +1,6 @@
 import ctypes
 import enum
+import utils
 import calibrator_constants as clb
 
 
@@ -103,6 +104,17 @@ class UsbDrv:
 
 
 class ClbDrv:
+    MAX_CURRENT = 11
+    MIN_CURRENT = -11
+
+    MAX_VOLTAGE = 600
+    MIN_VOLTAGE = -600
+
+    MIN_ALTERNATIVE = 0
+
+    MAX_FREQUENCY = 2000
+    MIN_FREQUENCY = 0
+
     def __init__(self, a_clb_dll):
         self.__clb_dll = a_clb_dll
 
@@ -141,8 +153,19 @@ class ClbDrv:
 
     @amplitude.setter
     def amplitude(self, a_amplitude: float):
-        self.__amplitude = a_amplitude
-        self.__clb_dll.set_amplitude(a_amplitude)
+        self.__amplitude = self.bound_amplitude(a_amplitude)
+        self.__clb_dll.set_amplitude(self.__amplitude)
+
+    def bound_amplitude(self, a_amplitude):
+        min_value = self.MIN_VOLTAGE
+        max_value = self.MAX_VOLTAGE
+        if self.__signal_type == clb.SignalType.ACI or self.__signal_type == clb.SignalType.DCI:
+            min_value = self.MAX_CURRENT
+            max_value = self.MAX_CURRENT
+        if self.__signal_type == clb.SignalType.ACV or self.__signal_type == clb.SignalType.ACI:
+            min_value = self.MIN_ALTERNATIVE
+
+        return utils.bound(a_amplitude, min_value, max_value)
 
     def frequency_changed(self):
         actual_frequency = self.__clb_dll.get_frequency()
@@ -158,7 +181,7 @@ class ClbDrv:
 
     @frequency.setter
     def frequency(self, a_frequency: float):
-        self.__frequency = a_frequency
+        self.__frequency = utils.bound(a_frequency, self.MIN_FREQUENCY, self.MAX_FREQUENCY)
         self.__clb_dll.set_frequency(a_frequency)
 
     def signal_type_changed(self):
