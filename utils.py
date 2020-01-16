@@ -1,22 +1,10 @@
-from PyQt5.QtWidgets import QLineEdit
 import numpy as np
-
+import math
 
 def parse_input(a_input: str):
     if not a_input:
         return 0.
     return float(a_input)
-
-
-def update_edit_color(actual_value: float, a_edit: QLineEdit):
-    try:
-        amplitude = float(a_edit.text())
-        if amplitude == actual_value:
-            a_edit.setStyleSheet("background-color: rgb(255, 255, 255);")
-        else:
-            a_edit.setStyleSheet("background-color: rgb(250, 250, 170);")
-    except ValueError:
-        a_edit.setStyleSheet("background-color: rgb(245, 206, 203);")
 
 
 def deviation(a_lval: float, a_rval: float):
@@ -40,3 +28,33 @@ def auto_calc_points(a_start: float, a_stop: float, a_step:float):
 
 def bound(a_value, a_min, a_max):
     return max(min(a_value, a_max), a_min)
+
+
+def relative_step_change(a_value, a_step):
+    absolute_step = abs(a_value * a_step)
+    exp = int(math.floor(math.log10(absolute_step)))
+
+    absolute_step /= pow(10., exp)
+    get_new_step = lambda x, y: x if absolute_step < math.sqrt(x * y) else y
+
+    if absolute_step <= 2:
+        new_step = 1 if absolute_step < math.sqrt(1 * 2) else 2
+        test_step = get_new_step(1, 2)
+    elif absolute_step < 5:
+        new_step = 2 if absolute_step < math.sqrt(2 * 5) else 5
+        test_step = get_new_step(2, 5)
+    else:
+        new_step = 5 if absolute_step < math.sqrt(5 * 10) else 10
+        test_step = get_new_step(5, 10)
+
+    assert new_step == test_step, f"new: {new_step}, test: {test_step}. dont work"
+
+    new_step *= pow(10., exp)
+    sign = 1 if a_step >= 0 else -1
+    a_value += new_step * sign
+
+    finish_value = math.ceil(a_value / new_step) * new_step if sign > 0 \
+        else math.floor(a_value / new_step) * new_step
+
+    return finish_value
+

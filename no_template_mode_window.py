@@ -6,6 +6,7 @@ from new_no_template_measure_dialog import NoTemplateConfig
 from ui.py.no_template_mode_form import Ui_Form as NoTemplateForm
 import clb_dll
 import utils
+import qt_utils
 import calibrator_constants as clb
 from QNoTemplateMeasureModel import PointData, QNoTemplateMeasureModel
 
@@ -29,6 +30,7 @@ class NoTemplateWindow(QWidget):
 
         self.calibrator = a_calibrator
         self.calibrator.signal_type = self.measure_config.signal_type
+        self.fixed_step = 1
         self.current_point = PointData()
         # Нужно для автоматического определения стороны подхода к точке
         self.prev_amplitude = 0
@@ -39,7 +41,7 @@ class NoTemplateWindow(QWidget):
         self.clb_check_timer = QTimer()
         self.clb_check_timer.timeout.connect(self.sync_clb_parameters)
         self.clb_check_timer.start(10)
-        # self.block_signals = False
+
 
     def set_window_elements(self):
         self.units_text = "А" if self.measure_config == clb.SignalType.ACI or \
@@ -89,36 +91,31 @@ class NoTemplateWindow(QWidget):
         self.ui.usb_state_label.setText(a_status)
 
     def sync_clb_parameters(self):
-        try:
-            if self.calibrator.amplitude_changed():
-                self.ui.amplitude_edit.setText(f"{self.calibrator.amplitude:.9f}")
+        if self.calibrator.amplitude_changed():
+            self.set_amplitude(self.calibrator.amplitude)
+            # self.ui.amplitude_edit.setText(f"{self.calibrator.amplitude:.9f}")
 
-            if self.calibrator.frequency_changed():
-                self.ui.frequency_edit.setText(f"{self.calibrator.frequency:.9f}")
+        if self.calibrator.frequency_changed():
+            self.set_frequency(self.calibrator.frequency)
+            # self.ui.frequency_edit.setText(f"{self.calibrator.frequency:.9f}")
 
-            if self.calibrator.signal_enable_changed():
-                if self.calibrator.signal_enable:
-                    self.ui.clb_state_label.setText("Включен")
-                else:
-                    self.ui.clb_state_label.setText("Отключен")
+        if self.calibrator.signal_enable_changed():
+            if self.calibrator.signal_enable:
+                self.ui.clb_state_label.setText("Включен")
+            else:
+                self.ui.clb_state_label.setText("Отключен")
 
-            if self.calibrator.signal_type_changed():
-                if self.calibrator.signal_type != self.measure_config.signal_type:
-                    self.calibrator.signal_type = self.measure_config.signal_type
-
-            # self.calibrator.polarity_changed()
-        except Exception as err:
-            print(err)
+        if self.calibrator.signal_type_changed():
+            if self.calibrator.signal_type != self.measure_config.signal_type:
+                self.calibrator.signal_type = self.measure_config.signal_type
 
     def wheelEvent(self, event: QWheelEvent):
         try:
-            degrees_num = event.angleDelta() / 8
-            steps_num: QPoint = degrees_num / 15
-            steps: int = steps_num.y()
+            steps = qt_utils.get_wheel_steps(event)
 
             keys = event.modifiers()
             if (keys & Qt.ControlModifier) and (keys & Qt.ShiftModifier):
-                self.change_amplitude(1 * steps)
+                self.set_amplitude(self.calibrator.amplitude + (self.fixed_step * steps))
             elif keys & Qt.ShiftModifier:
                 self.change_amplitude(clb.AmplitudeStep.EXACT * steps)
             elif keys & Qt.ControlModifier:
@@ -131,6 +128,7 @@ class NoTemplateWindow(QWidget):
             print(err)
 
     def set_amplitude(self, a_amplitude):
+        self.update_current_point(a_amplitude)
         self.calibrator.amplitude = a_amplitude
         self.ui.amplitude_edit.setText(f"{self.calibrator.amplitude:.9f}")
 
@@ -139,7 +137,12 @@ class NoTemplateWindow(QWidget):
         self.ui.frequency_edit.setText(f"{self.calibrator.frequency:.9f}")
 
     def change_amplitude(self, a_step):
-        self.set_amplitude(self.calibrator.amplitude + a_step)
+        self.set_amplitude(utils.relative_step_change(self.calibrator.amplitude, a_step))
+
+    def update_current_point(self, a_current_value):
+        self.current_point.point = self.guess_point(a_current_value)
+        self.current_point.prev_value = self.current_point.value
+        self.current_point.value = a_current_value
 
     @pyqtSlot()
     def start_stop_measure(self):
@@ -207,10 +210,10 @@ class NoTemplateWindow(QWidget):
         return str(data)
 
     def amplitude_edit_text_changed(self):
-        utils.update_edit_color(self.calibrator.amplitude, self.ui.amplitude_edit)
+        qt_utils.update_edit_color(self.calibrator.amplitude, self.ui.amplitude_edit)
 
     def frequency_edit_text_changed(self):
-        utils.update_edit_color(self.calibrator.frequency, self.ui.frequency_edit)
+        qt_utils.update_edit_color(self.calibrator.frequency, self.ui.frequency_edit)
 
     @pyqtSlot()
     def rough_plus_button_clicked(self):

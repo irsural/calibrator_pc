@@ -171,7 +171,6 @@ class ClbDrv:
         return utils.bound(a_amplitude, min_value, max_value)
 
     def __set_polarity_by_amplitude_sign(self, a_amplitude):
-        print("set", a_amplitude, clb.Polatiry(self.__clb_dll.get_polarity()).name)
         if a_amplitude < 0 and self.__clb_dll.get_polarity() != clb.Polatiry.NEG:
             self.__clb_dll.set_polarity(clb.Polatiry.NEG)
         elif a_amplitude >= 0 and self.__clb_dll.get_polarity() != clb.Polatiry.POS:
