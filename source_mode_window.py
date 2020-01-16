@@ -82,12 +82,12 @@ class SourceModeWindow(QWidget):
             print(self.int_to_signal_type[self.calibrator.signal_type].text())
             self.int_to_signal_type[self.calibrator.signal_type].setChecked(True)
 
-        if self.calibrator.polarity_changed():
-            self.ui.polarity_button.setText(clb.int_to_polarity[self.calibrator.polarity])
-            if self.calibrator.polarity == clb.Polatiry.POS:
-                self.ui.polarity_button.setChecked(False)
-            else:
-                self.ui.polarity_button.setChecked(True)
+        # if self.calibrator.polarity_changed():
+        #     self.ui.polarity_button.setText(clb.int_to_polarity[self.calibrator.polarity])
+        #     if self.calibrator.polarity == clb.Polatiry.POS:
+        #         self.ui.polarity_button.setChecked(False)
+        #     else:
+        #         self.ui.polarity_button.setChecked(True)
 
         if self.calibrator.signal_enable_changed():
             if self.calibrator.signal_enable:

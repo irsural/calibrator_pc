@@ -28,9 +28,9 @@ class NoTemplateWindow(QWidget):
         self.set_window_elements()
 
         self.calibrator = a_calibrator
-        self.calibrator.connect(self.measure_config.clb_name)
-        # Нужно для автоматического определения стороны подхода к точке
+        self.calibrator.signal_type = self.measure_config.signal_type
         self.current_point = PointData()
+        # Нужно для автоматического определения стороны подхода к точке
         self.prev_amplitude = 0
 
         self.connect_signals()
@@ -60,7 +60,7 @@ class NoTemplateWindow(QWidget):
                                                            self.measure_config.points_step)
 
             for point in calculated_points:
-                self.measure_model.appendPoint(PointData(point, 0, PointData.ApproachSize.NONE))
+                self.measure_model.appendPoint(PointData(point, 0, 0))
 
     def connect_signals(self):
         self.ui.start_stop_button.clicked.connect(self.start_stop_measure)
@@ -89,22 +89,26 @@ class NoTemplateWindow(QWidget):
         self.ui.usb_state_label.setText(a_status)
 
     def sync_clb_parameters(self):
-        if self.calibrator.amplitude_changed():
-            self.ui.amplitude_edit.setText(f"{self.calibrator.amplitude:.9f}")
+        try:
+            if self.calibrator.amplitude_changed():
+                self.ui.amplitude_edit.setText(f"{self.calibrator.amplitude:.9f}")
 
-        if self.calibrator.frequency_changed():
-            self.ui.frequency_edit.setText(f"{self.calibrator.frequency:.9f}")
+            if self.calibrator.frequency_changed():
+                self.ui.frequency_edit.setText(f"{self.calibrator.frequency:.9f}")
 
-        if self.calibrator.signal_enable_changed():
-            if self.calibrator.signal_enable:
-                self.ui.clb_state_label.setText("Включен")
-            else:
-                self.ui.clb_state_label.setText("Отключен")
+            if self.calibrator.signal_enable_changed():
+                if self.calibrator.signal_enable:
+                    self.ui.clb_state_label.setText("Включен")
+                else:
+                    self.ui.clb_state_label.setText("Отключен")
 
-        if self.calibrator.signal_type_changed():
-            if self.calibrator.signal_type != self.measure_config.signal_type:
-                print(self.calibrator.signal_type)
-                self.calibrator.signal_type = self.measure_config.signal_type
+            if self.calibrator.signal_type_changed():
+                if self.calibrator.signal_type != self.measure_config.signal_type:
+                    self.calibrator.signal_type = self.measure_config.signal_type
+
+            # self.calibrator.polarity_changed()
+        except Exception as err:
+            print(err)
 
     def wheelEvent(self, event: QWheelEvent):
         try:
@@ -169,7 +173,7 @@ class NoTemplateWindow(QWidget):
     def save_point(self):
         try:
             self.measure_model.appendPoint(PointData(self.guess_point(self.calibrator.amplitude),
-                                                     self.calibrator.amplitude, PointData.ApproachSize.UP))
+                                                     self.calibrator.amplitude, self.prev_amplitude))
         except Exception as err:
             print(err)
 

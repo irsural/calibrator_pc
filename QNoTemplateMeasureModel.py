@@ -3,21 +3,16 @@ import enum
 
 
 class PointData:
-    # Определяет, куда записать значение, в UP_VALUE или в DOWN_VALUE
-    class ApproachSize(enum.IntEnum):
-        UP = 0
-        DOWN = 1
-        NONE = 2
 
-    def __init__(self, a_point=0., a_value=0., a_side=ApproachSize.NONE):
+    def __init__(self, a_point=0., a_value=0., a_prev_value=0):
         self.point = a_point
         self.value = a_value
-        self.side = self.ApproachSize.UP
+        self.prev_value = a_prev_value
 
     def __str__(self):
         return f"Point: {self.point}\n" \
             f"Value: {self.value}\n" \
-            f"Side: {self.side.name}\n"
+            f"Prev value: {self.prev_value}\n"
 
 
 class QNoTemplateMeasureModel(QAbstractTableModel):
