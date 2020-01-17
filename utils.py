@@ -58,3 +58,10 @@ def relative_step_change(a_value, a_step):
 
     return finish_value
 
+
+def increase_on_percent(a_value, a_percent):
+    return a_value + a_value * a_percent / 100
+
+
+def reduce_on_percent(a_value, a_percent):
+    return a_value - a_value * a_percent / 100

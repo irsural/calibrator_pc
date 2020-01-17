@@ -104,17 +104,6 @@ class UsbDrv:
 
 
 class ClbDrv:
-    MAX_CURRENT = 11
-    MIN_CURRENT = -11
-
-    MAX_VOLTAGE = 600
-    MIN_VOLTAGE = -600
-
-    MIN_ALTERNATIVE = 0
-
-    MAX_FREQUENCY = 2000
-    MIN_FREQUENCY = 0
-
     def __init__(self, a_clb_dll):
         self.__clb_dll = a_clb_dll
 
@@ -127,14 +116,6 @@ class ClbDrv:
 
     def connect(self, a_clb_name: str):
         if a_clb_name:
-
-            self.__amplitude = 0
-            self.__frequency = 0
-            self.__signal_type = clb.SignalType.ACI
-            self.__dc_polarity = clb.Polatiry.POS
-            self.__signal_on = False
-            self.__mode = clb.Mode.SOURCE
-
             self.__clb_dll.connect_usb(a_clb_name)
         else:
             self.__clb_dll.disconnect_usb()
@@ -160,13 +141,13 @@ class ClbDrv:
         self.__set_polarity_by_amplitude_sign(self.__amplitude)
 
     def __bound_amplitude(self, a_amplitude):
-        min_value = self.MIN_VOLTAGE
-        max_value = self.MAX_VOLTAGE
+        min_value = clb.MIN_VOLTAGE
+        max_value = clb.MAX_VOLTAGE
         if self.__signal_type == clb.SignalType.ACI or self.__signal_type == clb.SignalType.DCI:
-            min_value = self.MIN_CURRENT
-            max_value = self.MAX_CURRENT
+            min_value = clb.MIN_CURRENT
+            max_value = clb.MAX_CURRENT
         if self.__signal_type == clb.SignalType.ACV or self.__signal_type == clb.SignalType.ACI:
-            min_value = self.MIN_ALTERNATIVE
+            min_value = clb.MIN_ALTERNATIVE
 
         return utils.bound(a_amplitude, min_value, max_value)
 
@@ -190,7 +171,7 @@ class ClbDrv:
 
     @frequency.setter
     def frequency(self, a_frequency: float):
-        self.__frequency = utils.bound(a_frequency, self.MIN_FREQUENCY, self.MAX_FREQUENCY)
+        self.__frequency = utils.bound(a_frequency, clb.MIN_FREQUENCY, clb.MAX_FREQUENCY)
         self.__clb_dll.set_frequency(a_frequency)
 
     def signal_type_changed(self):

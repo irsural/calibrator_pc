@@ -257,7 +257,7 @@ class Ui_Dialog(object):
         self.dcv_radio.setText(_translate("Dialog", "U="))
         self.label_2.setText(_translate("Dialog", "Параметры поверки"))
         self.label_4.setText(_translate("Dialog", "Разрешение дисплея"))
-        self.upper_bound_edit.setText(_translate("Dialog", "0"))
+        self.upper_bound_edit.setText(_translate("Dialog", "1"))
         self.units_wildcard_2.setText(_translate("Dialog", "А"))
         self.label_5.setText(_translate("Dialog", "Верхняя точка"))
         self.label_3.setText(_translate("Dialog", "Нижняя точка"))

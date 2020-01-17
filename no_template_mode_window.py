@@ -25,6 +25,7 @@ class NoTemplateWindow(QWidget):
         self.measure_model = QNoTemplateMeasureModel(self)
         self.ui.measure_table.setModel(self.measure_model)
         self.header_menu = self.create_table_header_context_menu(self.ui.measure_table)
+        self.current_point = PointData()
 
         self.measure_config = a_measure_config
         self.units_text = "А"
@@ -32,15 +33,16 @@ class NoTemplateWindow(QWidget):
 
         self.calibrator = a_calibrator
         self.calibrator.signal_type = self.measure_config.signal_type
+        self.set_amplitude(self.calibrator.amplitude)
+        self.set_frequency(self.calibrator.frequency)
         self.fixed_step = 1
-        self.current_point = PointData()
         # Нужно для автоматического определения стороны подхода к точке
         self.prev_amplitude = 0
 
         self.connect_signals()
         self.started = False
 
-        self.clb_check_timer = QTimer()
+        self.clb_check_timer = QTimer(self)
         self.clb_check_timer.timeout.connect(self.sync_clb_parameters)
         self.clb_check_timer.start(10)
 
@@ -63,8 +65,13 @@ class NoTemplateWindow(QWidget):
         return menu
 
     def set_window_elements(self):
-        self.units_text = "А" if self.measure_config == clb.SignalType.ACI or \
-                                 self.measure_config == clb.SignalType.DCI else "В"
+        self.units_text = "А" if self.measure_config.signal_type == clb.SignalType.ACI or \
+                                 self.measure_config.signal_type == clb.SignalType.DCI else "В"
+
+        if self.measure_config.signal_type == clb.SignalType.DCI or \
+                self.measure_config.signal_type == clb.SignalType.DCV:
+            self.ui.apply_frequency_button.setDisabled(True)
+            self.ui.frequency_edit.setDisabled(True)
 
         self.setWindowTitle(f"{self.measure_config.clb_name}. Измерение без шаблона. "
                             f"{clb.enum_to_signal_type[self.measure_config.signal_type]}. "
@@ -99,7 +106,9 @@ class NoTemplateWindow(QWidget):
         self.ui.fixed_minus_button.clicked.connect(self.fixed_minus_button_clicked)
 
         self.ui.amplitude_edit.textEdited.connect(self.amplitude_edit_text_changed)
+        self.ui.apply_amplitude_button.clicked.connect(self.apply_amplitude_button_clicked)
         self.ui.frequency_edit.textEdited.connect(self.frequency_edit_text_changed)
+        self.ui.apply_frequency_button.clicked.connect(self.apply_frequency_button_clicked)
 
     @pyqtSlot(list)
     def update_clb_list(self, a_clb_list: list):
@@ -129,36 +138,51 @@ class NoTemplateWindow(QWidget):
                 self.calibrator.signal_type = self.measure_config.signal_type
 
     def wheelEvent(self, event: QWheelEvent):
-        try:
+        if self.ui.amplitude_edit.underMouse() or self.ui.frequency_edit.underMouse():
             steps = qt_utils.get_wheel_steps(event)
-
             keys = event.modifiers()
-            if (keys & Qt.ControlModifier) and (keys & Qt.ShiftModifier):
-                self.set_amplitude(self.calibrator.amplitude + (self.fixed_step * steps))
-            elif keys & Qt.ShiftModifier:
-                self.change_amplitude(clb.AmplitudeStep.EXACT * steps)
-            elif keys & Qt.ControlModifier:
-                self.change_amplitude(clb.AmplitudeStep.ROUGH * steps)
-            else:
-                self.change_amplitude(clb.AmplitudeStep.COMMON * steps)
+            tune_foo = self.tune_amplitude if self.ui.amplitude_edit.underMouse() else self.tune_frequency
 
-            event.accept()
-        except Exception as err:
-            print(err)
+            if (keys & Qt.ControlModifier) and (keys & Qt.ShiftModifier):
+                if self.ui.amplitude_edit.underMouse():
+                    self.set_amplitude(self.calibrator.amplitude + (self.fixed_step * steps))
+            elif keys & Qt.ShiftModifier:
+                tune_foo(clb.AmplitudeStep.EXACT * steps)
+            elif keys & Qt.ControlModifier:
+                tune_foo(clb.AmplitudeStep.ROUGH * steps)
+            else:
+                tune_foo(clb.AmplitudeStep.COMMON * steps)
+
+        event.accept()
 
     def set_amplitude(self, a_amplitude):
+        print(1)
         self.update_current_point(a_amplitude)
         self.calibrator.amplitude = a_amplitude
         self.ui.amplitude_edit.setText(f"{self.calibrator.amplitude:.9f}")
 
     def set_frequency(self, a_frequency):
+        print(1)
         self.calibrator.frequency = a_frequency
         self.ui.frequency_edit.setText(f"{self.calibrator.frequency:.9f}")
 
-    def change_amplitude(self, a_step):
-        self.set_amplitude(utils.relative_step_change(self.calibrator.amplitude, a_step))
+    def tune_amplitude(self, a_step):
+        try:
+            self.set_amplitude(utils.relative_step_change(self.calibrator.amplitude, a_step))
+        except Exception as err:
+            print(err)
+
+    def tune_frequency(self, a_step):
+        try:
+            self.set_frequency(utils.relative_step_change(self.calibrator.frequency, a_step))
+        except Exception as err:
+            print(err)
 
     def update_current_point(self, a_current_value):
+        """
+        Обновляет данные, которые будут записаны в таблицу по кнопке "Сохранить точку"
+        :param a_current_value: Новое значение амплитуды
+        """
         self.current_point.point = self.guess_point(a_current_value)
         self.current_point.prev_value = self.current_point.value
         self.current_point.value = a_current_value
@@ -167,12 +191,14 @@ class NoTemplateWindow(QWidget):
     def start_stop_measure(self):
         try:
             if not self.started:
+                highest_point = utils.increase_on_percent(self.measure_config.upper_bound,
+                                                               self.measure_config.point_approach_accuracy)
                 reply = QMessageBox.question(self, "Подтвердите действие",
                                              f"Начать поверку?\n"
                                              f"На калибраторе будет включен сигнал и установлены следующие параметры:\n"
                                              f"Режим измерения: Фиксированный диапазон\n"
                                              f"Тип сигнала: {clb.enum_to_signal_type[self.measure_config.signal_type]}\n"
-                                             f"Амплитуда: {self.measure_config.upper_bound} + ???% {self.units_text}",
+                                             f"Амплитуда: {highest_point} {self.units_text}",
                                              QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
 
                 if reply == QMessageBox.Yes:
@@ -186,8 +212,8 @@ class NoTemplateWindow(QWidget):
         self.ui.start_stop_button.setText("Закончить\nповерку")
         self.started = True
 
-        self.calibrator.mode = clb.Mode.FIXED_RANGE
         self.set_amplitude(self.measure_config.upper_bound)
+        self.calibrator.mode = clb.Mode.FIXED_RANGE
         self.calibrator.signal_type = self.measure_config.signal_type
         self.calibrator.signal_enable = True
 
@@ -228,57 +254,74 @@ class NoTemplateWindow(QWidget):
         data = self.ui.measure_table.model().data(index)
         return str(data)
 
+    @pyqtSlot()
     def amplitude_edit_text_changed(self):
         qt_utils.update_edit_color(self.calibrator.amplitude, self.ui.amplitude_edit)
 
+    @pyqtSlot()
+    def apply_amplitude_button_clicked(self):
+        try:
+            new_amplitude = float(self.ui.amplitude_edit.text())
+            self.set_amplitude(new_amplitude)
+            qt_utils.update_edit_color(self.calibrator.amplitude, self.ui.amplitude_edit)
+        except ValueError:
+            pass
+
+    @pyqtSlot()
     def frequency_edit_text_changed(self):
         qt_utils.update_edit_color(self.calibrator.frequency, self.ui.frequency_edit)
 
     @pyqtSlot()
+    def apply_frequency_button_clicked(self):
+        try:
+            new_frequency = float(self.ui.frequency_edit.text())
+            self.set_frequency(new_frequency)
+            qt_utils.update_edit_color(self.calibrator.frequency, self.ui.frequency_edit)
+        except ValueError:
+            pass
+
+    @pyqtSlot()
     def rough_plus_button_clicked(self):
-        self.change_amplitude(clb.AmplitudeStep.ROUGH)
+        self.tune_amplitude(clb.AmplitudeStep.ROUGH)
 
     @pyqtSlot()
     def rough_minus_button_clicked(self):
-        self.change_amplitude(-clb.AmplitudeStep.ROUGH)
+        self.tune_amplitude(-clb.AmplitudeStep.ROUGH)
 
     @pyqtSlot()
     def common_plus_button_clicked(self):
-        self.change_amplitude(clb.AmplitudeStep.COMMON)
+        self.tune_amplitude(clb.AmplitudeStep.COMMON)
 
     @pyqtSlot()
     def common_minus_button_clicked(self):
-        self.change_amplitude(-clb.AmplitudeStep.COMMON)
+        self.tune_amplitude(-clb.AmplitudeStep.COMMON)
 
     @pyqtSlot()
     def exact_plus_button_clicked(self):
-        self.change_amplitude(clb.AmplitudeStep.EXACT)
+        self.tune_amplitude(clb.AmplitudeStep.EXACT)
 
     @pyqtSlot()
     def exact_minus_button_clicked(self):
-        self.change_amplitude(-clb.AmplitudeStep.EXACT)
+        self.tune_amplitude(-clb.AmplitudeStep.EXACT)
 
     @pyqtSlot()
     def fixed_plus_button_clicked(self):
-        self.change_amplitude(1)
+        self.tune_amplitude(1)
 
     @pyqtSlot()
     def fixed_minus_button_clicked(self):
-        self.change_amplitude(-1)
+        self.tune_amplitude(-1)
 
     @pyqtSlot(QPoint)
     def show_active_table_columns(self, a_position: QPoint):
         self.header_menu.popup(self.ui.measure_table.horizontalHeader().viewport().mapToGlobal(a_position))
 
-    @pyqtSlot(int)
+    @pyqtSlot(bool, int)
     def hide_selected_table_column(self, a_state, a_column):
-        try:
-            if a_state:
-                self.ui.measure_table.showColumn(a_column)
-            else:
-                self.ui.measure_table.hideColumn(a_column)
-        except Exception as err:
-            print(err)
+        if a_state:
+            self.ui.measure_table.showColumn(a_column)
+        else:
+            self.ui.measure_table.hideColumn(a_column)
 
     def closeEvent(self, event):
         reply = QMessageBox.question(self, "Подтвердите действие", "Завершить поверку?", QMessageBox.Yes |

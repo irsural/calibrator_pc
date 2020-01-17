@@ -54,6 +54,8 @@ class NewNoTemplateMeasureDialog(QDialog):
         upper_less_than_zero = 3
         step_is_zero = 4
         empty_fields = 5
+        current_too_big = 6
+        voltage_too_big = 7
 
     input_status_to_msg = {
         InputStatus.ok: "Ввод корректен",
@@ -61,7 +63,9 @@ class NewNoTemplateMeasureDialog(QDialog):
         InputStatus.upper_less_than_lower: "Значение верхней точки должно быть больше значения нижней точки",
         InputStatus.upper_less_than_zero: "В режиме переменного тока напряжение/сила тока должны быть положительными",
         InputStatus.step_is_zero: "Шаг поверки не должен быть равен нулю",
-        InputStatus.empty_fields: "Необходимо заполнить все поля"
+        InputStatus.empty_fields: "Необходимо заполнить все поля",
+        InputStatus.current_too_big: f"Значение тока не должно превышать |{clb.MAX_CURRENT}| А",
+        InputStatus.voltage_too_big: f"Значение напряжения не должно превышать |{clb.MAX_VOLTAGE}| В",
     }
 
     def __init__(self, a_calibrator: clb_dll.ClbDrv):
@@ -160,6 +164,12 @@ class NewNoTemplateMeasureDialog(QDialog):
         elif (a_config.signal_type == clb.SignalType.ACI or a_config.signal_type == clb.SignalType.ACV) and \
                 (a_config.upper_bound < 0 or a_config.lower_bound < 0):
             return self.InputStatus.upper_less_than_zero
+        elif (a_config.signal_type == clb.SignalType.ACI or a_config.signal_type == clb.SignalType.DCI) and \
+                (abs(a_config.upper_bound) > clb.MAX_CURRENT or abs(a_config.lower_bound) > clb.MAX_CURRENT):
+            return self.InputStatus.current_too_big
+        elif (a_config.signal_type == clb.SignalType.ACV or a_config.signal_type == clb.SignalType.DCV) and \
+                (abs(a_config.upper_bound) > clb.MAX_VOLTAGE or abs(a_config.lower_bound) > clb.MAX_VOLTAGE):
+            return self.InputStatus.voltage_too_big
         elif a_config.auto_calc_points and a_config.points_step == 0:
             return self.InputStatus.step_is_zero
         else:

@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>759</width>
+    <width>813</width>
     <height>495</height>
    </rect>
   </property>
@@ -286,6 +286,15 @@
                 <property name="text">
                  <string>+</string>
                 </property>
+                <property name="autoRepeat">
+                 <bool>true</bool>
+                </property>
+                <property name="autoRepeatDelay">
+                 <number>600</number>
+                </property>
+                <property name="autoRepeatInterval">
+                 <number>10</number>
+                </property>
                </widget>
               </item>
               <item>
@@ -317,6 +326,15 @@
                 </property>
                 <property name="text">
                  <string>-</string>
+                </property>
+                <property name="autoRepeat">
+                 <bool>true</bool>
+                </property>
+                <property name="autoRepeatDelay">
+                 <number>600</number>
+                </property>
+                <property name="autoRepeatInterval">
+                 <number>10</number>
                 </property>
                </widget>
               </item>
@@ -399,6 +417,15 @@
                 <property name="text">
                  <string>+</string>
                 </property>
+                <property name="autoRepeat">
+                 <bool>true</bool>
+                </property>
+                <property name="autoRepeatDelay">
+                 <number>600</number>
+                </property>
+                <property name="autoRepeatInterval">
+                 <number>10</number>
+                </property>
                </widget>
               </item>
               <item>
@@ -430,6 +457,15 @@
                 </property>
                 <property name="text">
                  <string>-</string>
+                </property>
+                <property name="autoRepeat">
+                 <bool>true</bool>
+                </property>
+                <property name="autoRepeatDelay">
+                 <number>600</number>
+                </property>
+                <property name="autoRepeatInterval">
+                 <number>10</number>
                 </property>
                </widget>
               </item>
@@ -511,6 +547,15 @@
                 <property name="text">
                  <string>+</string>
                 </property>
+                <property name="autoRepeat">
+                 <bool>true</bool>
+                </property>
+                <property name="autoRepeatDelay">
+                 <number>600</number>
+                </property>
+                <property name="autoRepeatInterval">
+                 <number>10</number>
+                </property>
                </widget>
               </item>
               <item>
@@ -542,6 +587,15 @@
                 </property>
                 <property name="text">
                  <string>-</string>
+                </property>
+                <property name="autoRepeat">
+                 <bool>true</bool>
+                </property>
+                <property name="autoRepeatDelay">
+                 <number>600</number>
+                </property>
+                <property name="autoRepeatInterval">
+                 <number>10</number>
                 </property>
                </widget>
               </item>
@@ -670,6 +724,15 @@
                 <property name="text">
                  <string>+</string>
                 </property>
+                <property name="autoRepeat">
+                 <bool>true</bool>
+                </property>
+                <property name="autoRepeatDelay">
+                 <number>600</number>
+                </property>
+                <property name="autoRepeatInterval">
+                 <number>10</number>
+                </property>
                </widget>
               </item>
               <item>
@@ -702,6 +765,15 @@
                 <property name="text">
                  <string>-</string>
                 </property>
+                <property name="autoRepeat">
+                 <bool>true</bool>
+                </property>
+                <property name="autoRepeatDelay">
+                 <number>600</number>
+                </property>
+                <property name="autoRepeatInterval">
+                 <number>10</number>
+                </property>
                </widget>
               </item>
              </layout>
@@ -713,18 +785,6 @@
           <layout class="QVBoxLayout" name="verticalLayout_3">
            <item>
             <layout class="QGridLayout" name="gridLayout">
-             <item row="2" column="0">
-              <widget class="QLineEdit" name="amplitude_edit">
-               <property name="font">
-                <font>
-                 <pointsize>25</pointsize>
-                </font>
-               </property>
-               <property name="text">
-                <string>0</string>
-               </property>
-              </widget>
-             </item>
              <item row="3" column="0">
               <widget class="QLabel" name="label_6">
                <property name="font">
@@ -740,8 +800,32 @@
                </property>
               </widget>
              </item>
+             <item row="2" column="0">
+              <widget class="QLineEdit" name="amplitude_edit">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="font">
+                <font>
+                 <pointsize>25</pointsize>
+                </font>
+               </property>
+               <property name="text">
+                <string>0</string>
+               </property>
+              </widget>
+             </item>
              <item row="4" column="0">
               <widget class="QLineEdit" name="frequency_edit">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
                <property name="font">
                 <font>
                  <pointsize>25</pointsize>
@@ -791,6 +875,48 @@
                 </widget>
                </item>
               </layout>
+             </item>
+             <item row="2" column="1">
+              <widget class="QPushButton" name="apply_amplitude_button">
+               <property name="maximumSize">
+                <size>
+                 <width>40</width>
+                 <height>40</height>
+                </size>
+               </property>
+               <property name="font">
+                <font>
+                 <pointsize>20</pointsize>
+                </font>
+               </property>
+               <property name="text">
+                <string>✔</string>
+               </property>
+              </widget>
+             </item>
+             <item row="4" column="1">
+              <widget class="QPushButton" name="apply_frequency_button">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>40</width>
+                 <height>40</height>
+                </size>
+               </property>
+               <property name="font">
+                <font>
+                 <pointsize>20</pointsize>
+                </font>
+               </property>
+               <property name="text">
+                <string>✔</string>
+               </property>
+              </widget>
              </item>
             </layout>
            </item>

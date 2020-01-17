@@ -1,6 +1,17 @@
 import enum
 from collections import namedtuple
 
+MAX_CURRENT = 11
+MIN_CURRENT = -11
+
+MAX_VOLTAGE = 630
+MIN_VOLTAGE = -630
+
+MIN_ALTERNATIVE = 0
+
+MAX_FREQUENCY = 2000
+MIN_FREQUENCY = 35
+
 
 class Polatiry(enum.IntEnum):
     POS = 0
