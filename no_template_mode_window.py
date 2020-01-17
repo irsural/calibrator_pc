@@ -1,5 +1,6 @@
-from PyQt5.QtWidgets import QWidget, QMessageBox
+from PyQt5.QtWidgets import QWidget, QMessageBox, QMenu, QAction, QTableView
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QTimer, QItemSelectionModel, QPoint, QModelIndex, Qt
+from PyQt5 import QtCore
 from PyQt5.QtGui import QWheelEvent
 
 from new_no_template_measure_dialog import NoTemplateConfig
@@ -23,6 +24,7 @@ class NoTemplateWindow(QWidget):
 
         self.measure_model = QNoTemplateMeasureModel(self)
         self.ui.measure_table.setModel(self.measure_model)
+        self.header_menu = self.create_table_header_context_menu(self.ui.measure_table)
 
         self.measure_config = a_measure_config
         self.units_text = "А"
@@ -42,6 +44,23 @@ class NoTemplateWindow(QWidget):
         self.clb_check_timer.timeout.connect(self.sync_clb_parameters)
         self.clb_check_timer.start(10)
 
+    def create_table_header_context_menu(self, a_table: QTableView):
+        table_header = a_table.horizontalHeader()
+        table_header.setContextMenuPolicy(Qt.CustomContextMenu)
+        table_header.customContextMenuRequested.connect(self.show_active_table_columns)
+
+        menu = QMenu(self)
+        for column in range(a_table.model().columnCount()):
+            header_name = a_table.model().headerData(column, Qt.Horizontal)
+            menu_checkbox = QAction(header_name, self)
+            menu_checkbox.setCheckable(True)
+            if not a_table.isColumnHidden(column):
+                menu_checkbox.setChecked(True)
+            menu.addAction(menu_checkbox)
+
+            menu_checkbox.triggered.connect(lambda state, col=column: self.hide_selected_table_column(state, col))
+
+        return menu
 
     def set_window_elements(self):
         self.units_text = "А" if self.measure_config == clb.SignalType.ACI or \
@@ -246,6 +265,20 @@ class NoTemplateWindow(QWidget):
     @pyqtSlot()
     def fixed_minus_button_clicked(self):
         self.change_amplitude(-1)
+
+    @pyqtSlot(QPoint)
+    def show_active_table_columns(self, a_position: QPoint):
+        self.header_menu.popup(self.ui.measure_table.horizontalHeader().viewport().mapToGlobal(a_position))
+
+    @pyqtSlot(int)
+    def hide_selected_table_column(self, a_state, a_column):
+        try:
+            if a_state:
+                self.ui.measure_table.showColumn(a_column)
+            else:
+                self.ui.measure_table.hideColumn(a_column)
+        except Exception as err:
+            print(err)
 
     def closeEvent(self, event):
         reply = QMessageBox.question(self, "Подтвердите действие", "Завершить поверку?", QMessageBox.Yes |
