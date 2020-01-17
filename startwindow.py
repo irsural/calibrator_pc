@@ -30,7 +30,9 @@ class StartWindow(QMainWindow):
 
         self.clb_driver = clb_dll.set_up_driver(clb_dll.path)
         self.usb_driver = clb_dll.UsbDrv(self.clb_driver)
+        self.usb_state = clb_dll.UsbDrv.UsbState.DISABLED
         self.calibrator = clb_dll.ClbDrv(self.clb_driver)
+        self.clb_state = clb.State.DISCONNECTED
 
         self.usb_check_timer = QTimer()
         self.usb_check_timer.timeout.connect(self.usb_tick)
@@ -44,7 +46,22 @@ class StartWindow(QMainWindow):
             self.clb_list_changed.emit(self.usb_driver.get_dev_list())
 
         if self.usb_driver.is_status_changed():
-            self.usb_status_changed.emit(self.usb_driver.get_status())
+            self.usb_state = self.usb_driver.get_status()
+
+        current_state = clb.State.DISCONNECTED
+        if not self.usb_state == clb_dll.UsbDrv.UsbState.DISABLED:
+            self.calibrator.signal_enable_changed()
+
+            if not self.calibrator.signal_enable:
+                current_state = clb.State.STOPPED
+            elif not self.calibrator.is_signal_ready():
+                current_state = clb.State.WAITING_SIGNAL
+            else:
+                current_state = clb.State.READY
+
+        if self.clb_state != current_state:
+            self.clb_state = current_state
+            self.usb_status_changed.emit(clb.enum_to_state[self.clb_state])
 
     @pyqtSlot()
     def source_mode_chosen(self):
@@ -101,7 +118,7 @@ class StartWindow(QMainWindow):
         self.clb_list_changed.emit(self.usb_driver.get_dev_list())
 
         self.usb_status_changed.connect(self.active_window.update_clb_status)
-        self.usb_status_changed.emit(self.usb_driver.get_status())
+        self.usb_status_changed.emit(clb.enum_to_state[self.clb_state])
 
     @pyqtSlot()
     def child_window_closed(self):

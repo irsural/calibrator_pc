@@ -4,7 +4,7 @@ from ui.py.source_mode_form import Ui_Form as SourceModeForm
 import clb_dll
 
 import calibrator_constants as clb
-import utils
+import qt_utils
 
 
 class SourceModeWindow(QWidget):
@@ -82,20 +82,13 @@ class SourceModeWindow(QWidget):
             print(self.int_to_signal_type[self.calibrator.signal_type].text())
             self.int_to_signal_type[self.calibrator.signal_type].setChecked(True)
 
-        # if self.calibrator.polarity_changed():
-        #     self.ui.polarity_button.setText(clb.int_to_polarity[self.calibrator.polarity])
-        #     if self.calibrator.polarity == clb.Polatiry.POS:
-        #         self.ui.polarity_button.setChecked(False)
-        #     else:
-        #         self.ui.polarity_button.setChecked(True)
-
-        if self.calibrator.signal_enable_changed():
-            if self.calibrator.signal_enable:
-                self.ui.enable_button.setChecked(True)
-                self.ui.enable_button.setText("Disable")
-            else:
-                self.ui.enable_button.setChecked(False)
-                self.ui.enable_button.setText("Enable")
+        # Эта переменная синхронизируется в startwindow.py
+        if self.calibrator.signal_enable:
+            self.ui.enable_button.setChecked(True)
+            self.ui.enable_button.setText("Disable")
+        else:
+            self.ui.enable_button.setChecked(False)
+            self.ui.enable_button.setText("Enable")
 
         if self.calibrator.mode_changed():
             self.int_to_mode[self.calibrator.mode].setChecked(True)
@@ -104,7 +97,7 @@ class SourceModeWindow(QWidget):
 
     def amplitude_edit_text_changed(self):
         if not self.block_signals:
-            utils.update_edit_color(self.calibrator.amplitude, self.ui.amplitude_edit)
+            qt_utils.update_edit_color(self.calibrator.amplitude, self.ui.amplitude_edit)
 
     def set_frequency(self):
         if not self.block_signals:

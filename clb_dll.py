@@ -37,6 +37,8 @@ def set_up_driver(a_full_path):
     clb_driver_lib.set_mode.argtypes = [ctypes.c_int]
     clb_driver_lib.get_mode.restype = ctypes.c_int
 
+    clb_driver_lib.is_signal_ready.restype = ctypes.c_int
+
     return clb_driver_lib
 
 
@@ -48,13 +50,13 @@ class UsbDrv:
         BUSY = 3
         ERROR = 4
 
-    enum_to_usb_status = {
-        UsbState.DISABLED: "Отключено",
-        UsbState.BUSY: "Подключение...",
-        UsbState.CONNECTED: "Подключено",
-        UsbState.ERROR: "Ошибка",
-        UsbState.NOT_SUPPORTED: "",
-    }
+    # enum_to_usb_status = {
+    #     UsbState.DISABLED: "Отключено",
+    #     UsbState.BUSY: "Подключение...",
+    #     UsbState.CONNECTED: "Подключено",
+    #     UsbState.ERROR: "Ошибка",
+    #     UsbState.NOT_SUPPORTED: "",
+    # }
 
     def __init__(self, a_clb_dll):
         self.clb_dll = a_clb_dll
@@ -100,7 +102,7 @@ class UsbDrv:
         return self.clb_dev_list
 
     def get_status(self):
-        return self.enum_to_usb_status[self.usb_status]
+        return self.UsbState(self.usb_status)
 
 
 class ClbDrv:
@@ -113,6 +115,7 @@ class ClbDrv:
         self.__dc_polarity = clb.Polatiry.POS
         self.__signal_on = False
         self.__mode = clb.Mode.SOURCE
+        self.__signal_ready = False
 
     def connect(self, a_clb_name: str):
         if a_clb_name:
@@ -190,6 +193,9 @@ class ClbDrv:
     def signal_type(self, a_signal_type: int):
         self.__signal_type = a_signal_type
         self.__clb_dll.set_signal_type(a_signal_type)
+
+    def is_signal_ready(self):
+        return self.__clb_dll.is_signal_ready()
 
     # def polarity_changed(self):
     #     actual_polarity = self.__clb_dll.get_polarity()

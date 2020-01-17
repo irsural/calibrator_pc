@@ -116,22 +116,20 @@ class NoTemplateWindow(QWidget):
 
     @pyqtSlot(str)
     def update_clb_status(self, a_status: str):
-        self.ui.usb_state_label.setText(a_status)
+        self.ui.clb_state_label.setText(a_status)
 
     def sync_clb_parameters(self):
         if self.calibrator.amplitude_changed():
             self.set_amplitude(self.calibrator.amplitude)
-            # self.ui.amplitude_edit.setText(f"{self.calibrator.amplitude:.9f}")
 
         if self.calibrator.frequency_changed():
             self.set_frequency(self.calibrator.frequency)
-            # self.ui.frequency_edit.setText(f"{self.calibrator.frequency:.9f}")
 
-        if self.calibrator.signal_enable_changed():
-            if self.calibrator.signal_enable:
-                self.ui.clb_state_label.setText("Включен")
-            else:
-                self.ui.clb_state_label.setText("Отключен")
+        # Эта переменная синхронизируется в startwindow.py
+        if self.calibrator.signal_enable:
+            pass
+        else:
+            pass
 
         if self.calibrator.signal_type_changed():
             if self.calibrator.signal_type != self.measure_config.signal_type:
@@ -156,13 +154,11 @@ class NoTemplateWindow(QWidget):
         event.accept()
 
     def set_amplitude(self, a_amplitude):
-        print(1)
         self.update_current_point(a_amplitude)
         self.calibrator.amplitude = a_amplitude
         self.ui.amplitude_edit.setText(f"{self.calibrator.amplitude:.9f}")
 
     def set_frequency(self, a_frequency):
-        print(1)
         self.calibrator.frequency = a_frequency
         self.ui.frequency_edit.setText(f"{self.calibrator.frequency:.9f}")
 

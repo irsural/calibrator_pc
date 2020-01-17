@@ -1,6 +1,7 @@
 import enum
 from collections import namedtuple
 
+
 MAX_CURRENT = 11
 MIN_CURRENT = -11
 
@@ -37,6 +38,21 @@ class Mode(enum.IntEnum):
     DETUNING = 2
 
 
+class State(enum.IntEnum):
+    DISCONNECTED = 0
+    STOPPED = 1
+    WAITING_SIGNAL = 2
+    READY = 3
+
+
+enum_to_state = {
+    State.DISCONNECTED: "Соединение отсутствует",
+    State.STOPPED: "Остановлен",
+    State.WAITING_SIGNAL: "Установка сигнала...",
+    State.READY: "Готов"
+}
+
+
 enum_to_mode = {
     Mode.SOURCE: "Источник",
     Mode.FIXED_RANGE: "Фиксированный",
@@ -49,6 +65,8 @@ enum_to_signal_type = {
     SignalType.DCI: "Постоянный ток",
     SignalType.DCV: "Постоянное напряжение"
 }
+
+
 
 Step = namedtuple("Step", "ROUGH COMMON EXACT")
 AmplitudeStep = Step(0.005, 0.0005, 0.00002)
