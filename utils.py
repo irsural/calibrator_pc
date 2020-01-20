@@ -66,27 +66,30 @@ def parse_input(a_input: str, a_reverse_check=False):
 def value_to_user_with_units(a_postfix: str, a_reverse_check=False):
     def value_to_user(a_value):
         prefix_type = __UnitsPrefix.NO
-        if a_value < 1e-9:
+
+        abs_value = abs(a_value)
+        if abs_value < 1e-9:
             a_value = 0
             prefix_type = __UnitsPrefix.NANO
-        elif a_value < 1e-6:
+        elif abs_value < 1e-6:
             a_value *= 1e9
             prefix_type = __UnitsPrefix.NANO
-        elif a_value < 1e-3:
+        elif abs_value < 1e-3:
             a_value *= 1e6
             prefix_type = __UnitsPrefix.MICRO
-        elif a_value < 1:
+        elif abs_value < 1:
             a_value *= 1e3
             prefix_type = __UnitsPrefix.MILLI
         result = round(a_value, 9)
-        result_str = f"{result} {__enum_to_units[prefix_type]}{a_postfix}"
+        result_str = f"{result:.9f}".rstrip('0').rstrip('.')
+        result_with_units = f"{result_str} {__enum_to_units[prefix_type]}{a_postfix}"
 
         # print(f"V->S. Input: {a_value}. Output: {result_str}")
         if a_reverse_check:
-            parsed = parse_input(result_str)
+            parsed = parse_input(result_with_units)
             assert result == parsed, f"V->S reverse check is failed: {result} != {parsed}"
 
-        return result_str
+        return result_with_units
     return value_to_user
 
 

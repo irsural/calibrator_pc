@@ -176,7 +176,7 @@ class NoTemplateWindow(QWidget):
 
         event.accept()
 
-    def set_amplitude(self, a_amplitude):
+    def set_amplitude(self, a_amplitude: float):
         self.update_current_point(a_amplitude)
         self.calibrator.amplitude = a_amplitude
         self.ui.amplitude_edit.setText(self.value_to_user(self.calibrator.amplitude))
@@ -194,7 +194,8 @@ class NoTemplateWindow(QWidget):
 
     def tune_frequency(self, a_step):
         try:
-            self.set_frequency(utils.relative_step_change(self.calibrator.frequency, a_step))
+            if self.ui.frequency_edit.isEnabled():
+                self.set_frequency(utils.relative_step_change(self.calibrator.frequency, a_step))
         except ValueError as err:
             # Возникает при скролле с нуля
             print(err)
