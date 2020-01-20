@@ -3,10 +3,9 @@ from PyQt5.QtGui import QWheelEvent
 from PyQt5.QtCore import QPoint
 
 
-def update_edit_color(actual_value: float, a_edit: QLineEdit):
+def update_edit_color(a_actual_value: float, a_current_value, a_edit: QLineEdit):
     try:
-        amplitude = float(a_edit.text())
-        if amplitude == actual_value:
+        if float(a_current_value) == a_actual_value:
             a_edit.setStyleSheet("background-color: rgb(255, 255, 255);")
         else:
             a_edit.setStyleSheet("background-color: rgb(250, 250, 170);")

@@ -179,7 +179,7 @@ class NoTemplateWindow(QWidget):
     def set_amplitude(self, a_amplitude):
         self.update_current_point(a_amplitude)
         self.calibrator.amplitude = a_amplitude
-        self.ui.amplitude_edit.setText(f"{self.calibrator.amplitude:.9f}")
+        self.ui.amplitude_edit.setText(self.value_to_user(self.calibrator.amplitude))
 
     def set_frequency(self, a_frequency):
         self.calibrator.frequency = a_frequency
@@ -275,15 +275,17 @@ class NoTemplateWindow(QWidget):
 
     @pyqtSlot()
     def amplitude_edit_text_changed(self):
-        qt_utils.update_edit_color(self.calibrator.amplitude, self.ui.amplitude_edit)
+        qt_utils.update_edit_color(self.calibrator.amplitude, utils.parse_input(self.ui.amplitude_edit.text()),
+                                   self.ui.amplitude_edit)
 
     @pyqtSlot()
     def apply_amplitude_button_clicked(self):
         try:
-            new_amplitude = float(self.ui.amplitude_edit.text())
+            new_amplitude = utils.parse_input(self.ui.amplitude_edit.text())
             self.set_amplitude(new_amplitude)
-            qt_utils.update_edit_color(self.calibrator.amplitude, self.ui.amplitude_edit)
+            self.amplitude_edit_text_changed()
         except ValueError:
+            # Отлавливает некорректный ввод
             pass
 
     @pyqtSlot()
@@ -295,8 +297,9 @@ class NoTemplateWindow(QWidget):
         try:
             new_frequency = float(self.ui.frequency_edit.text())
             self.set_frequency(new_frequency)
-            qt_utils.update_edit_color(self.calibrator.frequency, self.ui.frequency_edit)
+            self.frequency_edit_text_changed()
         except ValueError:
+            # Отлавливает некорректный ввод
             pass
 
     @pyqtSlot()

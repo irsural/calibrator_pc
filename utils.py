@@ -1,6 +1,7 @@
 import numpy as np
 import math
 import re
+import enum
 
 
 # __check_input_re = re.compile(r"^[-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][-+]?\d+)? *(?:мк|м|н)?[аАвВ]?$")
@@ -27,25 +28,65 @@ __units_to_factor = {
 }
 
 
-def parse_input(a_input: str):
+class __UnitsPrefix(enum.IntEnum):
+    NANO = 0
+    MICRO = 1
+    MILLI = 2
+    NO = 3
+
+
+__enum_to_units = {
+    __UnitsPrefix.NANO: "н",
+    __UnitsPrefix.MICRO: "мк",
+    __UnitsPrefix.MILLI: "м",
+    __UnitsPrefix.NO: "",
+}
+
+
+def parse_input(a_input: str, a_reverse_check=False):
     if not a_input:
         return 0.
     input_re = __check_input_re.match(a_input)
     if not input_re:
-        raise ValueError("wrong units input format")
+        return a_input
+        # raise ValueError(f"Wrong units input format: {a_input}")
 
     number = float(input_re.group('number'))
     factor = __units_to_factor[input_re.group("units").lower()]
     result = round(number * factor, 9)
 
-    print(f"Input: {a_input}. Parsed: {number} {input_re.group('units').lower()}. Result: {result}")
+    # print(f"S->V. Input: {a_input}. Parsed: {number} {input_re.group('units').lower()}. Result: {result}")
+    if a_reverse_check:
+        num_to_str = value_to_user_with_units("")
+        assert a_input == num_to_str(result), f"S->V reverse check is failed: {a_input} != {num_to_str(result)}"
 
     return result
 
 
-def value_to_user_with_units(a_postfix: str):
+def value_to_user_with_units(a_postfix: str, a_reverse_check=False):
     def value_to_user(a_value):
-        return f"{a_value} {a_postfix}"
+        prefix_type = __UnitsPrefix.NO
+        if a_value < 1e-9:
+            a_value = 0
+            prefix_type = __UnitsPrefix.NANO
+        elif a_value < 1e-6:
+            a_value *= 1e9
+            prefix_type = __UnitsPrefix.NANO
+        elif a_value < 1e-3:
+            a_value *= 1e6
+            prefix_type = __UnitsPrefix.MICRO
+        elif a_value < 1:
+            a_value *= 1e3
+            prefix_type = __UnitsPrefix.MILLI
+        result = round(a_value, 9)
+        result_str = f"{result} {__enum_to_units[prefix_type]}{a_postfix}"
+
+        # print(f"V->S. Input: {a_value}. Output: {result_str}")
+        if a_reverse_check:
+            parsed = parse_input(result_str)
+            assert result == parsed, f"V->S reverse check is failed: {result} != {parsed}"
+
+        return result_str
     return value_to_user
 
 
