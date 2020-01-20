@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import QWidget, QMessageBox, QMenu, QAction, QTableView
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, QTimer, QItemSelectionModel, QPoint, QModelIndex, Qt
-from PyQt5 import QtCore
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, QTimer, QPoint, QModelIndex, Qt
+from PyQt5 import QtCore, QtGui
 from PyQt5.QtGui import QWheelEvent
 
 from new_no_template_measure_dialog import NoTemplateConfig
@@ -30,14 +30,20 @@ class NoTemplateWindow(QWidget):
         self.measure_config = a_measure_config
         self.units_text = "А"
         self.set_window_elements()
+        self.fixed_range_amplitude = 0
+        self.highest_amplitude = utils.increase_on_percent(self.measure_config.upper_bound,
+                                                           self.measure_config.point_approach_accuracy)
+
+        self.value_to_user = utils.value_to_user_with_units(self.units_text)
+
+        self.fixed_range_amplitudes_list = [0.0001, 0.01, 0.1, 1, 10, 20, 100]
+        self.fill_fixed_step_combobox(self.fixed_range_amplitudes_list)
 
         self.calibrator = a_calibrator
         self.calibrator.signal_type = self.measure_config.signal_type
         self.set_amplitude(self.calibrator.amplitude)
         self.set_frequency(self.calibrator.frequency)
         self.fixed_step = 1
-        # Нужно для автоматического определения стороны подхода к точке
-        self.prev_amplitude = 0
 
         self.connect_signals()
         self.started = False
@@ -90,6 +96,10 @@ class NoTemplateWindow(QWidget):
             for point in calculated_points:
                 self.measure_model.appendPoint(PointData(point, 0, 0))
 
+    def fill_fixed_step_combobox(self, a_values: list):
+        for val in a_values:
+            self.ui.fixed_step_combobox.addItem(self.value_to_user(val))
+
     def connect_signals(self):
         self.ui.start_stop_button.clicked.connect(self.start_stop_measure)
         self.ui.save_point_button.clicked.connect(self.save_point)
@@ -107,8 +117,11 @@ class NoTemplateWindow(QWidget):
 
         self.ui.amplitude_edit.textEdited.connect(self.amplitude_edit_text_changed)
         self.ui.apply_amplitude_button.clicked.connect(self.apply_amplitude_button_clicked)
+        self.ui.amplitude_edit.returnPressed.connect(self.apply_amplitude_button_clicked)
+
         self.ui.frequency_edit.textEdited.connect(self.frequency_edit_text_changed)
         self.ui.apply_frequency_button.clicked.connect(self.apply_frequency_button_clicked)
+        self.ui.frequency_edit.returnPressed.connect(self.apply_frequency_button_clicked)
 
     @pyqtSlot(list)
     def update_clb_list(self, a_clb_list: list):
@@ -134,6 +147,16 @@ class NoTemplateWindow(QWidget):
         if self.calibrator.signal_type_changed():
             if self.calibrator.signal_type != self.measure_config.signal_type:
                 self.calibrator.signal_type = self.measure_config.signal_type
+
+    def keyPressEvent(self, event: QtGui.QKeyEvent):
+        if self.ui.measure_table.hasFocus():
+            key = event.key()
+            if key == Qt.Key_Return or key == Qt.Key_Enter:
+                rows: list[QModelIndex] = self.ui.measure_table.selectionModel().selectedRows()
+                if rows:
+                    self.ui.measure_table.edit(rows[0])
+        else:
+            event.accept()
 
     def wheelEvent(self, event: QWheelEvent):
         if self.ui.amplitude_edit.underMouse() or self.ui.frequency_edit.underMouse():
@@ -165,13 +188,15 @@ class NoTemplateWindow(QWidget):
     def tune_amplitude(self, a_step):
         try:
             self.set_amplitude(utils.relative_step_change(self.calibrator.amplitude, a_step))
-        except Exception as err:
+        except ValueError as err:
+            # Возникает при скролле с нуля
             print(err)
 
     def tune_frequency(self, a_step):
         try:
             self.set_frequency(utils.relative_step_change(self.calibrator.frequency, a_step))
-        except Exception as err:
+        except ValueError as err:
+            # Возникает при скролле с нуля
             print(err)
 
     def update_current_point(self, a_current_value):
@@ -187,14 +212,12 @@ class NoTemplateWindow(QWidget):
     def start_stop_measure(self):
         try:
             if not self.started:
-                highest_point = utils.increase_on_percent(self.measure_config.upper_bound,
-                                                               self.measure_config.point_approach_accuracy)
                 reply = QMessageBox.question(self, "Подтвердите действие",
                                              f"Начать поверку?\n"
                                              f"На калибраторе будет включен сигнал и установлены следующие параметры:\n"
                                              f"Режим измерения: Фиксированный диапазон\n"
                                              f"Тип сигнала: {clb.enum_to_signal_type[self.measure_config.signal_type]}\n"
-                                             f"Амплитуда: {highest_point} {self.units_text}",
+                                             f"Амплитуда: {self.highest_amplitude} {self.units_text}",
                                              QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
 
                 if reply == QMessageBox.Yes:
@@ -208,7 +231,7 @@ class NoTemplateWindow(QWidget):
         self.ui.start_stop_button.setText("Закончить\nповерку")
         self.started = True
 
-        self.set_amplitude(self.measure_config.upper_bound)
+        self.set_amplitude(self.highest_amplitude)
         self.calibrator.mode = clb.Mode.FIXED_RANGE
         self.calibrator.signal_type = self.measure_config.signal_type
         self.calibrator.signal_enable = True
@@ -217,7 +240,7 @@ class NoTemplateWindow(QWidget):
     def save_point(self):
         try:
             self.measure_model.appendPoint(PointData(self.guess_point(self.calibrator.amplitude),
-                                                     self.calibrator.amplitude, self.prev_amplitude))
+                                                     self.calibrator.amplitude, 0))
         except Exception as err:
             print(err)
 

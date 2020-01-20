@@ -66,7 +66,5 @@ enum_to_signal_type = {
     SignalType.DCV: "Постоянное напряжение"
 }
 
-
-
 Step = namedtuple("Step", "ROUGH COMMON EXACT")
 AmplitudeStep = Step(0.005, 0.0005, 0.00002)

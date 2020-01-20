@@ -1,10 +1,52 @@
 import numpy as np
 import math
+import re
+
+
+# __check_input_re = re.compile(r"^[-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][-+]?\d+)? *(?:мк|м|н)?[аАвВ]?$")
+
+__check_input_re = re.compile(
+    r"(?P<number>^[-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][-+]?\d+)?) *(?P<units>(?:мк|м|н)?[аАвВ]?$)")
+
+__units_to_factor = {
+    "": 1,
+    "в": 1,
+    "а": 1,
+
+    "м": 1e-3,
+    "мв": 1e-3,
+    "ма": 1e-3,
+
+    "мк": 1e-6,
+    "мкв": 1e-6,
+    "мка": 1e-6,
+
+    "н": 1e-9,
+    "нв": 1e-9,
+    "на": 1e-9,
+}
+
 
 def parse_input(a_input: str):
     if not a_input:
         return 0.
-    return float(a_input)
+    input_re = __check_input_re.match(a_input)
+    if not input_re:
+        raise ValueError("wrong units input format")
+
+    number = float(input_re.group('number'))
+    factor = __units_to_factor[input_re.group("units").lower()]
+    result = round(number * factor, 9)
+
+    print(f"Input: {a_input}. Parsed: {number} {input_re.group('units').lower()}. Result: {result}")
+
+    return result
+
+
+def value_to_user_with_units(a_postfix: str):
+    def value_to_user(a_value):
+        return f"{a_value} {a_postfix}"
+    return value_to_user
 
 
 def deviation(a_lval: float, a_rval: float):

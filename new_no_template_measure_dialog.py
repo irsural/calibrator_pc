@@ -114,7 +114,10 @@ class NewNoTemplateMeasureDialog(QDialog):
         self.measure_config.point_approach_accuracy = self.ui.accuracy_spinbox.value()
 
         self.measure_config.auto_calc_points = bool(self.ui.auto_calc_points_checkbox.isChecked())
-        self.measure_config.points_step = utils.parse_input(self.ui.step_edit.text())
+        try:
+            self.measure_config.points_step = utils.parse_input(self.ui.step_edit.text())
+        except Exception as err:
+            print(123, err)
         self.measure_config.start_point = NoTemplateConfig.StartPoint.UPPER if self.ui.approach_up_radio.isChecked() \
             else NoTemplateConfig.StartPoint.LOWER
 
