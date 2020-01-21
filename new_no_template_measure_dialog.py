@@ -1,5 +1,5 @@
 from ui.py.new_no_template_measure_form import Ui_Dialog as NewMeasureForm
-from PyQt5.QtWidgets import QDialog, QMessageBox, QListWidget
+from PyQt5.QtWidgets import QDialog, QMessageBox
 from PyQt5.QtCore import pyqtSignal, pyqtSlot
 from edit_list_window import EditedListDialog
 import calibrator_constants as clb
@@ -46,7 +46,7 @@ class NoTemplateConfig:
 
 
 class NewNoTemplateMeasureDialog(QDialog):
-    window_is_closed = pyqtSignal()
+    config_ready = pyqtSignal(NoTemplateConfig)
 
     class InputStatus(enum.IntEnum):
         ok = 0
@@ -69,13 +69,12 @@ class NewNoTemplateMeasureDialog(QDialog):
         InputStatus.voltage_too_big: f"Значение напряжения не должно превышать |{clb.MAX_VOLTAGE}| В",
     }
 
-    def __init__(self, a_calibrator: clb_dll.ClbDrv, parent=None):
-        super().__init__(parent)
+    def __init__(self, a_calibrator: clb_dll.ClbDrv, a_parent=None):
+        super().__init__(a_parent)
 
         self.ui = NewMeasureForm()
         self.ui.setupUi(self)
         self.setFixedSize(self.width(), self.height())
-        self.show()
 
         self.measure_config = NoTemplateConfig()
 
@@ -90,15 +89,14 @@ class NewNoTemplateMeasureDialog(QDialog):
         self.ui.edit_frequency_button.clicked.connect(self.show_frequency_list)
         self.ui.clb_list_combobox.currentTextChanged.connect(self.connect_to_clb)
 
-
     @pyqtSlot(list)
     def update_clb_list(self, a_clb_list: list):
         self.ui.clb_list_combobox.clear()
         for clb_name in a_clb_list:
             self.ui.clb_list_combobox.addItem(clb_name)
 
-    @pyqtSlot(str)
-    def update_clb_status(self, a_status: str):
+    @pyqtSlot(clb.State)
+    def update_clb_status(self, a_status: clb.State):
         # self.ui.usb_state_label.setText(a_status)
         pass
 
@@ -123,9 +121,6 @@ class NewNoTemplateMeasureDialog(QDialog):
             print(123, err)
         self.measure_config.start_point = NoTemplateConfig.StartPoint.UPPER if self.ui.approach_up_radio.isChecked() \
             else NoTemplateConfig.StartPoint.LOWER
-
-    def get_config(self):
-        return self.measure_config
 
     @pyqtSlot()
     def set_mode_aci(self):
@@ -156,6 +151,7 @@ class NewNoTemplateMeasureDialog(QDialog):
 
         input_status = self.check_input(self.measure_config)
         if input_status == self.InputStatus.ok:
+            self.config_ready.emit(self.measure_config)
             self.done(QDialog.Accepted)
         else:
             QMessageBox.critical(self, "Ошибка ввода", self.input_status_to_msg[input_status], QMessageBox.Ok)
@@ -183,7 +179,7 @@ class NewNoTemplateMeasureDialog(QDialog):
     def show_frequency_list(self):
         edit_frequency_dialog = EditedListDialog(self, self.ui.frequency_edit.text())
         edit_frequency_dialog.results_ready.connect(self.frequency_editing_finished)
-        edit_frequency_dialog.exec_()
+        edit_frequency_dialog.exec()
 
     @pyqtSlot(str)
     def frequency_editing_finished(self, a_frequency_string):
@@ -194,5 +190,3 @@ class NewNoTemplateMeasureDialog(QDialog):
         QMessageBox.information(self, "Ввод шага", "Параметры \"Снизу\" и \"Сверху\" определяют начальную точку,\n"
                                                    "от которой будут рассчитываться точки с интервалом \"Шаг\n"
                                                    "поверки\" (верхняя граница, либо нижняя граница)", QMessageBox.Ok)
-
-

@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QWidget
+from PyQt5.QtWidgets import QDialog
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QTimer
 from ui.py.source_mode_form import Ui_Form as SourceModeForm
 import clb_dll
@@ -7,11 +7,9 @@ import calibrator_constants as clb
 import qt_utils
 
 
-class SourceModeWindow(QWidget):
-    window_is_closed = pyqtSignal()
-
-    def __init__(self, a_calibrator: clb_dll.ClbDrv):
-        super().__init__()
+class SourceModeWindow(QDialog):
+    def __init__(self, a_calibrator: clb_dll.ClbDrv, a_parent=None):
+        super().__init__(a_parent)
 
         self.ui = SourceModeForm()
         self.ui.setupUi(self)
@@ -62,9 +60,9 @@ class SourceModeWindow(QWidget):
         for clb_name in a_clb_list:
             self.ui.clb_list_combobox.addItem(clb_name)
 
-    @pyqtSlot(str)
-    def update_clb_status(self, a_status: str):
-        self.ui.usb_state_label.setText(a_status)
+    @pyqtSlot(clb.State)
+    def update_clb_status(self, a_status: clb.State):
+        self.ui.usb_state_label.setText(clb.enum_to_state[a_status])
 
     def connect_to_clb(self, a_clb_name):
         self.calibrator.connect(a_clb_name)
@@ -97,29 +95,26 @@ class SourceModeWindow(QWidget):
 
     def amplitude_edit_text_changed(self):
         if not self.block_signals:
-            qt_utils.update_edit_color(self.calibrator.amplitude, self.ui.amplitude_edit)
+            pass
+            # qt_utils.update_edit_color(self.calibrator.amplitude, self.ui.amplitude_edit)
 
     def set_frequency(self):
         if not self.block_signals:
             self.calibrator.frequency = self.ui.frequency_spinbox.value()
 
     def aci_radio_checked(self):
-        print("aci")
         if not self.block_signals:
             self.calibrator.signal_type = clb.SignalType.ACI
 
     def acv_radio_checked(self):
-        print("acv")
         if not self.block_signals:
             self.calibrator.signal_type = clb.SignalType.ACV
 
     def dci_radio_checked(self):
-        print("dci")
         if not self.block_signals:
             self.calibrator.signal_type = clb.SignalType.DCI
 
     def dcv_radio_checked(self):
-        print("dcv")
         if not self.block_signals:
             self.calibrator.signal_type = clb.SignalType.DCV
 
@@ -147,10 +142,3 @@ class SourceModeWindow(QWidget):
     def detuning_radio_checked(self):
         if not self.block_signals:
             self.calibrator.mode = clb.Mode.DETUNING
-
-    def closeEvent(self, event):
-        print("here1")
-        self.hide()
-        self.window_is_closed.emit()
-        event.accept()
-        print("here3")

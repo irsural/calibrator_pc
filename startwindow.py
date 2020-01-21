@@ -2,9 +2,11 @@ from ui.py.startform import Ui_MainWindow as StartForm
 from PyQt5.QtWidgets import QMainWindow
 from PyQt5.QtCore import pyqtSlot, pyqtSignal
 from PyQt5.QtCore import QTimer
+from PyQt5 import QtGui, QtWidgets, QtCore
 
 from source_mode_window import SourceModeWindow
 from new_no_template_measure_dialog import NewNoTemplateMeasureDialog
+from new_no_template_measure_dialog import NoTemplateConfig
 from no_template_mode_window import NoTemplateWindow
 import clb_dll
 import calibrator_constants as clb
@@ -12,17 +14,15 @@ import calibrator_constants as clb
 
 class StartWindow(QMainWindow):
     clb_list_changed = pyqtSignal([list])
-    usb_status_changed = pyqtSignal([str])
+    usb_status_changed = pyqtSignal(clb.State)
 
     def __init__(self):
         super().__init__()
 
         self.ui = StartForm()
         self.ui.setupUi(self)
-        self.setFixedSize(370, 260)
+        self.setFixedSize(self.width(), self.height())
         self.show()
-
-        self.active_window = None
 
         self.ui.source_mode_button.clicked.connect(self.source_mode_chosen)
         self.ui.no_template_mode_button.clicked.connect(self.config_no_template_mode)
@@ -37,6 +37,8 @@ class StartWindow(QMainWindow):
         self.usb_check_timer = QTimer()
         self.usb_check_timer.timeout.connect(self.usb_tick)
         self.usb_check_timer.start(10)
+
+        self.no_template_config: NoTemplateConfig = None
 
     @pyqtSlot()
     def usb_tick(self):
@@ -61,43 +63,42 @@ class StartWindow(QMainWindow):
 
         if self.clb_state != current_state:
             self.clb_state = current_state
-            self.usb_status_changed.emit(clb.enum_to_state[self.clb_state])
+            self.usb_status_changed.emit(self.clb_state)
 
     @pyqtSlot()
     def source_mode_chosen(self):
         try:
-            assert self.active_window is None, "self.active_window must be None before assigment!"
-            self.active_window = SourceModeWindow(self.calibrator)
             self.hide()
-            self.change_window()
-
+            source_more_window = SourceModeWindow(self.calibrator)
+            self.attach_calibrator_to_window(source_more_window)
+            source_more_window.exec()
+            self.show()
         except AssertionError as err:
             print(err)
 
     @pyqtSlot()
     def config_no_template_mode(self):
         try:
-            assert self.active_window is None, "self.active_window must be None before assigment!"
-            self.active_window = NewNoTemplateMeasureDialog(self.calibrator, self)
-            self.active_window.accepted.connect(self.no_template_mode_chosen)
-            self.active_window.rejected.connect(self.child_window_closed)
-            self.change_window()
-
+            new_no_template_window = NewNoTemplateMeasureDialog(self.calibrator, self)
+            new_no_template_window.config_ready.connect(self.save_no_template_config)
+            self.attach_calibrator_to_window(new_no_template_window)
+            if new_no_template_window.exec() == QtWidgets.QDialog.Accepted:
+                assert self.no_template_config is not None, "no_template_config must not be None!"
+                new_no_template_window.close()
+                self.no_template_mode_chosen()
         except AssertionError as err:
             print(err)
 
-    @pyqtSlot()
+    def save_no_template_config(self, a_config: NoTemplateConfig):
+        self.no_template_config = a_config
+
     def no_template_mode_chosen(self):
-        self.active_window.accepted.disconnect(self.no_template_mode_chosen)
         try:
-            assert hasattr(self.active_window, "get_config"), "no method get_config"
-            measure_config = self.active_window.get_config()
-            self.child_window_closed()
-
-            assert self.active_window is None, "self.active_window must be None before assigment!"
-            self.active_window = NoTemplateWindow(self.calibrator, measure_config)
-            self.change_window()
-
+            self.hide()
+            no_template_window = NoTemplateWindow(self.calibrator, self.no_template_config)
+            self.attach_calibrator_to_window(no_template_window)
+            no_template_window.exec()
+            self.show()
         except Exception as err:
             print(err)
 
@@ -105,33 +106,15 @@ class StartWindow(QMainWindow):
     def template_mode_chosen(self):
         pass
 
-    def change_window(self):
-        assert hasattr(self.active_window, "window_is_closed"), "no method window_is_closed"
-        assert hasattr(self.active_window, "update_clb_list"), "no method update_clb_list"
-        assert hasattr(self.active_window, "update_clb_status"), "no method update_clb_status"
+    def attach_calibrator_to_window(self, a_window):
+        assert hasattr(a_window, "update_clb_list"), "no method update_clb_list"
+        assert hasattr(a_window, "update_clb_status"), "no method update_clb_status"
 
-        self.active_window.show()
-
-        self.active_window.window_is_closed.connect(self.child_window_closed)
-
-        self.clb_list_changed.connect(self.active_window.update_clb_list)
+        self.clb_list_changed.connect(a_window.update_clb_list)
         self.clb_list_changed.emit(self.usb_driver.get_dev_list())
 
-        self.usb_status_changed.connect(self.active_window.update_clb_status)
-        self.usb_status_changed.emit(clb.enum_to_state[self.clb_state])
+        self.usb_status_changed.connect(a_window.update_clb_status)
+        self.usb_status_changed.emit(self.clb_state)
 
-    @pyqtSlot()
-    def child_window_closed(self):
-        print("here2")
-        try:
-            assert self.active_window is not None, "self.active_window must not be None!"
-            self.show()
-            self.active_window.window_is_closed.disconnect(self.child_window_closed)
-            self.clb_list_changed.disconnect(self.active_window.update_clb_list)
-            self.usb_status_changed.disconnect(self.active_window.update_clb_status)
-            self.active_window = None
-        except AssertionError as err:
-            print(err)
-
-
-
+        # assert self.receivers(self.clb_list_changed) == 1, "clb_list_changed must be connected to only one slot"
+        # assert self.receivers(self.usb_status_changed) == 1, "usb_status_changed must be connected to only one slot"

@@ -4,6 +4,7 @@ from PyQt5.QtCore import QPoint
 from PyQt5 import QtCore
 from PyQt5 import QtWidgets
 from PyQt5 import QtGui
+import weakref
 
 
 QSTYLE_COLOR_WHITE = "background-color: rgb(255, 255, 255);"

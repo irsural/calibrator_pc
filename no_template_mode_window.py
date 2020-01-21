@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QWidget, QMessageBox, QMenu, QAction, QTableView
+from PyQt5.QtWidgets import QDialog, QMessageBox, QMenu, QAction, QTableView
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QTimer, QPoint, QModelIndex, Qt
 from PyQt5 import QtCore, QtGui
 from PyQt5.QtGui import QWheelEvent
@@ -12,19 +12,18 @@ import calibrator_constants as clb
 from QNoTemplateMeasureModel import PointData, QNoTemplateMeasureModel
 
 
-class NoTemplateWindow(QWidget):
-    window_is_closed = pyqtSignal()
+class NoTemplateWindow(QDialog):
     remove_points = pyqtSignal(list)
 
-    def __init__(self, a_calibrator: clb_dll.ClbDrv, a_measure_config: NoTemplateConfig):
-        super().__init__()
+    def __init__(self, a_calibrator: clb_dll.ClbDrv, a_measure_config: NoTemplateConfig, a_parent=None):
+        super().__init__(a_parent)
 
         self.ui = NoTemplateForm()
         self.ui.setupUi(self)
 
         self.measure_model = QNoTemplateMeasureModel(self)
         self.ui.measure_table.setModel(self.measure_model)
-        self.header_menu = self.create_table_header_context_menu(self.ui.measure_table)
+        self.header_menu, self.manual_connections = self.create_table_header_context_menu(self.ui.measure_table)
         self.current_point = PointData()
 
         self.measure_config = a_measure_config
@@ -40,6 +39,7 @@ class NoTemplateWindow(QWidget):
         self.fill_fixed_step_combobox(self.fixed_range_amplitudes_list)
 
         self.calibrator = a_calibrator
+        self.clb_state = clb.State.DISCONNECTED
         self.calibrator.signal_type = self.measure_config.signal_type
         self.set_amplitude(self.calibrator.amplitude)
         self.set_frequency(self.calibrator.frequency)
@@ -58,6 +58,7 @@ class NoTemplateWindow(QWidget):
         table_header.customContextMenuRequested.connect(self.show_active_table_columns)
 
         menu = QMenu(self)
+        lambda_connections = []
         for column in range(a_table.model().columnCount()):
             header_name = a_table.model().headerData(column, Qt.Horizontal)
             menu_checkbox = QAction(header_name, self)
@@ -66,9 +67,10 @@ class NoTemplateWindow(QWidget):
                 menu_checkbox.setChecked(True)
             menu.addAction(menu_checkbox)
 
-            menu_checkbox.triggered.connect(lambda state, col=column: self.hide_selected_table_column(state, col))
+            lambda_connections.append((menu_checkbox, menu_checkbox.triggered.connect(
+                lambda state, col=column: self.hide_selected_table_column(state, col))))
 
-        return menu
+        return menu, lambda_connections
 
     def set_window_elements(self):
         self.units_text = "А" if self.measure_config.signal_type == clb.SignalType.ACI or \
@@ -127,26 +129,29 @@ class NoTemplateWindow(QWidget):
     def update_clb_list(self, a_clb_list: list):
         pass
 
-    @pyqtSlot(str)
-    def update_clb_status(self, a_status: str):
-        self.ui.clb_state_label.setText(a_status)
+    @pyqtSlot(clb.State)
+    def update_clb_status(self, a_status: clb.State):
+        self.clb_state = a_status
+        self.ui.clb_state_label.setText(clb.enum_to_state[a_status])
 
     def sync_clb_parameters(self):
-        if self.calibrator.amplitude_changed():
-            self.set_amplitude(self.calibrator.amplitude)
+        if self.clb_state != clb.State.DISCONNECTED:
+            if self.calibrator.amplitude_changed():
+                print("watafak", self.calibrator.amplitude)
+                self.set_amplitude(self.calibrator.amplitude)
 
-        if self.calibrator.frequency_changed():
-            self.set_frequency(self.calibrator.frequency)
+            if self.calibrator.frequency_changed():
+                self.set_frequency(self.calibrator.frequency)
 
-        # Эта переменная синхронизируется в startwindow.py
-        if self.calibrator.signal_enable:
-            pass
-        else:
-            pass
+            # Эта переменная синхронизируется в startwindow.py
+            if self.calibrator.signal_enable:
+                pass
+            else:
+                pass
 
-        if self.calibrator.signal_type_changed():
-            if self.calibrator.signal_type != self.measure_config.signal_type:
-                self.calibrator.signal_type = self.measure_config.signal_type
+            if self.calibrator.signal_type_changed():
+                if self.calibrator.signal_type != self.measure_config.signal_type:
+                    self.calibrator.signal_type = self.measure_config.signal_type
 
     def keyPressEvent(self, event: QtGui.QKeyEvent):
         if self.ui.measure_table.hasFocus():
@@ -289,7 +294,6 @@ class NoTemplateWindow(QWidget):
             self.set_amplitude(new_amplitude)
             self.amplitude_edit_text_changed()
         except ValueError as err:
-            print(err)
             # Отлавливает некорректный ввод
             pass
 
@@ -350,17 +354,14 @@ class NoTemplateWindow(QWidget):
         else:
             self.ui.measure_table.hideColumn(a_column)
 
-    def closeEvent(self, event):
+    def closeEvent(self, event: QtGui.QCloseEvent):
         reply = QMessageBox.question(self, "Подтвердите действие", "Завершить поверку?", QMessageBox.Yes |
                                      QMessageBox.No, QMessageBox.No)
         if reply == QMessageBox.Yes:
-            print("here1")
             self.calibrator.signal_enable = False
-            self.hide()
-            print("here3")
-            self.window_is_closed.emit()
-            print("here4")
+            # Без этого диалог не уничтожится
+            for sender, connection in self.manual_connections:
+                sender.triggered.disconnect(connection)
             event.accept()
         else:
             event.ignore()
-
