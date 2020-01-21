@@ -135,23 +135,23 @@ class NoTemplateWindow(QDialog):
         self.ui.clb_state_label.setText(clb.enum_to_state[a_status])
 
     def sync_clb_parameters(self):
-        if self.clb_state != clb.State.DISCONNECTED:
-            if self.calibrator.amplitude_changed():
-                print("watafak", self.calibrator.amplitude)
-                self.set_amplitude(self.calibrator.amplitude)
+        # if self.clb_state != clb.State.DISCONNECTED:
+        if self.calibrator.amplitude_changed():
+            print("watafak", self.calibrator.amplitude)
+            self.set_amplitude(self.calibrator.amplitude)
 
-            if self.calibrator.frequency_changed():
-                self.set_frequency(self.calibrator.frequency)
+        if self.calibrator.frequency_changed():
+            self.set_frequency(self.calibrator.frequency)
 
-            # Эта переменная синхронизируется в startwindow.py
-            if self.calibrator.signal_enable:
-                pass
-            else:
-                pass
+        # Эта переменная синхронизируется в startwindow.py
+        if self.calibrator.signal_enable:
+            pass
+        else:
+            pass
 
-            if self.calibrator.signal_type_changed():
-                if self.calibrator.signal_type != self.measure_config.signal_type:
-                    self.calibrator.signal_type = self.measure_config.signal_type
+        if self.calibrator.signal_type_changed():
+            if self.calibrator.signal_type != self.measure_config.signal_type:
+                self.calibrator.signal_type = self.measure_config.signal_type
 
     def keyPressEvent(self, event: QtGui.QKeyEvent):
         if self.ui.measure_table.hasFocus():

@@ -20,7 +20,7 @@ class EditedListDialog(QDialog):
         self.show()
 
         self.delete_key_sc = QtWidgets.QShortcut(QtGui.QKeySequence(QtCore.Qt.Key_Delete), self.ui.list_widget)
-        self.delete_key_sc.activated.connect(lambda: self.ui.list_widget.takeItem(self.ui.list_widget.currentRow()))
+        self.delete_key_sc.activated.connect(self.delete_selected_row)
 
         self.ui.list_widget.setItemDelegate(qt_utils.QItemOnlyNumbers(self))
 
@@ -35,6 +35,9 @@ class EditedListDialog(QDialog):
         self.ui.list_widget.addItem(list_item)
         if a_edit_item:
             self.ui.list_widget.editItem(list_item)
+
+    def delete_selected_row(self):
+        self.ui.list_widget.takeItem(self.ui.list_widget.currentRow())
 
     def add_list_item_button_clicked(self):
         self.add_frequency()
