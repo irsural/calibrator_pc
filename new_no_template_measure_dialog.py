@@ -69,15 +69,15 @@ class NewNoTemplateMeasureDialog(QDialog):
         InputStatus.voltage_too_big: f"Значение напряжения не должно превышать |{clb.MAX_VOLTAGE}| В",
     }
 
-    def __init__(self, a_calibrator: clb_dll.ClbDrv):
-        super().__init__()
+    def __init__(self, a_calibrator: clb_dll.ClbDrv, parent=None):
+        super().__init__(parent)
 
         self.ui = NewMeasureForm()
         self.ui.setupUi(self)
+        self.setFixedSize(self.width(), self.height())
         self.show()
 
         self.measure_config = NoTemplateConfig()
-        self.edit_frequency_dialog = EditedListDialog()
 
         self.calibrator = a_calibrator
 
@@ -87,11 +87,9 @@ class NewNoTemplateMeasureDialog(QDialog):
         self.ui.dcv_radio.clicked.connect(self.set_mode_dcv)
 
         self.ui.step_help_button.clicked.connect(self.show_step_help)
-
+        self.ui.edit_frequency_button.clicked.connect(self.show_frequency_list)
         self.ui.clb_list_combobox.currentTextChanged.connect(self.connect_to_clb)
 
-        self.ui.edit_frequency_button.clicked.connect(self.show_frequency_list)
-        self.edit_frequency_dialog.results_ready.connect(self.frequency_editing_finished)
 
     @pyqtSlot(list)
     def update_clb_list(self, a_clb_list: list):
@@ -150,9 +148,7 @@ class NewNoTemplateMeasureDialog(QDialog):
         self.set_units_wildcard("В")
 
     def set_units_wildcard(self, a_wildcard_text):
-        self.ui.units_wildcard_1.setText(a_wildcard_text)
-        self.ui.units_wildcard_2.setText(a_wildcard_text)
-        self.ui.units_wildcard_3.setText(a_wildcard_text)
+        pass
 
     @pyqtSlot()
     def accept(self):
@@ -185,12 +181,13 @@ class NewNoTemplateMeasureDialog(QDialog):
 
     @pyqtSlot()
     def show_frequency_list(self):
-        self.edit_frequency_dialog.show()
+        edit_frequency_dialog = EditedListDialog(self, self.ui.frequency_edit.text())
+        edit_frequency_dialog.results_ready.connect(self.frequency_editing_finished)
+        edit_frequency_dialog.exec_()
 
     @pyqtSlot(str)
     def frequency_editing_finished(self, a_frequency_string):
         self.ui.frequency_edit.setText(a_frequency_string)
-        self.edit_frequency_dialog.hide()
 
     @pyqtSlot()
     def show_step_help(self):

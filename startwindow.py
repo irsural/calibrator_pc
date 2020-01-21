@@ -78,7 +78,7 @@ class StartWindow(QMainWindow):
     def config_no_template_mode(self):
         try:
             assert self.active_window is None, "self.active_window must be None before assigment!"
-            self.active_window = NewNoTemplateMeasureDialog(self.calibrator)
+            self.active_window = NewNoTemplateMeasureDialog(self.calibrator, self)
             self.active_window.accepted.connect(self.no_template_mode_chosen)
             self.active_window.rejected.connect(self.child_window_closed)
             self.change_window()
