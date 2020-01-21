@@ -540,7 +540,7 @@ class Ui_MainForm(object):
         self.gridLayout_2.addWidget(self.tabWidget, 0, 0, 1, 1)
 
         self.retranslateUi(MainForm)
-        self.tabWidget.setCurrentIndex(0)
+        self.tabWidget.setCurrentIndex(1)
         self.groupBox.clicked['bool'].connect(self.frame.setVisible)
         QtCore.QMetaObject.connectSlotsByName(MainForm)
 

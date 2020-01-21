@@ -1,6 +1,7 @@
 from ui.py.new_no_template_measure_form import Ui_Dialog as NewMeasureForm
-from PyQt5.QtWidgets import QDialog, QMessageBox
+from PyQt5.QtWidgets import QDialog, QMessageBox, QListWidget
 from PyQt5.QtCore import pyqtSignal, pyqtSlot
+from edit_list_window import EditedListDialog
 import calibrator_constants as clb
 import clb_dll
 import enum
@@ -76,6 +77,7 @@ class NewNoTemplateMeasureDialog(QDialog):
         self.show()
 
         self.measure_config = NoTemplateConfig()
+        self.edit_frequency_dialog = EditedListDialog()
 
         self.calibrator = a_calibrator
 
@@ -87,6 +89,9 @@ class NewNoTemplateMeasureDialog(QDialog):
         self.ui.step_help_button.clicked.connect(self.show_step_help)
 
         self.ui.clb_list_combobox.currentTextChanged.connect(self.connect_to_clb)
+
+        self.ui.edit_frequency_button.clicked.connect(self.show_frequency_list)
+        self.edit_frequency_dialog.results_ready.connect(self.frequency_editing_finished)
 
     @pyqtSlot(list)
     def update_clb_list(self, a_clb_list: list):
@@ -177,6 +182,15 @@ class NewNoTemplateMeasureDialog(QDialog):
             return self.InputStatus.step_is_zero
         else:
             return self.InputStatus.ok
+
+    @pyqtSlot()
+    def show_frequency_list(self):
+        self.edit_frequency_dialog.show()
+
+    @pyqtSlot(str)
+    def frequency_editing_finished(self, a_frequency_string):
+        self.ui.frequency_edit.setText(a_frequency_string)
+        self.edit_frequency_dialog.hide()
 
     @pyqtSlot()
     def show_step_help(self):

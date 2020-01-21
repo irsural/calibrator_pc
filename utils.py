@@ -48,8 +48,7 @@ def parse_input(a_input: str, a_reverse_check=False):
         return 0.
     input_re = __check_input_re.match(a_input)
     if not input_re:
-        return a_input
-        # raise ValueError(f"Wrong units input format: {a_input}")
+        raise ValueError(f"Wrong units input format: {a_input}")
 
     number = float(input_re.group('number'))
     factor = __units_to_factor[input_re.group("units").lower()]
@@ -57,8 +56,11 @@ def parse_input(a_input: str, a_reverse_check=False):
 
     # print(f"S->V. Input: {a_input}. Parsed: {number} {input_re.group('units').lower()}. Result: {result}")
     if a_reverse_check:
-        num_to_str = value_to_user_with_units("")
-        assert a_input == num_to_str(result), f"S->V reverse check is failed: {a_input} != {num_to_str(result)}"
+        if value_to_user_with_units("В", False)(result) != a_input:
+            if value_to_user_with_units("А", False)(result) != a_input:
+                str_no_units = value_to_user_with_units("", False)(result)
+                if a_input != str_no_units:
+                    print(f"S->V reverse check is failed: {a_input} != {str_no_units}")
 
     return result
 
@@ -81,16 +83,21 @@ def value_to_user_with_units(a_postfix: str, a_reverse_check=False):
             a_value *= 1e3
             prefix_type = __UnitsPrefix.MILLI
         result = round(a_value, 9)
-        result_str = f"{result:.9f}".rstrip('0').rstrip('.')
+        result_str = remove_tail_zeroes(f"{result:.9f}")
         result_with_units = f"{result_str} {__enum_to_units[prefix_type]}{a_postfix}"
 
         # print(f"V->S. Input: {a_value}. Output: {result_str}")
         if a_reverse_check:
-            parsed = parse_input(result_with_units)
-            assert result == parsed, f"V->S reverse check is failed: {result} != {parsed}"
+            parsed = parse_input(result_with_units, False)
+            if result != parsed:
+                print(f"V->S reverse check is failed: {result} != {parsed}")
 
         return result_with_units
     return value_to_user
+
+
+def remove_tail_zeroes(a_string_num: str):
+    return a_string_num.rstrip('0').rstrip('.')
 
 
 def deviation(a_lval: float, a_rval: float):

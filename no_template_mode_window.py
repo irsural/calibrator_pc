@@ -183,7 +183,7 @@ class NoTemplateWindow(QWidget):
 
     def set_frequency(self, a_frequency):
         self.calibrator.frequency = a_frequency
-        self.ui.frequency_edit.setText(f"{self.calibrator.frequency:.9f}")
+        self.ui.frequency_edit.setText(utils.remove_tail_zeroes(f"{self.calibrator.frequency:.9f}"))
 
     def tune_amplitude(self, a_step):
         try:
@@ -276,8 +276,11 @@ class NoTemplateWindow(QWidget):
 
     @pyqtSlot()
     def amplitude_edit_text_changed(self):
-        qt_utils.update_edit_color(self.calibrator.amplitude, utils.parse_input(self.ui.amplitude_edit.text()),
-                                   self.ui.amplitude_edit)
+        try:
+            parsed = utils.parse_input(self.ui.amplitude_edit.text())
+        except ValueError:
+            parsed = ""
+        qt_utils.update_edit_color(self.calibrator.amplitude, parsed, self.ui.amplitude_edit)
 
     @pyqtSlot()
     def apply_amplitude_button_clicked(self):
@@ -285,7 +288,8 @@ class NoTemplateWindow(QWidget):
             new_amplitude = utils.parse_input(self.ui.amplitude_edit.text())
             self.set_amplitude(new_amplitude)
             self.amplitude_edit_text_changed()
-        except ValueError:
+        except ValueError as err:
+            print(err)
             # Отлавливает некорректный ввод
             pass
 
