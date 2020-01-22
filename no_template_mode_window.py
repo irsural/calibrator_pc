@@ -192,7 +192,8 @@ class NoTemplateWindow(QDialog):
 
     def tune_amplitude(self, a_step):
         try:
-            self.set_amplitude(utils.relative_step_change(self.calibrator.amplitude, a_step))
+            self.set_amplitude(utils.relative_step_change(self.calibrator.amplitude, a_step,
+                                                          clb.signal_type_to_min_step[self.measure_config.signal_type]))
         except ValueError as err:
             # Возникает при скролле с нуля
             print(err)
@@ -200,7 +201,7 @@ class NoTemplateWindow(QDialog):
     def tune_frequency(self, a_step):
         try:
             if self.ui.frequency_edit.isEnabled():
-                self.set_frequency(utils.relative_step_change(self.calibrator.frequency, a_step))
+                self.set_frequency(utils.relative_step_change(self.calibrator.frequency, a_step, 1))
         except ValueError as err:
             # Возникает при скролле с нуля
             print(err)

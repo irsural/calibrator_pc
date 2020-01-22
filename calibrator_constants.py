@@ -52,7 +52,6 @@ enum_to_state = {
     State.READY: "Готов"
 }
 
-
 enum_to_mode = {
     Mode.SOURCE: "Источник",
     Mode.FIXED_RANGE: "Фиксированный",

@@ -126,10 +126,10 @@ def bound(a_value, a_min, a_max):
     return max(min(a_value, a_max), a_min)
 
 
-def relative_step_change(a_value, a_step):
+def relative_step_change(a_value: float, a_step: float, a_min_step: float):
     value_sign = 1 if a_step >= 0 else -1
-    # if a_value == 0:
-    #     return 1e-9 * value_sign
+    if a_value == 0:
+        return a_min_step * value_sign
 
     absolute_step = abs(a_value * a_step)
     exp = int(math.floor(math.log10(absolute_step)))
@@ -150,6 +150,7 @@ def relative_step_change(a_value, a_step):
     assert new_step == test_step, f"new: {new_step}, test: {test_step}. dont work"
 
     new_step *= pow(10., exp)
+    new_step: float = max(new_step, a_min_step)
     a_value += new_step * value_sign
 
     finish_value = math.ceil(a_value / new_step) * new_step if value_sign > 0 \
