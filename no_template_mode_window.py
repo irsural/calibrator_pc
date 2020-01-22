@@ -2,6 +2,7 @@ from PyQt5.QtWidgets import QDialog, QMessageBox, QMenu, QAction, QTableView
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QTimer, QPoint, QModelIndex, Qt
 from PyQt5 import QtCore, QtGui
 from PyQt5.QtGui import QWheelEvent
+from typing import List
 
 from new_no_template_measure_dialog import NoTemplateConfig
 from ui.py.no_template_mode_form import Ui_Form as NoTemplateForm
@@ -135,29 +136,28 @@ class NoTemplateWindow(QDialog):
         self.ui.clb_state_label.setText(clb.enum_to_state[a_status])
 
     def sync_clb_parameters(self):
-        # if self.clb_state != clb.State.DISCONNECTED:
-        if self.calibrator.amplitude_changed():
-            print("watafak", self.calibrator.amplitude)
-            self.set_amplitude(self.calibrator.amplitude)
+        if self.clb_state != clb.State.DISCONNECTED:
+            if self.calibrator.amplitude_changed():
+                self.set_amplitude(self.calibrator.amplitude)
 
-        if self.calibrator.frequency_changed():
-            self.set_frequency(self.calibrator.frequency)
+            if self.calibrator.frequency_changed():
+                self.set_frequency(self.calibrator.frequency)
 
-        # Эта переменная синхронизируется в startwindow.py
-        if self.calibrator.signal_enable:
-            pass
-        else:
-            pass
+            # Эта переменная синхронизируется в startwindow.py
+            if self.calibrator.signal_enable:
+                pass
+            else:
+                pass
 
-        if self.calibrator.signal_type_changed():
-            if self.calibrator.signal_type != self.measure_config.signal_type:
-                self.calibrator.signal_type = self.measure_config.signal_type
+            if self.calibrator.signal_type_changed():
+                if self.calibrator.signal_type != self.measure_config.signal_type:
+                    self.calibrator.signal_type = self.measure_config.signal_type
 
     def keyPressEvent(self, event: QtGui.QKeyEvent):
         if self.ui.measure_table.hasFocus():
             key = event.key()
             if key == Qt.Key_Return or key == Qt.Key_Enter:
-                rows: list[QModelIndex] = self.ui.measure_table.selectionModel().selectedRows()
+                rows: List[QModelIndex] = self.ui.measure_table.selectionModel().selectedRows()
                 if rows:
                     self.ui.measure_table.edit(rows[0])
         else:
@@ -222,7 +222,8 @@ class NoTemplateWindow(QDialog):
                                              f"Начать поверку?\n"
                                              f"На калибраторе будет включен сигнал и установлены следующие параметры:\n"
                                              f"Режим измерения: Фиксированный диапазон\n"
-                                             f"Тип сигнала: {clb.enum_to_signal_type[self.measure_config.signal_type]}\n"
+                                             f"Тип сигнала: "
+                                             f"{clb.enum_to_signal_type[self.measure_config.signal_type]}\n"
                                              f"Амплитуда: {self.highest_amplitude} {self.units_text}",
                                              QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
 
@@ -256,7 +257,7 @@ class NoTemplateWindow(QDialog):
 
     def delete_point(self):
         try:
-            rows: list[QModelIndex] = self.ui.measure_table.selectionModel().selectedRows()
+            rows: List[QModelIndex] = self.ui.measure_table.selectionModel().selectedRows()
 
             if rows:
                 row_indexes = []
@@ -293,13 +294,13 @@ class NoTemplateWindow(QDialog):
             new_amplitude = utils.parse_input(self.ui.amplitude_edit.text())
             self.set_amplitude(new_amplitude)
             self.amplitude_edit_text_changed()
-        except ValueError as err:
+        except ValueError:
             # Отлавливает некорректный ввод
             pass
 
     @pyqtSlot()
     def frequency_edit_text_changed(self):
-        qt_utils.update_edit_color(self.calibrator.frequency, self.ui.frequency_edit)
+        qt_utils.update_edit_color(self.calibrator.frequency, self.ui.frequency_edit.text(), self.ui.frequency_edit)
 
     @pyqtSlot()
     def apply_frequency_button_clicked(self):

@@ -26,8 +26,9 @@ class EditedListDialog(QDialog):
 
         self.ui.add_list_item_button.clicked.connect(self.add_list_item_button_clicked)
 
-        for frequency in a_init_line.split(';'):
-            self.add_frequency(frequency, False)
+        if a_init_line:
+            for frequency in a_init_line.split(';'):
+                self.add_frequency(frequency, False)
 
     def add_frequency(self, a_init_value="0", a_edit_item=True):
         list_item = QtWidgets.QListWidgetItem(a_init_value, self.ui.list_widget)
@@ -47,8 +48,7 @@ class EditedListDialog(QDialog):
         for idx in range(self.ui.list_widget.count()):
             frequency = self.ui.list_widget.item(idx).text()
             if frequency not in frequency_list:
-                frequency_list += frequency
-
+                frequency_list.append(frequency)
         return ";".join(frequency_list)
 
     @pyqtSlot()

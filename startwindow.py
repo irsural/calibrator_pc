@@ -79,9 +79,10 @@ class StartWindow(QMainWindow):
     @pyqtSlot()
     def config_no_template_mode(self):
         try:
-            new_no_template_window = NewNoTemplateMeasureDialog(self.calibrator, self)
+            new_no_template_window = NewNoTemplateMeasureDialog(self.calibrator, self.no_template_config, self)
             new_no_template_window.config_ready.connect(self.save_no_template_config)
             self.attach_calibrator_to_window(new_no_template_window)
+
             if new_no_template_window.exec() == QtWidgets.QDialog.Accepted:
                 assert self.no_template_config is not None, "no_template_config must not be None!"
                 new_no_template_window.close()

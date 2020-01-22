@@ -70,7 +70,10 @@ def value_to_user_with_units(a_postfix: str, a_reverse_check=False):
         prefix_type = __UnitsPrefix.NO
 
         abs_value = abs(a_value)
-        if abs_value < 1e-9:
+        if abs_value == 0:
+            a_value = 0
+            prefix_type = __UnitsPrefix.NO
+        elif abs_value < 1e-9:
             a_value = 0
             prefix_type = __UnitsPrefix.NANO
         elif abs_value < 1e-6:

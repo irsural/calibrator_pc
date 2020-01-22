@@ -2,10 +2,12 @@ from ui.py.new_no_template_measure_form import Ui_Dialog as NewMeasureForm
 from PyQt5.QtWidgets import QDialog, QMessageBox
 from PyQt5.QtCore import pyqtSignal, pyqtSlot
 from edit_list_window import EditedListDialog
+from PyQt5 import QtCore, QtWidgets, QtGui
 import calibrator_constants as clb
 import clb_dll
 import enum
 import utils
+import qt_utils
 
 
 class NoTemplateConfig:
@@ -16,6 +18,8 @@ class NoTemplateConfig:
         X_0 = 3
         X_00 = 4
         X_000 = 5
+        X_0000 = 6
+        X_00000 = 7
 
     class StartPoint(enum.IntEnum):
         LOWER = 0
@@ -57,6 +61,7 @@ class NewNoTemplateMeasureDialog(QDialog):
         empty_fields = 5
         current_too_big = 6
         voltage_too_big = 7
+        bad_input = 8
 
     input_status_to_msg = {
         InputStatus.ok: "Ввод корректен",
@@ -67,19 +72,30 @@ class NewNoTemplateMeasureDialog(QDialog):
         InputStatus.empty_fields: "Необходимо заполнить все поля",
         InputStatus.current_too_big: f"Значение тока не должно превышать |{clb.MAX_CURRENT}| А",
         InputStatus.voltage_too_big: f"Значение напряжения не должно превышать |{clb.MAX_VOLTAGE}| В",
+        InputStatus.bad_input: f"Некорректный ввод. Необходимо исправить поля, отмеченные красным цветом"
     }
 
-    def __init__(self, a_calibrator: clb_dll.ClbDrv, a_parent=None):
+    def __init__(self, a_calibrator: clb_dll.ClbDrv, a_measure_config=None, a_parent=None):
         super().__init__(a_parent)
 
         self.ui = NewMeasureForm()
         self.ui.setupUi(self)
         self.setFixedSize(self.width(), self.height())
 
-        self.measure_config = NoTemplateConfig()
+        self.measure_config = a_measure_config if a_measure_config is not None else NoTemplateConfig()
+        self.value_to_user = utils.value_to_user_with_units("А")
+
+        self.restore_config()
+
+        self.normalize_edit_value(self.ui.upper_bound_edit)
+        self.normalize_edit_value(self.ui.lower_bound_edit)
+        self.normalize_edit_value(self.ui.step_edit)
 
         self.calibrator = a_calibrator
 
+        self.connect_signals()
+
+    def connect_signals(self):
         self.ui.aci_radio.clicked.connect(self.set_mode_aci)
         self.ui.dci_radio.clicked.connect(self.set_mode_dci)
         self.ui.acv_radio.clicked.connect(self.set_mode_acv)
@@ -88,6 +104,21 @@ class NewNoTemplateMeasureDialog(QDialog):
         self.ui.step_help_button.clicked.connect(self.show_step_help)
         self.ui.edit_frequency_button.clicked.connect(self.show_frequency_list)
         self.ui.clb_list_combobox.currentTextChanged.connect(self.connect_to_clb)
+
+        self.ui.lower_bound_edit.textEdited.connect(self.edit_text_edited)
+        self.ui.lower_bound_edit.editingFinished.connect(self.editinig_finished)
+        self.ui.lower_bound_edit.editingFinished.connect(self.ui.lower_bound_edit.clearFocus)
+
+        self.ui.upper_bound_edit.textEdited.connect(self.edit_text_edited)
+        self.ui.upper_bound_edit.editingFinished.connect(self.editinig_finished)
+        self.ui.upper_bound_edit.editingFinished.connect(self.ui.upper_bound_edit.clearFocus)
+
+        self.ui.step_edit.textEdited.connect(self.edit_text_edited)
+        self.ui.step_edit.editingFinished.connect(self.editinig_finished)
+        self.ui.step_edit.editingFinished.connect(self.ui.step_edit.clearFocus)
+
+        self.ui.accept_button.clicked.connect(self.accept)
+        self.ui.cancel_button.clicked.connect(self.reject)
 
     @pyqtSlot(list)
     def update_clb_list(self, a_clb_list: list):
@@ -103,53 +134,87 @@ class NewNoTemplateMeasureDialog(QDialog):
     def connect_to_clb(self, a_clb_name):
         self.calibrator.connect(a_clb_name)
 
-    def restore_config(self, a_measure_config: NoTemplateConfig):
-        # self.measure_config = a_measure_config
+    def edit_text_edited(self):
+        try:
+            edit: QtWidgets.QLineEdit = self.sender()
+            assert isinstance(edit, QtWidgets.QLineEdit), "edit_text_edited must be connected to QLineEdit event!"
+
+            self.update_edit_color(edit)
+        except AssertionError as err:
+            print(err)
+
+    @staticmethod
+    def update_edit_color(a_edit: QtWidgets.QLineEdit):
+        try:
+            utils.parse_input(a_edit.text())
+            a_edit.setStyleSheet(qt_utils.QSTYLE_COLOR_WHITE)
+        except ValueError:
+            a_edit.setStyleSheet(qt_utils.QSTYLE_COLOR_RED)
+
+    @pyqtSlot()
+    def editinig_finished(self):
+        try:
+            edit: QtWidgets.QLineEdit = self.sender()
+            assert isinstance(edit, QtWidgets.QLineEdit), "editinig_finished must be connected to QLineEdit event!"
+            self.normalize_edit_value(edit)
+        except AssertionError as err:
+            print(err)
+
+    def normalize_edit_value(self, edit: QtWidgets.QLineEdit):
+        try:
+            value = utils.parse_input(edit.text())
+            edit.setText(self.value_to_user(value))
+            self.update_edit_color(edit)
+        except ValueError:
+            pass
+
+    def restore_config(self):
         pass
 
     def save_config(self):
-        self.measure_config.clb_name = self.ui.clb_list_combobox.currentText()
-        self.measure_config.lower_bound = utils.parse_input(self.ui.lower_bound_edit.text())
-        self.measure_config.upper_bound = utils.parse_input(self.ui.upper_bound_edit.text())
-        self.measure_config.display_resolution = self.ui.display_resolution_combobox.currentIndex()
-        self.measure_config.point_approach_accuracy = self.ui.accuracy_spinbox.value()
-
-        self.measure_config.auto_calc_points = bool(self.ui.auto_calc_points_checkbox.isChecked())
         try:
+            self.measure_config.clb_name = self.ui.clb_list_combobox.currentText()
+            self.measure_config.lower_bound = utils.parse_input(self.ui.lower_bound_edit.text())
+            self.measure_config.upper_bound = utils.parse_input(self.ui.upper_bound_edit.text())
+            self.measure_config.display_resolution = self.ui.display_resolution_combobox.currentIndex()
+            self.measure_config.point_approach_accuracy = self.ui.accuracy_spinbox.value()
+
+            self.measure_config.auto_calc_points = bool(self.ui.auto_calc_points_checkbox.isChecked())
             self.measure_config.points_step = utils.parse_input(self.ui.step_edit.text())
-        except Exception as err:
-            print(123, err)
-        self.measure_config.start_point = NoTemplateConfig.StartPoint.UPPER if self.ui.approach_up_radio.isChecked() \
-            else NoTemplateConfig.StartPoint.LOWER
+
+            self.measure_config.start_point = NoTemplateConfig.StartPoint.UPPER if \
+                self.ui.start_point_up_radio.isChecked() else NoTemplateConfig.StartPoint.LOWER
+            return True
+        except ValueError:
+            return False
 
     @pyqtSlot()
     def set_mode_aci(self):
         self.measure_config.signal_type = clb.SignalType.ACI
-        self.set_units_wildcard("А")
+        self.set_units("А")
 
     @pyqtSlot()
     def set_mode_dci(self):
         self.measure_config.signal_type = clb.SignalType.DCI
-        self.set_units_wildcard("А")
+        self.set_units("А")
 
     @pyqtSlot()
     def set_mode_acv(self):
         self.measure_config.signal_type = clb.SignalType.ACV
-        self.set_units_wildcard("В")
+        self.set_units("В")
 
     @pyqtSlot()
     def set_mode_dcv(self):
         self.measure_config.signal_type = clb.SignalType.DCV
-        self.set_units_wildcard("В")
-
-    def set_units_wildcard(self, a_wildcard_text):
-        pass
+        self.set_units("В")
 
     @pyqtSlot()
     def accept(self):
-        self.save_config()
+        if not self.save_config():
+            input_status = self.InputStatus.bad_input
+        else:
+            input_status = self.check_input(self.measure_config)
 
-        input_status = self.check_input(self.measure_config)
         if input_status == self.InputStatus.ok:
             self.config_ready.emit(self.measure_config)
             self.done(QDialog.Accepted)
@@ -190,3 +255,9 @@ class NewNoTemplateMeasureDialog(QDialog):
         QMessageBox.information(self, "Ввод шага", "Параметры \"Снизу\" и \"Сверху\" определяют начальную точку,\n"
                                                    "от которой будут рассчитываться точки с интервалом \"Шаг\n"
                                                    "поверки\" (верхняя граница, либо нижняя граница)", QMessageBox.Ok)
+
+    def set_units(self, a_units_str: str):
+        self.value_to_user = utils.value_to_user_with_units(a_units_str)
+        self.normalize_edit_value(self.ui.upper_bound_edit)
+        self.normalize_edit_value(self.ui.lower_bound_edit)
+        self.normalize_edit_value(self.ui.step_edit)
