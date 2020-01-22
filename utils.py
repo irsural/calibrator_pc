@@ -109,7 +109,7 @@ def deviation(a_lval: float, a_rval: float):
     return (a_lval - a_rval) / a_lval * 100
 
 
-def auto_calc_points(a_start: float, a_stop: float, a_step:float):
+def auto_calc_points(a_start: float, a_stop: float, a_step: float):
     if a_start == a_stop or a_step == 0:
         return []
     if a_stop < a_start:
@@ -127,6 +127,10 @@ def bound(a_value, a_min, a_max):
 
 
 def relative_step_change(a_value, a_step):
+    value_sign = 1 if a_step >= 0 else -1
+    # if a_value == 0:
+    #     return 1e-9 * value_sign
+
     absolute_step = abs(a_value * a_step)
     exp = int(math.floor(math.log10(absolute_step)))
 
@@ -146,10 +150,9 @@ def relative_step_change(a_value, a_step):
     assert new_step == test_step, f"new: {new_step}, test: {test_step}. dont work"
 
     new_step *= pow(10., exp)
-    sign = 1 if a_step >= 0 else -1
-    a_value += new_step * sign
+    a_value += new_step * value_sign
 
-    finish_value = math.ceil(a_value / new_step) * new_step if sign > 0 \
+    finish_value = math.ceil(a_value / new_step) * new_step if value_sign > 0 \
         else math.floor(a_value / new_step) * new_step
 
     return finish_value

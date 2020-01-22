@@ -87,7 +87,7 @@ class NoTemplateWindow(QDialog):
                             f"{self.measure_config.upper_bound} {self.units_text}")
 
         if self.measure_config.auto_calc_points:
-            if self.measure_config.start_point == NoTemplateConfig.StartPoint.LOWER:
+            if self.measure_config.start_point_side == NoTemplateConfig.StartPoint.LOWER:
                 calculated_points = utils.auto_calc_points(self.measure_config.lower_bound,
                                                            self.measure_config.upper_bound,
                                                            self.measure_config.points_step)

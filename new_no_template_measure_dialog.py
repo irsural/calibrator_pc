@@ -29,13 +29,13 @@ class NoTemplateConfig:
         self.signal_type = clb.SignalType.ACI
         self.clb_name = ""
         self.lower_bound = 0.
-        self.upper_bound = 0.
+        self.upper_bound = 1.
         self.display_resolution = self.DisplayResolution.X
         self.point_approach_accuracy = 10.
 
         self.auto_calc_points = False
         self.points_step = 0.
-        self.start_point = self.StartPoint.UPPER
+        self.start_point_side = self.StartPoint.LOWER
 
     def __str__(self):
         return f"Signal type: {self.signal_type.name}\n" \
@@ -46,7 +46,7 @@ class NoTemplateConfig:
             f"Accuracy: {self.point_approach_accuracy}\n" \
             f"Auto calc: {self.auto_calc_points}\n" \
             f"Step: {self.points_step}\n" \
-            f"Side: {self.start_point.name}\n"
+            f"Side: {self.start_point_side.name}\n"
 
 
 class NewNoTemplateMeasureDialog(QDialog):
@@ -85,6 +85,7 @@ class NewNoTemplateMeasureDialog(QDialog):
         self.measure_config = a_measure_config if a_measure_config is not None else NoTemplateConfig()
         self.value_to_user = utils.value_to_user_with_units("А")
 
+        self.connect_signals()
         self.restore_config()
 
         self.normalize_edit_value(self.ui.upper_bound_edit)
@@ -92,8 +93,6 @@ class NewNoTemplateMeasureDialog(QDialog):
         self.normalize_edit_value(self.ui.step_edit)
 
         self.calibrator = a_calibrator
-
-        self.connect_signals()
 
     def connect_signals(self):
         self.ui.aci_radio.clicked.connect(self.set_mode_aci)
@@ -169,7 +168,26 @@ class NewNoTemplateMeasureDialog(QDialog):
             pass
 
     def restore_config(self):
-        pass
+        signal_type_to_radio = {
+            clb.SignalType.ACI: self.ui.aci_radio,
+            clb.SignalType.ACV: self.ui.acv_radio,
+            clb.SignalType.DCI: self.ui.dci_radio,
+            clb.SignalType.DCV: self.ui.dcv_radio,
+        }
+        signal_type_to_radio[self.measure_config.signal_type].click()
+
+        self.ui.lower_bound_edit.setText(str(self.measure_config.lower_bound))
+        self.ui.upper_bound_edit.setText(str(self.measure_config.upper_bound))
+        self.ui.step_edit.setText(str(self.measure_config.points_step))
+        self.ui.accuracy_spinbox.setValue(self.measure_config.point_approach_accuracy)
+
+        print(self.measure_config.display_resolution)
+        self.ui.display_resolution_combobox.setCurrentIndex(self.measure_config.display_resolution)
+
+        start_point_upper_chosen = self.measure_config.start_point_side == NoTemplateConfig.StartPoint.UPPER
+        self.ui.start_point_up_radio.setChecked(start_point_upper_chosen)
+
+        self.ui.auto_calc_points_checkbox.setChecked(self.measure_config.auto_calc_points)
 
     def save_config(self):
         try:
@@ -182,7 +200,7 @@ class NewNoTemplateMeasureDialog(QDialog):
             self.measure_config.auto_calc_points = bool(self.ui.auto_calc_points_checkbox.isChecked())
             self.measure_config.points_step = utils.parse_input(self.ui.step_edit.text())
 
-            self.measure_config.start_point = NoTemplateConfig.StartPoint.UPPER if \
+            self.measure_config.start_point_side = NoTemplateConfig.StartPoint.UPPER if \
                 self.ui.start_point_up_radio.isChecked() else NoTemplateConfig.StartPoint.LOWER
             return True
         except ValueError:
