@@ -5,8 +5,10 @@ import re
 import numpy as np
 
 
-__check_input_re = re.compile(
+check_input_re = re.compile(
     r"(?P<number>^[-+]?(?:\d+(?:[.,]\d*)?|[.,]\d+)(?:[eE][-+]?\d+)?) *(?P<units>(?:мк|м|н)?[аАвВ]?$)")
+
+check_input_no_python_re = re.compile(r"^[-+]?(?:\d+(?:[.,]\d*)?|[.,]\d+)(?:[eE][-+]?\d+)? *(?:мк|м|н)?[аАвВ]?$")
 
 find_number_re = re.compile(r"[-+]?(?:\d+(?:[.,]\d*)?|[.,]\d+)(?:[eE][-+]?\d+)?")
 
@@ -47,7 +49,7 @@ __enum_to_units = {
 def parse_input(a_input: str, a_reverse_check=False):
     if not a_input:
         return 0.
-    input_re = __check_input_re.match(a_input)
+    input_re = check_input_re.match(a_input)
     if not input_re:
         raise ValueError(f"Wrong units input format: {a_input}")
 

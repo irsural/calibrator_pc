@@ -78,15 +78,16 @@ class EditedListDialog(QDialog):
         self.done(QDialog.Accepted)
 
 
-class QItemOnlyNumbers(QtWidgets.QItemDelegate):
+class QRegExpDelegator(QtWidgets.QItemDelegate):
     editing_finished = pyqtSignal(QtCore.QModelIndex)
 
-    def __init__(self, parent):
+    def __init__(self, parent, a_regexp_pattern):
         super().__init__(parent)
+        self.regexp_pattern = a_regexp_pattern
 
     def createEditor(self, parent: QtWidgets.QWidget, option, index: QtCore.QModelIndex):
         edit = QEditDoubleClick(parent)
-        regex = QtCore.QRegExp(utils.find_number_re.pattern)
+        regex = QtCore.QRegExp(self.regexp_pattern)
         validator = QtGui.QRegExpValidator(regex, parent)
         edit.setValidator(validator)
         return edit
@@ -100,7 +101,7 @@ class EditedListOnlyNumbers(EditedListDialog):
     def __init__(self, parent=None, a_init_items=(), a_title="Title", a_list_name="List name"):
         super().__init__(parent, a_init_items, a_title, a_list_name)
 
-        delegator = QItemOnlyNumbers(self)
+        delegator = QRegExpDelegator(self, utils.find_number_re.pattern)
         delegator.editing_finished.connect(self.item_editing_finished)
         self.ui.list_widget.setItemDelegate(delegator)
 
@@ -109,7 +110,19 @@ class EditedListOnlyNumbers(EditedListDialog):
         return utils.remove_tail_zeroes(str(f"{value:.9f}")).replace(".", ",")
 
 
-# class EditedListWithUnits(EditedListDialog):
-#     def __init__(self, parent=None, a_init_items=(), a_title="Title", a_list_name="List name"):
-#         super().__init__(parent, a_init_items, a_title, a_list_name)
-#         self.ui.list_widget.setItemDelegate(QItemOnlyNumbers(self))
+class EditedListWithUnits(EditedListDialog):
+    def __init__(self, units, parent=None, a_init_items=(), a_title="Title", a_list_name="List name"):
+        super().__init__(parent, a_init_items, a_title, a_list_name)
+
+        delegator = QRegExpDelegator(self, utils.check_input_no_python_re.pattern)
+        delegator.editing_finished.connect(self.item_editing_finished)
+        self.ui.list_widget.setItemDelegate(delegator)
+
+        self.units = units
+
+    def process_input(self, a_input: str):
+        try:
+            processed_value = utils.parse_input(a_input)
+        except ValueError:
+            processed_value = 0
+        return utils.value_to_user_with_units(self.units)(processed_value)
