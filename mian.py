@@ -1,10 +1,12 @@
 import ui_to_py
 ui_to_py.convert_ui("./ui", "./ui/py")
 
-from startwindow import StartWindow
+import sys
+
 from PyQt5.QtWidgets import QApplication
 from PyQt5 import QtCore
-import sys
+
+from startwindow import StartWindow
 
 
 if __name__ == "__main__":

@@ -1,5 +1,5 @@
-import enum
 from collections import namedtuple
+import enum
 
 
 MAX_CURRENT = 11

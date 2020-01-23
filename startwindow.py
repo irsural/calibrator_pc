@@ -1,18 +1,15 @@
-from ui.py.startform import Ui_MainWindow as StartForm
-from PyQt5.QtWidgets import QMainWindow
 from PyQt5.QtCore import pyqtSlot, pyqtSignal
-from PyQt5.QtCore import QTimer
 from PyQt5 import QtGui, QtWidgets, QtCore
 
-from source_mode_window import SourceModeWindow
-from new_no_template_measure_dialog import NewNoTemplateMeasureDialog
-from new_no_template_measure_dialog import NoTemplateConfig
+from new_no_template_measure_dialog import NewNoTemplateMeasureDialog, NoTemplateConfig
+from ui.py.startform import Ui_MainWindow as StartForm
 from no_template_mode_window import NoTemplateWindow
-import clb_dll
+from source_mode_window import SourceModeWindow
 import calibrator_constants as clb
+import clb_dll
 
 
-class StartWindow(QMainWindow):
+class StartWindow(QtWidgets.QMainWindow):
     clb_list_changed = pyqtSignal([list])
     usb_status_changed = pyqtSignal(clb.State)
 
@@ -34,7 +31,7 @@ class StartWindow(QMainWindow):
         self.calibrator = clb_dll.ClbDrv(self.clb_driver)
         self.clb_state = clb.State.DISCONNECTED
 
-        self.usb_check_timer = QTimer()
+        self.usb_check_timer = QtCore.QTimer()
         self.usb_check_timer.timeout.connect(self.usb_tick)
         self.usb_check_timer.start(10)
 

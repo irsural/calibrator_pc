@@ -1,7 +1,8 @@
 import ctypes
 import enum
-import utils
+
 import calibrator_constants as clb
+import utils
 
 
 path = "C:\\Users\\503\\Desktop\\Qt Projects\\clb_driver_dll\\" \

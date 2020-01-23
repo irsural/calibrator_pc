@@ -1,10 +1,9 @@
 from PyQt5.QtWidgets import QDialog
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QTimer
-from ui.py.source_mode_form import Ui_Form as SourceModeForm
-import clb_dll
 
+from ui.py.source_mode_form import Ui_Form as SourceModeForm
 import calibrator_constants as clb
-import qt_utils
+import clb_dll
 
 
 class SourceModeWindow(QDialog):

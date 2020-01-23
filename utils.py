@@ -1,10 +1,9 @@
-import numpy as np
+import enum
 import math
 import re
-import enum
 
+import numpy as np
 
-# __check_input_re = re.compile(r"^[-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][-+]?\d+)? *(?:мк|м|н)?[аАвВ]?$")
 
 __check_input_re = re.compile(
     r"(?P<number>^[-+]?(?:\d+(?:[.,]\d*)?|[.,]\d+)(?:[eE][-+]?\d+)?) *(?P<units>(?:мк|м|н)?[аАвВ]?$)")
