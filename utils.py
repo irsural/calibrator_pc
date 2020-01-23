@@ -7,9 +7,9 @@ import enum
 # __check_input_re = re.compile(r"^[-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][-+]?\d+)? *(?:мк|м|н)?[аАвВ]?$")
 
 __check_input_re = re.compile(
-    r"(?P<number>^[-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][-+]?\d+)?) *(?P<units>(?:мк|м|н)?[аАвВ]?$)")
+    r"(?P<number>^[-+]?(?:\d+(?:[.,]\d*)?|[.,]\d+)(?:[eE][-+]?\d+)?) *(?P<units>(?:мк|м|н)?[аАвВ]?$)")
 
-find_number_re = re.compile(r"[-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][-+]?\d+)?")
+find_number_re = re.compile(r"[-+]?(?:\d+(?:[.,]\d*)?|[.,]\d+)(?:[eE][-+]?\d+)?")
 
 __units_to_factor = {
     "": 1,
@@ -52,7 +52,7 @@ def parse_input(a_input: str, a_reverse_check=False):
     if not input_re:
         raise ValueError(f"Wrong units input format: {a_input}")
 
-    number = float(input_re.group('number'))
+    number = float(input_re.group('number').replace(",", "."))
     factor = __units_to_factor[input_re.group("units").lower()]
     result = round(number * factor, 9)
 
@@ -88,7 +88,7 @@ def value_to_user_with_units(a_postfix: str, a_reverse_check=False):
             a_value *= 1e3
             prefix_type = __UnitsPrefix.MILLI
         result = round(a_value, 9)
-        result_str = remove_tail_zeroes(f"{result:.9f}")
+        result_str = remove_tail_zeroes(f"{result:.9f}").replace(".", ",")
         result_with_units = f"{result_str} {__enum_to_units[prefix_type]}{a_postfix}"
 
         # print(f"V->S. Input: {a_value}. Output: {result_str}")

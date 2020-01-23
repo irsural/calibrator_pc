@@ -352,7 +352,7 @@ class Ui_Form(object):
         self.apply_amplitude_button.setFont(font)
         self.apply_amplitude_button.setObjectName("apply_amplitude_button")
         self.gridLayout.addWidget(self.apply_amplitude_button, 3, 1, 1, 1)
-        self.frequency_edit = QtWidgets.QLineEdit(self.layoutWidget)
+        self.frequency_edit = QEditDoubleClick(self.layoutWidget)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(1)
         sizePolicy.setVerticalStretch(0)
@@ -363,7 +363,7 @@ class Ui_Form(object):
         self.frequency_edit.setFont(font)
         self.frequency_edit.setObjectName("frequency_edit")
         self.gridLayout.addWidget(self.frequency_edit, 5, 0, 1, 1)
-        self.amplitude_edit = QtWidgets.QLineEdit(self.layoutWidget)
+        self.amplitude_edit = QEditDoubleClick(self.layoutWidget)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(1)
         sizePolicy.setVerticalStretch(0)
@@ -508,3 +508,4 @@ class Ui_Form(object):
 "точку"))
         self.start_stop_button.setText(_translate("Form", "Начать\n"
 "поверку"))
+from qt_utils import QEditDoubleClick
