@@ -26,35 +26,3 @@ def get_wheel_steps(event: QWheelEvent):
     degrees_num = event.angleDelta() / 8
     steps_num: QPoint = degrees_num / 15
     return steps_num.y()
-
-
-class QEditDoubleClick(QtWidgets.QLineEdit):
-    """
-    QLineEdit с добавлением выделения вещественных чисел по дабл клику
-    """
-    def __init__(self, a_parent=None):
-        super().__init__(a_parent)
-        self.select_span = None
-
-    def mouseDoubleClickEvent(self, a_event: QtGui.QMouseEvent):
-        super().mouseDoubleClickEvent(a_event)
-        result = utils.find_number_re.finditer(self.text())
-        if result:
-            for num_match in result:
-                begin, end = num_match.span()
-                if begin <= self.cursorPosition() <= end:
-                    self.setSelection(begin, end - begin)
-                    break
-        a_event.accept()
-
-
-class QItemOnlyNumbers(QtWidgets.QItemDelegate):
-    def __init__(self, parent):
-        super().__init__(parent)
-
-    def createEditor(self, parent: QtWidgets.QWidget, option, index: QtCore.QModelIndex):
-        edit = QEditDoubleClick(parent)
-        regex = QtCore.QRegExp(utils.find_number_re.pattern)
-        validator = QtGui.QRegExpValidator(regex, parent)
-        edit.setValidator(validator)
-        return edit

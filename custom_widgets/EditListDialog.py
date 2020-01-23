@@ -1,10 +1,10 @@
-from ui.py.edited_lsit_form import Ui_Dialog as EditedListForm
 from PyQt5.QtCore import pyqtSignal, pyqtSlot
 from PyQt5.QtWidgets import QDialog
-from PyQt5 import QtWidgets
-from PyQt5 import QtGui
-from PyQt5 import QtCore
-import qt_utils
+from PyQt5 import QtWidgets, QtGui, QtCore
+
+from ui.py.edited_lsit_form import Ui_Dialog as EditedListForm
+from custom_widgets.QEditDoubleClick import QEditDoubleClick
+import utils
 
 
 class EditedListDialog(QDialog):
@@ -55,8 +55,25 @@ class EditedListDialog(QDialog):
         self.done(QDialog.Accepted)
 
 
+class QItemOnlyNumbers(QtWidgets.QItemDelegate):
+    def __init__(self, parent):
+        super().__init__(parent)
+
+    def createEditor(self, parent: QtWidgets.QWidget, option, index: QtCore.QModelIndex):
+        edit = QEditDoubleClick(parent)
+        regex = QtCore.QRegExp(utils.find_number_re.pattern)
+        validator = QtGui.QRegExpValidator(regex, parent)
+        edit.setValidator(validator)
+        return edit
+
+
 class EditedListOnlyNumbers(EditedListDialog):
     def __init__(self, parent=None, a_init_items=(), a_title="Title", a_list_name="List name"):
         super().__init__(parent, a_init_items, a_title, a_list_name)
-        self.ui.list_widget.setItemDelegate(qt_utils.QItemOnlyNumbers(self))
+        self.ui.list_widget.setItemDelegate(QItemOnlyNumbers(self))
 
+
+class EditedListWithUnits(EditedListDialog):
+    def __init__(self, parent=None, a_init_items=(), a_title="Title", a_list_name="List name"):
+        super().__init__(parent, a_init_items, a_title, a_list_name)
+        self.ui.list_widget.setItemDelegate(QItemOnlyNumbers(self))

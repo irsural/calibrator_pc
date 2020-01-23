@@ -1,16 +1,17 @@
-from PyQt5.QtWidgets import QDialog, QMessageBox, QMenu, QAction, QTableView
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, QTimer, QPoint, QModelIndex, Qt
-from PyQt5 import QtCore, QtGui
-from PyQt5.QtGui import QWheelEvent
 from typing import List
 
-from new_no_template_measure_dialog import NoTemplateConfig
+from PyQt5.QtWidgets import QDialog, QMessageBox, QMenu, QAction, QTableView
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, QTimer, QPoint, QModelIndex, Qt
+from PyQt5.QtGui import QWheelEvent
+from PyQt5 import QtCore, QtGui
+
+from QNoTemplateMeasureModel import PointData, QNoTemplateMeasureModel
 from ui.py.no_template_mode_form import Ui_Form as NoTemplateForm
+from new_no_template_measure_dialog import NoTemplateConfig
+import calibrator_constants as clb
 import clb_dll
 import utils
 import qt_utils
-import calibrator_constants as clb
-from QNoTemplateMeasureModel import PointData, QNoTemplateMeasureModel
 
 
 class NoTemplateWindow(QDialog):

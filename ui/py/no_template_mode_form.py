@@ -508,4 +508,4 @@ class Ui_Form(object):
 "точку"))
         self.start_stop_button.setText(_translate("Form", "Начать\n"
 "поверку"))
-from qt_utils import QEditDoubleClick
+from custom_widgets.QEditDoubleClick import QEditDoubleClick

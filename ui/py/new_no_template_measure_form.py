@@ -186,6 +186,7 @@ class Ui_Dialog(object):
         self.edit_frequency_button = QtWidgets.QPushButton(self.auto_calc_points_checkbox)
         self.edit_frequency_button.setMinimumSize(QtCore.QSize(22, 24))
         self.edit_frequency_button.setMaximumSize(QtCore.QSize(22, 24))
+        self.edit_frequency_button.setAutoDefault(False)
         self.edit_frequency_button.setObjectName("edit_frequency_button")
         self.horizontalLayout_2.addWidget(self.edit_frequency_button)
         self.gridLayout_2.addLayout(self.horizontalLayout_2, 1, 1, 1, 2)
@@ -300,4 +301,4 @@ class Ui_Dialog(object):
         self.step_help_button.setText(_translate("Dialog", "?"))
         self.accept_button.setText(_translate("Dialog", "Принять"))
         self.cancel_button.setText(_translate("Dialog", "Отмена"))
-from qt_utils import QEditDoubleClick
+from custom_widgets.QEditDoubleClick import QEditDoubleClick

@@ -976,7 +976,7 @@
   <customwidget>
    <class>QEditDoubleClick</class>
    <extends>QLineEdit</extends>
-   <header>qt_utils</header>
+   <header>custom_widgets.QEditDoubleClick</header>
   </customwidget>
  </customwidgets>
  <resources/>

@@ -1,14 +1,16 @@
-from ui.py.new_no_template_measure_form import Ui_Dialog as NewMeasureForm
+from typing import List
+import enum
+
 from PyQt5.QtWidgets import QDialog, QMessageBox
 from PyQt5.QtCore import pyqtSignal, pyqtSlot
-from edit_list_window import EditedListOnlyNumbers
-from PyQt5 import QtCore, QtWidgets, QtGui
+from PyQt5 import QtWidgets
+
+from ui.py.new_no_template_measure_form import Ui_Dialog as NewMeasureForm
+from custom_widgets.EditListDialog import EditedListOnlyNumbers
 import calibrator_constants as clb
 import clb_dll
-import enum
 import utils
 import qt_utils
-from typing import List
 
 
 class NoTemplateConfig:
