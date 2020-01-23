@@ -96,9 +96,10 @@ class StartWindow(QtWidgets.QMainWindow):
             no_template_window = NoTemplateWindow(self.calibrator, self.no_template_config)
             self.attach_calibrator_to_window(no_template_window)
             no_template_window.exec()
-            self.show()
         except Exception as err:
             print(err)
+        finally:
+            self.show()
 
     @pyqtSlot()
     def template_mode_chosen(self):

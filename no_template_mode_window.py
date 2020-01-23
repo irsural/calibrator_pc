@@ -3,10 +3,10 @@ from typing import List
 from PyQt5.QtWidgets import QDialog, QMessageBox, QMenu, QAction, QTableView
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QTimer, QPoint, QModelIndex, Qt
 from PyQt5.QtGui import QWheelEvent
-from PyQt5 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
 
 from QNoTemplateMeasureModel import PointData, QNoTemplateMeasureModel
-from ui.py.no_template_mode_form import Ui_Form as NoTemplateForm
+from ui.py.no_template_mode_form import Ui_main_widget as NoTemplateForm
 from new_no_template_measure_dialog import NoTemplateConfig
 import calibrator_constants as clb
 import clb_dll
@@ -38,6 +38,7 @@ class NoTemplateWindow(QDialog):
         self.value_to_user = utils.value_to_user_with_units(self.units_text)
 
         self.fixed_range_amplitudes_list = [0.0001, 0.01, 0.1, 1, 10, 20, 100]
+        self.fixed_step = self.fixed_range_amplitudes_list[0] if self.fixed_range_amplitudes_list else 0
         self.fill_fixed_step_combobox(self.fixed_range_amplitudes_list)
 
         self.calibrator = a_calibrator
@@ -45,7 +46,6 @@ class NoTemplateWindow(QDialog):
         self.calibrator.signal_type = self.measure_config.signal_type
         self.set_amplitude(self.calibrator.amplitude)
         self.set_frequency(self.calibrator.frequency)
-        self.fixed_step = 1
 
         self.connect_signals()
         self.started = False
@@ -126,6 +126,8 @@ class NoTemplateWindow(QDialog):
         self.ui.frequency_edit.textEdited.connect(self.frequency_edit_text_changed)
         self.ui.apply_frequency_button.clicked.connect(self.apply_frequency_button_clicked)
         self.ui.frequency_edit.returnPressed.connect(self.apply_frequency_button_clicked)
+
+        self.ui.fixed_step_combobox.currentTextChanged.connect(self.set_fixed_step)
 
     @pyqtSlot(list)
     def update_clb_list(self, a_clb_list: list):
@@ -349,6 +351,13 @@ class NoTemplateWindow(QDialog):
     @pyqtSlot(QPoint)
     def show_active_table_columns(self, a_position: QPoint):
         self.header_menu.popup(self.ui.measure_table.horizontalHeader().viewport().mapToGlobal(a_position))
+
+    @pyqtSlot(str)
+    def set_fixed_step(self, a_new_step: str):
+        try:
+            self.fixed_step = utils.parse_input(a_new_step)
+        except ValueError:
+            self.fixed_step = 0
 
     @pyqtSlot(bool, int)
     def hide_selected_table_column(self, a_state, a_column):
