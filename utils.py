@@ -9,6 +9,8 @@ import enum
 __check_input_re = re.compile(
     r"(?P<number>^[-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][-+]?\d+)?) *(?P<units>(?:мк|м|н)?[аАвВ]?$)")
 
+find_number_re = re.compile(r"[-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][-+]?\d+)?")
+
 __units_to_factor = {
     "": 1,
     "в": 1,

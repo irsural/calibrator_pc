@@ -181,7 +181,6 @@ class NewNoTemplateMeasureDialog(QDialog):
         self.ui.step_edit.setText(str(self.measure_config.points_step))
         self.ui.accuracy_spinbox.setValue(self.measure_config.point_approach_accuracy)
 
-        print(self.measure_config.display_resolution)
         self.ui.display_resolution_combobox.setCurrentIndex(self.measure_config.display_resolution)
 
         start_point_upper_chosen = self.measure_config.start_point_side == NoTemplateConfig.StartPoint.UPPER

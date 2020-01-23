@@ -136,7 +136,7 @@
     </widget>
    </item>
    <item>
-    <layout class="QGridLayout" name="gridLayout">
+    <layout class="QGridLayout" name="params_grid">
      <item row="2" column="2">
       <widget class="QLabel" name="label_5">
        <property name="font">
@@ -219,7 +219,7 @@
       </widget>
      </item>
      <item row="3" column="2">
-      <widget class="QLineEdit" name="upper_bound_edit">
+      <widget class="QEditDoubleClick" name="upper_bound_edit">
        <property name="minimumSize">
         <size>
          <width>0</width>
@@ -598,6 +598,13 @@
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>QEditDoubleClick</class>
+   <extends>QLineEdit</extends>
+   <header>qt_utils</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
  <buttongroups>

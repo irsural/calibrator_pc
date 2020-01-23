@@ -51,7 +51,7 @@ class NoTemplateWindow(QDialog):
 
         self.clb_check_timer = QTimer(self)
         self.clb_check_timer.timeout.connect(self.sync_clb_parameters)
-        self.clb_check_timer.start(10)
+        self.clb_check_timer.start(100)
 
     def create_table_header_context_menu(self, a_table: QTableView):
         table_header = a_table.horizontalHeader()
