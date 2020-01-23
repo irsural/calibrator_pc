@@ -28,18 +28,6 @@ def get_wheel_steps(event: QWheelEvent):
     return steps_num.y()
 
 
-class QItemOnlyNumbers(QtWidgets.QItemDelegate):
-    def __init__(self, parent):
-        super().__init__(parent)
-
-    def createEditor(self, parent: QtWidgets.QWidget, option, index: QtCore.QModelIndex):
-        edit = QtWidgets.QLineEdit(parent)
-        regex = QtCore.QRegExp("[0-9.]+")
-        validator = QtGui.QRegExpValidator(regex, parent)
-        edit.setValidator(validator)
-        return edit
-
-
 class QEditDoubleClick(QtWidgets.QLineEdit):
     """
     QLineEdit с добавлением выделения вещественных чисел по дабл клику
@@ -58,3 +46,15 @@ class QEditDoubleClick(QtWidgets.QLineEdit):
                     self.setSelection(begin, end - begin)
                     break
         a_event.accept()
+
+
+class QItemOnlyNumbers(QtWidgets.QItemDelegate):
+    def __init__(self, parent):
+        super().__init__(parent)
+
+    def createEditor(self, parent: QtWidgets.QWidget, option, index: QtCore.QModelIndex):
+        edit = QEditDoubleClick(parent)
+        regex = QtCore.QRegExp(utils.find_number_re.pattern)
+        validator = QtGui.QRegExpValidator(regex, parent)
+        edit.setValidator(validator)
+        return edit

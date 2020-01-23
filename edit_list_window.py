@@ -8,29 +8,27 @@ import qt_utils
 
 
 class EditedListDialog(QDialog):
-    results_ready = pyqtSignal(str)
+    list_ready = pyqtSignal(list)
 
-    def __init__(self, parent=None, a_init_line=""):
+    def __init__(self, parent=None, a_init_items=(), a_title="Title", a_list_name="List name"):
         super().__init__(parent)
 
         self.ui = EditedListForm()
         self.ui.setupUi(self)
-        self.ui.lsitname_label.setText("Частота, Гц")
-        self.setWindowTitle("Редактирование частот поверки")
+        self.setWindowTitle(a_title)
+        self.ui.lsitname_label.setText(a_list_name)
         self.show()
 
         self.delete_key_sc = QtWidgets.QShortcut(QtGui.QKeySequence(QtCore.Qt.Key_Delete), self.ui.list_widget)
         self.delete_key_sc.activated.connect(self.delete_selected_row)
 
-        self.ui.list_widget.setItemDelegate(qt_utils.QItemOnlyNumbers(self))
-
         self.ui.add_list_item_button.clicked.connect(self.add_list_item_button_clicked)
+        self.ui.delete_list_item_button.clicked.connect(self.delete_selected_row)
 
-        if a_init_line:
-            for frequency in a_init_line.split(';'):
-                self.add_frequency(frequency, False)
+        for item in a_init_items:
+            self.add_item(item, False)
 
-    def add_frequency(self, a_init_value="0", a_edit_item=True):
+    def add_item(self, a_init_value="0", a_edit_item=True):
         list_item = QtWidgets.QListWidgetItem(a_init_value, self.ui.list_widget)
         list_item.setFlags(int(list_item.flags()) | QtCore.Qt.ItemIsEditable)
         self.ui.list_widget.addItem(list_item)
@@ -41,18 +39,24 @@ class EditedListDialog(QDialog):
         self.ui.list_widget.takeItem(self.ui.list_widget.currentRow())
 
     def add_list_item_button_clicked(self):
-        self.add_frequency()
+        self.add_item()
 
-    def list_to_string(self):
-        frequency_list = []
+    def prepare_list(self):
+        out_list = []
         for idx in range(self.ui.list_widget.count()):
-            frequency = self.ui.list_widget.item(idx).text()
-            if frequency not in frequency_list:
-                frequency_list.append(frequency)
-        return ";".join(frequency_list)
+            item = self.ui.list_widget.item(idx).text()
+            if item not in out_list:
+                out_list.append(item)
+        return out_list
 
     @pyqtSlot()
     def accept(self):
-        self.results_ready.emit(self.list_to_string())
+        self.list_ready.emit(self.prepare_list())
         self.done(QDialog.Accepted)
+
+
+class EditedListOnlyNumbers(EditedListDialog):
+    def __init__(self, parent=None, a_init_items=(), a_title="Title", a_list_name="List name"):
+        super().__init__(parent, a_init_items, a_title, a_list_name)
+        self.ui.list_widget.setItemDelegate(qt_utils.QItemOnlyNumbers(self))
 

@@ -1,13 +1,14 @@
 from ui.py.new_no_template_measure_form import Ui_Dialog as NewMeasureForm
 from PyQt5.QtWidgets import QDialog, QMessageBox
 from PyQt5.QtCore import pyqtSignal, pyqtSlot
-from edit_list_window import EditedListDialog
+from edit_list_window import EditedListOnlyNumbers
 from PyQt5 import QtCore, QtWidgets, QtGui
 import calibrator_constants as clb
 import clb_dll
 import enum
 import utils
 import qt_utils
+from typing import List
 
 
 class NoTemplateConfig:
@@ -259,13 +260,16 @@ class NewNoTemplateMeasureDialog(QDialog):
 
     @pyqtSlot()
     def show_frequency_list(self):
-        edit_frequency_dialog = EditedListDialog(self, self.ui.frequency_edit.text())
-        edit_frequency_dialog.results_ready.connect(self.frequency_editing_finished)
+        frequency_text = self.ui.frequency_edit.text()
+        current_frequency = frequency_text.split(';') if frequency_text else []
+        edit_frequency_dialog = EditedListOnlyNumbers(self, tuple(current_frequency),
+                                                      "Редактирование частот поверки", "Частота, Гц")
+        edit_frequency_dialog.list_ready.connect(self.frequency_editing_finished)
         edit_frequency_dialog.exec()
 
-    @pyqtSlot(str)
-    def frequency_editing_finished(self, a_frequency_string):
-        self.ui.frequency_edit.setText(a_frequency_string)
+    @pyqtSlot(list)
+    def frequency_editing_finished(self, a_frequency_list: List[str]):
+        self.ui.frequency_edit.setText(";".join(a_frequency_list))
 
     @pyqtSlot()
     def show_step_help(self):
