@@ -1,3 +1,5 @@
+from typing import List
+
 from PyQt5.QtCore import pyqtSignal, pyqtSlot
 from PyQt5.QtWidgets import QDialog
 from PyQt5 import QtWidgets, QtGui, QtCore
@@ -25,13 +27,34 @@ class EditedListDialog(QDialog):
         self.ui.add_list_item_button.clicked.connect(self.add_list_item_button_clicked)
         self.ui.delete_list_item_button.clicked.connect(self.delete_selected_row)
 
+        self.ui.accept_button.clicked.connect(self.accept)
+        self.ui.cancel_button.clicked.connect(self.reject)
+
         for item in a_init_items:
             self.add_item(item, False)
+
+    def keyPressEvent(self, event: QtGui.QKeyEvent):
+        if self.ui.list_widget.hasFocus():
+            key = event.key()
+            if key == QtCore.Qt.Key_Return or key == QtCore.Qt.Key_Enter:
+                rows: List[QtWidgets.QListWidgetItem] = self.ui.list_widget.selectedItems()
+                if rows:
+                    self.ui.list_widget.editItem(rows[0])
+        else:
+            event.accept()
+
+    def item_editing_finished(self, a_index: QtCore.QModelIndex):
+        edit = self.ui.list_widget.itemFromIndex(a_index)
+        edit.setText(self.process_input(edit.text()))
+
+    def process_input(self, a_input):
+        return a_input
 
     def add_item(self, a_init_value="0", a_edit_item=True):
         list_item = QtWidgets.QListWidgetItem(a_init_value, self.ui.list_widget)
         list_item.setFlags(int(list_item.flags()) | QtCore.Qt.ItemIsEditable)
         self.ui.list_widget.addItem(list_item)
+        self.ui.list_widget.setCurrentItem(list_item)
         if a_edit_item:
             self.ui.list_widget.editItem(list_item)
 
@@ -56,6 +79,8 @@ class EditedListDialog(QDialog):
 
 
 class QItemOnlyNumbers(QtWidgets.QItemDelegate):
+    editing_finished = pyqtSignal(QtCore.QModelIndex)
+
     def __init__(self, parent):
         super().__init__(parent)
 
@@ -66,14 +91,25 @@ class QItemOnlyNumbers(QtWidgets.QItemDelegate):
         edit.setValidator(validator)
         return edit
 
+    def destroyEditor(self, editor: QEditDoubleClick, index: QtCore.QModelIndex):
+        self.editing_finished.emit(index)
+        return super().destroyEditor(editor, index)
+
 
 class EditedListOnlyNumbers(EditedListDialog):
     def __init__(self, parent=None, a_init_items=(), a_title="Title", a_list_name="List name"):
         super().__init__(parent, a_init_items, a_title, a_list_name)
-        self.ui.list_widget.setItemDelegate(QItemOnlyNumbers(self))
+
+        delegator = QItemOnlyNumbers(self)
+        delegator.editing_finished.connect(self.item_editing_finished)
+        self.ui.list_widget.setItemDelegate(delegator)
+
+    def process_input(self, a_input: str):
+        value = float(a_input)
+        return utils.remove_tail_zeroes(str(f"{value:.9f}")).replace(".", ",")
 
 
-class EditedListWithUnits(EditedListDialog):
-    def __init__(self, parent=None, a_init_items=(), a_title="Title", a_list_name="List name"):
-        super().__init__(parent, a_init_items, a_title, a_list_name)
-        self.ui.list_widget.setItemDelegate(QItemOnlyNumbers(self))
+# class EditedListWithUnits(EditedListDialog):
+#     def __init__(self, parent=None, a_init_items=(), a_title="Title", a_list_name="List name"):
+#         super().__init__(parent, a_init_items, a_title, a_list_name)
+#         self.ui.list_widget.setItemDelegate(QItemOnlyNumbers(self))
