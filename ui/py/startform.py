@@ -10,21 +10,13 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 
-class Ui_MainWindow(object):
-    def setupUi(self, MainWindow):
-        MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(362, 260)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Preferred)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(MainWindow.sizePolicy().hasHeightForWidth())
-        MainWindow.setSizePolicy(sizePolicy)
-        self.centralwidget = QtWidgets.QWidget(MainWindow)
-        self.centralwidget.setObjectName("centralwidget")
-        self.verticalLayout = QtWidgets.QVBoxLayout(self.centralwidget)
-        self.verticalLayout.setSizeConstraint(QtWidgets.QLayout.SetDefaultConstraint)
+class Ui_Form(object):
+    def setupUi(self, Form):
+        Form.setObjectName("Form")
+        Form.resize(370, 261)
+        self.verticalLayout = QtWidgets.QVBoxLayout(Form)
         self.verticalLayout.setObjectName("verticalLayout")
-        self.source_mode_button = QtWidgets.QPushButton(self.centralwidget)
+        self.source_mode_button = QtWidgets.QPushButton(Form)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -35,7 +27,7 @@ class Ui_MainWindow(object):
         self.source_mode_button.setFont(font)
         self.source_mode_button.setObjectName("source_mode_button")
         self.verticalLayout.addWidget(self.source_mode_button)
-        self.no_template_mode_button = QtWidgets.QPushButton(self.centralwidget)
+        self.no_template_mode_button = QtWidgets.QPushButton(Form)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -46,7 +38,7 @@ class Ui_MainWindow(object):
         self.no_template_mode_button.setFont(font)
         self.no_template_mode_button.setObjectName("no_template_mode_button")
         self.verticalLayout.addWidget(self.no_template_mode_button)
-        self.template_mode_button = QtWidgets.QPushButton(self.centralwidget)
+        self.template_mode_button = QtWidgets.QPushButton(Form)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -57,14 +49,13 @@ class Ui_MainWindow(object):
         self.template_mode_button.setFont(font)
         self.template_mode_button.setObjectName("template_mode_button")
         self.verticalLayout.addWidget(self.template_mode_button)
-        MainWindow.setCentralWidget(self.centralwidget)
 
-        self.retranslateUi(MainWindow)
-        QtCore.QMetaObject.connectSlotsByName(MainWindow)
+        self.retranslateUi(Form)
+        QtCore.QMetaObject.connectSlotsByName(Form)
 
-    def retranslateUi(self, MainWindow):
+    def retranslateUi(self, Form):
         _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "Выбор режима работы"))
-        self.source_mode_button.setText(_translate("MainWindow", "Режим источника"))
-        self.no_template_mode_button.setText(_translate("MainWindow", "Поверка без шаблона"))
-        self.template_mode_button.setText(_translate("MainWindow", "Поверка с шаблоном"))
+        Form.setWindowTitle(_translate("Form", "Form"))
+        self.source_mode_button.setText(_translate("Form", "Режим источника"))
+        self.no_template_mode_button.setText(_translate("Form", "Поверка без шаблона"))
+        self.template_mode_button.setText(_translate("Form", "Поверка с шаблоном"))

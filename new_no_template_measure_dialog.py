@@ -3,7 +3,7 @@ import enum
 
 from PyQt5.QtWidgets import QDialog, QMessageBox
 from PyQt5.QtCore import pyqtSignal, pyqtSlot
-from PyQt5 import QtWidgets
+from PyQt5 import QtWidgets, QtCore
 
 from ui.py.new_no_template_measure_form import Ui_Dialog as NewMeasureForm
 from custom_widgets.EditListDialog import EditedListOnlyNumbers
@@ -96,6 +96,13 @@ class NewNoTemplateMeasureDialog(QDialog):
         self.normalize_edit_value(self.ui.step_edit)
 
         self.calibrator = a_calibrator
+
+        self.window_existing_timer = QtCore.QTimer()
+        self.window_existing_timer.timeout.connect(self.window_existing_chech)
+        self.window_existing_timer.start(3000)
+
+    def window_existing_chech(self):
+        print("New measure dialog")
 
     def connect_signals(self):
         self.ui.aci_radio.clicked.connect(self.set_mode_aci)

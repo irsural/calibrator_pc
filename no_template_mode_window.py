@@ -14,7 +14,7 @@ import utils
 import qt_utils
 
 
-class NoTemplateWindow(QDialog):
+class NoTemplateWindow(QtWidgets.QWidget):
     remove_points = pyqtSignal(list)
 
     def __init__(self, a_calibrator: clb_dll.ClbDrv, a_measure_config: NoTemplateConfig, a_parent=None):
@@ -22,6 +22,7 @@ class NoTemplateWindow(QDialog):
 
         self.ui = NoTemplateForm()
         self.ui.setupUi(self)
+        self.show()
 
         self.measure_model = QNoTemplateMeasureModel(self)
         self.ui.measure_table.setModel(self.measure_model)
@@ -53,6 +54,13 @@ class NoTemplateWindow(QDialog):
         self.clb_check_timer = QTimer(self)
         self.clb_check_timer.timeout.connect(self.sync_clb_parameters)
         self.clb_check_timer.start(100)
+
+        self.window_existing_timer = QtCore.QTimer()
+        self.window_existing_timer.timeout.connect(self.window_existing_chech)
+        self.window_existing_timer.start(3000)
+
+    def window_existing_chech(self):
+        print("No template window")
 
     def create_table_header_context_menu(self, a_table: QTableView):
         table_header = a_table.horizontalHeader()

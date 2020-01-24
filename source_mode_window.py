@@ -1,17 +1,19 @@
-from PyQt5.QtWidgets import QDialog
+from PyQt5 import QtCore, QtWidgets, QtGui
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QTimer
+
 
 from ui.py.source_mode_form import Ui_Form as SourceModeForm
 import calibrator_constants as clb
 import clb_dll
 
 
-class SourceModeWindow(QDialog):
+class SourceModeWindow(QtWidgets.QWidget):
     def __init__(self, a_calibrator: clb_dll.ClbDrv, a_parent=None):
         super().__init__(a_parent)
 
         self.ui = SourceModeForm()
         self.ui.setupUi(self)
+        self.show()
 
         self.calibrator = a_calibrator
 
@@ -34,6 +36,13 @@ class SourceModeWindow(QDialog):
         self.clb_check_timer.start(10)
 
         self.block_signals = False
+
+        self.window_existing_timer = QtCore.QTimer()
+        self.window_existing_timer.timeout.connect(self.window_existing_chech)
+        self.window_existing_timer.start(3000)
+
+    def window_existing_chech(self):
+        print("Source Mode Window")
 
     def connect_signals(self):
         self.ui.clb_list_combobox.currentTextChanged.connect(self.connect_to_clb)
