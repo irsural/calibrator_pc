@@ -126,3 +126,14 @@ class EditedListWithUnits(EditedListDialog):
         except ValueError:
             processed_value = 0
         return utils.value_to_user_with_units(self.units)(processed_value)
+
+    def prepare_list(self):
+        out_list = []
+        try:
+            for idx in range(self.ui.list_widget.count()):
+                item = self.ui.list_widget.item(idx).text()
+                if item not in out_list:
+                    out_list.append(utils.parse_input(item))
+            return out_list
+        except ValueError:
+            return list()

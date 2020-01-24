@@ -9,6 +9,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from QNoTemplateMeasureModel import PointData, QNoTemplateMeasureModel
 from ui.py.no_template_mode_form import Ui_main_widget as NoTemplateForm
 from new_no_template_measure_dialog import NoTemplateConfig
+from custom_widgets.EditListDialog import EditedListWithUnits
 import calibrator_constants as clb
 import constants as cfg
 import clb_dll
@@ -44,7 +45,7 @@ class NoTemplateWindow(QtWidgets.QWidget):
         self.value_to_user = utils.value_to_user_with_units(self.units_text)
 
         self.fixed_step = 0
-        self.fixed_range_amplitudes_list = self.settings[cfg.NO_TEMPLATE_SECTION][cfg.FIXED_RANGES_KEY]
+        self.fixed_range_amplitudes_list = self.settings[cfg.NO_TEMPLATE_SECTION][cfg.FIXED_RANGES_KEY].split(',')
         self.fill_fixed_step_combobox(self.fixed_range_amplitudes_list)
 
         self.calibrator = a_calibrator
@@ -113,8 +114,11 @@ class NoTemplateWindow(QtWidgets.QWidget):
             for point in calculated_points:
                 self.measure_model.appendPoint(PointData(point, 0, 0))
 
-    def fill_fixed_step_combobox(self, a_values: str):
-        for val in a_values.split(','):
+    @pyqtSlot(list)
+    def fill_fixed_step_combobox(self, a_values: list):
+        self.ui.fixed_step_combobox.clear()
+        a_values.sort()
+        for val in a_values:
             try:
                 value_str = self.value_to_user(float(val))
             except ValueError:
@@ -122,6 +126,16 @@ class NoTemplateWindow(QtWidgets.QWidget):
 
             if self.ui.fixed_step_combobox.findText(value_str) == -1:
                 self.ui.fixed_step_combobox.addItem(value_str)
+
+    @pyqtSlot()
+    def edit_fixed_step(self):
+        current_ranges = \
+            tuple(self.ui.fixed_step_combobox.itemText(ind) for ind in range(self.ui.fixed_step_combobox.count()))
+        edit_ranges_dialog = EditedListWithUnits(self.units_text, self, current_ranges,
+                                                 "Редактирование фиксированного шага", "Шаг")
+
+        edit_ranges_dialog.list_ready.connect(self.fill_fixed_step_combobox)
+        edit_ranges_dialog.exec()
 
     def connect_signals(self):
         self.ui.start_stop_button.clicked.connect(self.start_stop_measure)

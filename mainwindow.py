@@ -156,10 +156,17 @@ class MainWindow(QtWidgets.QMainWindow):
     def no_template_mode_chosen(self):
         try:
             self.change_window(NoTemplateWindow(self.calibrator, self.no_template_config, self.settings, self))
+            self.ui.change_fixed_range_action.triggered.connect(self.active_window.edit_fixed_step)
         except Exception as err:
             print(err)
 
     @pyqtSlot()
     def template_mode_chosen(self):
         pass
+
+    # def closeEvent(self, a_event: QtGui.QCloseEvent):
+    #     if isinstance(self.active_window, NoTemplateWindow):
+    #         self.active_window.close()
+    #         a_event.ignore()
+
 
