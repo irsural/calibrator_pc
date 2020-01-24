@@ -46,7 +46,7 @@ class NoTemplateWindow(QtWidgets.QWidget):
 
         self.fixed_step = 0
         self.fixed_range_amplitudes_list = self.settings[cfg.NO_TEMPLATE_SECTION][cfg.FIXED_RANGES_KEY].split(',')
-        self.fill_fixed_step_combobox(self.fixed_range_amplitudes_list)
+        self.fill_fixed_step_combobox(self.fixed_range_amplitudes_list, a_save=False)
 
         self.calibrator = a_calibrator
         self.clb_state = clb.State.DISCONNECTED
@@ -115,9 +115,11 @@ class NoTemplateWindow(QtWidgets.QWidget):
                 self.measure_model.appendPoint(PointData(point, 0, 0))
 
     @pyqtSlot(list)
-    def fill_fixed_step_combobox(self, a_values: list):
+    def fill_fixed_step_combobox(self, a_values: List[float], a_save=True):
+        save_string = ""
         self.ui.fixed_step_combobox.clear()
         a_values.sort()
+
         for val in a_values:
             try:
                 value_str = self.value_to_user(float(val))
@@ -126,6 +128,12 @@ class NoTemplateWindow(QtWidgets.QWidget):
 
             if self.ui.fixed_step_combobox.findText(value_str) == -1:
                 self.ui.fixed_step_combobox.addItem(value_str)
+                save_string += f"{val},"
+
+        if a_save:
+            save_string.strip(',')
+            self.settings[cfg.NO_TEMPLATE_SECTION][cfg.FIXED_RANGES_KEY] = save_string
+            utils.save_settings(cfg.CONFIG_PATH, self.settings)
 
     @pyqtSlot()
     def edit_fixed_step(self):
@@ -133,9 +141,18 @@ class NoTemplateWindow(QtWidgets.QWidget):
             tuple(self.ui.fixed_step_combobox.itemText(ind) for ind in range(self.ui.fixed_step_combobox.count()))
         edit_ranges_dialog = EditedListWithUnits(self.units_text, self, current_ranges,
                                                  "Редактирование фиксированного шага", "Шаг")
-
         edit_ranges_dialog.list_ready.connect(self.fill_fixed_step_combobox)
-        edit_ranges_dialog.exec()
+        #
+        # try:
+        #     if edit_ranges_dialog.exec() == QtWidgets.QDialog.Accepted:
+        #         new_ranges = ""
+        #         for idx in range(self.ui.fixed_step_combobox.count()):
+        #
+        #             new_ranges += f"{self.value_to_user(self.ui.fixed_step_combobox.itemText(idx))},"
+        #         new_ranges.strip(',')
+        #         self.settings[cfg.NO_TEMPLATE_SECTION][cfg.FIXED_RANGES_KEY] = new_ranges
+        # except Exception as err:
+        #     print(err)
 
     def connect_signals(self):
         self.ui.start_stop_button.clicked.connect(self.start_stop_measure)

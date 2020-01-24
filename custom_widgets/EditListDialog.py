@@ -127,7 +127,7 @@ class EditedListWithUnits(EditedListDialog):
             processed_value = 0
         return utils.value_to_user_with_units(self.units)(processed_value)
 
-    def prepare_list(self):
+    def prepare_list(self) -> List[float]:
         out_list = []
         try:
             for idx in range(self.ui.list_widget.count()):

@@ -27,6 +27,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.show()
 
         self.active_window = None
+        self.previous_start_window_pos = self.pos()
         self.show_start_window()
 
         self.settings = self.restore_settings(cfg.CONFIG_PATH)
@@ -49,9 +50,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         if not os.path.exists(a_path):
             settings[cfg.NO_TEMPLATE_SECTION] = {cfg.FIXED_RANGES_KEY: "0.0001,0.01,0.1,1,10,20,100"}
-
-            with open(a_path, 'w') as config_file:
-                settings.write(config_file)
+            utils.save_settings(a_path, settings)
         else:
             settings.read(a_path)
 
@@ -73,7 +72,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.active_window.source_mode_chosen.connect(self.open_source_mode_window)
             self.active_window.no_template_mode_chosen.connect(self.open_config_no_template_mode)
             self.active_window.template_mode_chosen.connect(self.template_mode_chosen)
-            self.move(self.sync_centers(self, self.active_window))
+            self.move(self.previous_start_window_pos)
         except AssertionError as err:
             print(err)
 
@@ -115,19 +114,23 @@ class MainWindow(QtWidgets.QMainWindow):
         # assert self.receivers(self.clb_list_changed) == 1, "clb_list_changed must be connected to only one slot"
         # assert self.receivers(self.usb_status_changed) == 1, "usb_status_changed must be connected to only one slot"
 
-    def sync_centers(self, a_old_widget, a_new_widget):
+    @staticmethod
+    def sync_centers(a_old_widget, a_new_widget):
         new_center: QtCore.QPoint = a_old_widget.geometry().center() - a_new_widget.rect().center()
         new_center.setY(utils.bound(new_center.y(), 0, QtWidgets.QApplication.desktop().screenGeometry().height() -
                                     a_new_widget.height()))
         return new_center
 
     def change_window(self, a_new_window):
+        self.previous_start_window_pos = self.pos()
         self.active_window.close()
         self.active_window = a_new_window
         self.attach_calibrator_to_window(self.active_window)
+
+        self.move(self.sync_centers(self, self.active_window))
+        self.resize(self.active_window.size())
         self.setCentralWidget(self.active_window)
         self.ui.back_action.triggered.connect(self.show_start_window)
-        self.move(self.sync_centers(self, self.active_window))
 
     @pyqtSlot()
     def open_source_mode_window(self):

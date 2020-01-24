@@ -1,6 +1,7 @@
 import enum
 import math
 import re
+import configparser
 
 import numpy as np
 
@@ -168,3 +169,8 @@ def increase_on_percent(a_value, a_percent):
 
 def reduce_on_percent(a_value, a_percent):
     return a_value - a_value * a_percent / 100
+
+
+def save_settings(a_path: str, a_config: configparser):
+    with open(a_path, 'w') as config_file:
+        a_config.write(config_file)
