@@ -12,6 +12,7 @@ from startwindow import StartWindow
 import calibrator_constants as clb
 import constants as cfg
 import clb_dll
+import utils
 
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -72,6 +73,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.active_window.source_mode_chosen.connect(self.open_source_mode_window)
             self.active_window.no_template_mode_chosen.connect(self.open_config_no_template_mode)
             self.active_window.template_mode_chosen.connect(self.template_mode_chosen)
+            self.move(self.sync_centers(self, self.active_window))
         except AssertionError as err:
             print(err)
 
@@ -113,12 +115,19 @@ class MainWindow(QtWidgets.QMainWindow):
         # assert self.receivers(self.clb_list_changed) == 1, "clb_list_changed must be connected to only one slot"
         # assert self.receivers(self.usb_status_changed) == 1, "usb_status_changed must be connected to only one slot"
 
+    def sync_centers(self, a_old_widget, a_new_widget):
+        new_center: QtCore.QPoint = a_old_widget.geometry().center() - a_new_widget.rect().center()
+        new_center.setY(utils.bound(new_center.y(), 0, QtWidgets.QApplication.desktop().screenGeometry().height() -
+                                    a_new_widget.height()))
+        return new_center
+
     def change_window(self, a_new_window):
         self.active_window.close()
         self.active_window = a_new_window
         self.attach_calibrator_to_window(self.active_window)
         self.setCentralWidget(self.active_window)
         self.ui.back_action.triggered.connect(self.show_start_window)
+        self.move(self.sync_centers(self, self.active_window))
 
     @pyqtSlot()
     def open_source_mode_window(self):
