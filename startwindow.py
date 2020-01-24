@@ -24,6 +24,7 @@ class StartWindow(QtWidgets.QWidget):
         self.window_existing_timer.timeout.connect(self.window_existing_chech)
         self.window_existing_timer.start(3000)
 
+    @pyqtSlot()
     def window_existing_chech(self):
         print("Start Window")
 

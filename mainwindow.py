@@ -1,3 +1,6 @@
+import configparser
+import os
+
 from PyQt5.QtCore import pyqtSlot, pyqtSignal
 from PyQt5 import QtWidgets, QtCore, QtGui
 
@@ -7,6 +10,7 @@ from no_template_mode_window import NoTemplateWindow
 from source_mode_window import SourceModeWindow
 from startwindow import StartWindow
 import calibrator_constants as clb
+import constants as cfg
 import clb_dll
 
 
@@ -24,6 +28,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.active_window = None
         self.show_start_window()
 
+        self.settings = self.restore_settings(cfg.CONFIG_PATH)
+
         self.clb_driver = clb_dll.set_up_driver(clb_dll.path)
         self.usb_driver = clb_dll.UsbDrv(self.clb_driver)
         self.usb_state = clb_dll.UsbDrv.UsbState.DISABLED
@@ -35,6 +41,26 @@ class MainWindow(QtWidgets.QMainWindow):
         self.usb_check_timer.start(10)
 
         self.no_template_config: NoTemplateConfig = None
+
+    @staticmethod
+    def restore_settings(a_path: str):
+        settings = configparser.ConfigParser()
+
+        if not os.path.exists(a_path):
+            settings[cfg.NO_TEMPLATE_SECTION] = {cfg.FIXED_RANGES_KEY: "0.0001,0.01,0.1,1,10,20,100"}
+
+            with open(a_path, 'w') as config_file:
+                settings.write(config_file)
+        else:
+            settings.read(a_path)
+
+        # Выводит ini файл в консоль
+        # for key in settings:
+        #     print(f"[{key}]")
+        #     for subkey in settings[key]:
+        #         print(f"{subkey} = {settings[key][subkey]}")
+
+        return settings
 
     def show_start_window(self):
         try:
@@ -120,7 +146,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def no_template_mode_chosen(self):
         try:
-            self.change_window(NoTemplateWindow(self.calibrator, self.no_template_config, self))
+            self.change_window(NoTemplateWindow(self.calibrator, self.no_template_config, self.settings, self))
         except Exception as err:
             print(err)
 

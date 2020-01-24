@@ -1,4 +1,5 @@
 from typing import List
+import configparser
 
 from PyQt5.QtWidgets import QDialog, QMessageBox, QMenu, QAction, QTableView
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QTimer, QPoint, QModelIndex, Qt
@@ -9,6 +10,7 @@ from QNoTemplateMeasureModel import PointData, QNoTemplateMeasureModel
 from ui.py.no_template_mode_form import Ui_main_widget as NoTemplateForm
 from new_no_template_measure_dialog import NoTemplateConfig
 import calibrator_constants as clb
+import constants as cfg
 import clb_dll
 import utils
 import qt_utils
@@ -17,12 +19,15 @@ import qt_utils
 class NoTemplateWindow(QtWidgets.QWidget):
     remove_points = pyqtSignal(list)
 
-    def __init__(self, a_calibrator: clb_dll.ClbDrv, a_measure_config: NoTemplateConfig, a_parent=None):
+    def __init__(self, a_calibrator: clb_dll.ClbDrv, a_measure_config: NoTemplateConfig,
+                 a_settings: configparser.ConfigParser, a_parent=None):
         super().__init__(a_parent)
 
         self.ui = NoTemplateForm()
         self.ui.setupUi(self)
         self.show()
+
+        self.settings = a_settings
 
         self.measure_model = QNoTemplateMeasureModel(self)
         self.ui.measure_table.setModel(self.measure_model)
@@ -38,8 +43,8 @@ class NoTemplateWindow(QtWidgets.QWidget):
 
         self.value_to_user = utils.value_to_user_with_units(self.units_text)
 
-        self.fixed_range_amplitudes_list = [0.0001, 0.01, 0.1, 1, 10, 20, 100]
-        self.fixed_step = self.fixed_range_amplitudes_list[0] if self.fixed_range_amplitudes_list else 0
+        self.fixed_step = 0
+        self.fixed_range_amplitudes_list = self.settings[cfg.NO_TEMPLATE_SECTION][cfg.FIXED_RANGES_KEY]
         self.fill_fixed_step_combobox(self.fixed_range_amplitudes_list)
 
         self.calibrator = a_calibrator
@@ -108,9 +113,15 @@ class NoTemplateWindow(QtWidgets.QWidget):
             for point in calculated_points:
                 self.measure_model.appendPoint(PointData(point, 0, 0))
 
-    def fill_fixed_step_combobox(self, a_values: list):
-        for val in a_values:
-            self.ui.fixed_step_combobox.addItem(self.value_to_user(val))
+    def fill_fixed_step_combobox(self, a_values: str):
+        for val in a_values.split(','):
+            try:
+                value_str = self.value_to_user(float(val))
+            except ValueError:
+                value_str = self.value_to_user(0)
+
+            if self.ui.fixed_step_combobox.findText(value_str) == -1:
+                self.ui.fixed_step_combobox.addItem(value_str)
 
     def connect_signals(self):
         self.ui.start_stop_button.clicked.connect(self.start_stop_measure)
@@ -379,6 +390,7 @@ class NoTemplateWindow(QtWidgets.QWidget):
                                      QMessageBox.No, QMessageBox.No)
         if reply == QMessageBox.Yes:
             self.calibrator.signal_enable = False
+
             # Без этого диалог не уничтожится
             for sender, connection in self.manual_connections:
                 sender.triggered.disconnect(connection)
