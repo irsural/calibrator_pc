@@ -13,7 +13,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_main_widget(object):
     def setupUi(self, main_widget):
         main_widget.setObjectName("main_widget")
-        main_widget.resize(754, 451)
+        main_widget.resize(754, 457)
         self.verticalLayout_4 = QtWidgets.QVBoxLayout(main_widget)
         self.verticalLayout_4.setObjectName("verticalLayout_4")
         self.frame_3 = QtWidgets.QFrame(main_widget)
@@ -354,7 +354,7 @@ class Ui_main_widget(object):
         self.apply_amplitude_button.setFont(font)
         self.apply_amplitude_button.setObjectName("apply_amplitude_button")
         self.gridLayout.addWidget(self.apply_amplitude_button, 3, 1, 1, 1)
-        self.frequency_edit = QEditDoubleClick(self.layoutWidget)
+        self.frequency_edit = QEditCopyButton(self.layoutWidget)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(1)
         sizePolicy.setVerticalStretch(0)
@@ -365,7 +365,7 @@ class Ui_main_widget(object):
         self.frequency_edit.setFont(font)
         self.frequency_edit.setObjectName("frequency_edit")
         self.gridLayout.addWidget(self.frequency_edit, 5, 0, 1, 1)
-        self.amplitude_edit = QEditDoubleClick(self.layoutWidget)
+        self.amplitude_edit = QEditCopyButton(self.layoutWidget)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(1)
         sizePolicy.setVerticalStretch(0)
@@ -374,6 +374,7 @@ class Ui_main_widget(object):
         font = QtGui.QFont()
         font.setPointSize(25)
         self.amplitude_edit.setFont(font)
+        self.amplitude_edit.setStyleSheet("")
         self.amplitude_edit.setObjectName("amplitude_edit")
         self.gridLayout.addWidget(self.amplitude_edit, 3, 0, 1, 1)
         self.label_6 = QtWidgets.QLabel(self.layoutWidget)
@@ -512,4 +513,4 @@ class Ui_main_widget(object):
 "точку"))
         self.start_stop_button.setText(_translate("main_widget", "Начать\n"
 "поверку"))
-from custom_widgets.QEditDoubleClick import QEditDoubleClick
+from custom_widgets.CustomLineEdit import QEditCopyButton

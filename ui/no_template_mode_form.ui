@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>754</width>
-    <height>451</height>
+    <height>457</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -758,7 +758,7 @@
               </widget>
              </item>
              <item row="5" column="0">
-              <widget class="QEditDoubleClick" name="frequency_edit">
+              <widget class="QEditCopyButton" name="frequency_edit">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
                  <horstretch>1</horstretch>
@@ -776,7 +776,7 @@
               </widget>
              </item>
              <item row="3" column="0">
-              <widget class="QEditDoubleClick" name="amplitude_edit">
+              <widget class="QEditCopyButton" name="amplitude_edit">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
                  <horstretch>1</horstretch>
@@ -787,6 +787,9 @@
                 <font>
                  <pointsize>25</pointsize>
                 </font>
+               </property>
+               <property name="styleSheet">
+                <string notr="true"/>
                </property>
                <property name="text">
                 <string>0</string>
@@ -1007,9 +1010,9 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>QEditDoubleClick</class>
+   <class>QEditCopyButton</class>
    <extends>QLineEdit</extends>
-   <header>custom_widgets.QEditDoubleClick</header>
+   <header>custom_widgets.CustomLineEdit</header>
   </customwidget>
  </customwidgets>
  <resources/>

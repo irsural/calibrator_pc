@@ -16,4 +16,6 @@ def convert_resources(path_in=".", path_out="."):
 
 
 if __name__ == "__main__":
-    convert_ui()
+    convert_ui("./ui", "./ui/py")
+    convert_resources("./resources", "./resources/py")
+

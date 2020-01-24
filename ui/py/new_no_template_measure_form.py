@@ -301,4 +301,4 @@ class Ui_Dialog(object):
         self.step_help_button.setText(_translate("Dialog", "?"))
         self.accept_button.setText(_translate("Dialog", "Принять"))
         self.cancel_button.setText(_translate("Dialog", "Отмена"))
-from custom_widgets.QEditDoubleClick import QEditDoubleClick
+from custom_widgets.CustomLineEdit import QEditDoubleClick

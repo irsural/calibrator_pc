@@ -142,17 +142,6 @@ class NoTemplateWindow(QtWidgets.QWidget):
         edit_ranges_dialog = EditedListWithUnits(self.units_text, self, current_ranges,
                                                  "Редактирование фиксированного шага", "Шаг")
         edit_ranges_dialog.list_ready.connect(self.fill_fixed_step_combobox)
-        #
-        # try:
-        #     if edit_ranges_dialog.exec() == QtWidgets.QDialog.Accepted:
-        #         new_ranges = ""
-        #         for idx in range(self.ui.fixed_step_combobox.count()):
-        #
-        #             new_ranges += f"{self.value_to_user(self.ui.fixed_step_combobox.itemText(idx))},"
-        #         new_ranges.strip(',')
-        #         self.settings[cfg.NO_TEMPLATE_SECTION][cfg.FIXED_RANGES_KEY] = new_ranges
-        # except Exception as err:
-        #     print(err)
 
     def connect_signals(self):
         self.ui.start_stop_button.clicked.connect(self.start_stop_measure)
@@ -225,6 +214,7 @@ class NoTemplateWindow(QtWidgets.QWidget):
             if (keys & Qt.ControlModifier) and (keys & Qt.ShiftModifier):
                 if self.ui.amplitude_edit.underMouse():
                     self.set_amplitude(self.calibrator.amplitude + (self.fixed_step * steps))
+                    print(self.fixed_step)
             elif keys & Qt.ShiftModifier:
                 tune_foo(clb.AmplitudeStep.EXACT * steps)
             elif keys & Qt.ControlModifier:

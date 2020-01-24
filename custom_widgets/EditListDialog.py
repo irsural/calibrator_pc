@@ -5,7 +5,7 @@ from PyQt5.QtWidgets import QDialog
 from PyQt5 import QtWidgets, QtGui, QtCore
 
 from ui.py.edited_lsit_form import Ui_Dialog as EditedListForm
-from custom_widgets.QEditDoubleClick import QEditDoubleClick
+from custom_widgets.CustomLineEdit import QEditDoubleClick
 import utils
 
 

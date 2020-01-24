@@ -605,7 +605,7 @@
   <customwidget>
    <class>QEditDoubleClick</class>
    <extends>QLineEdit</extends>
-   <header>custom_widgets.QEditDoubleClick</header>
+   <header>custom_widgets.CustomLineEdit</header>
   </customwidget>
  </customwidgets>
  <resources/>
