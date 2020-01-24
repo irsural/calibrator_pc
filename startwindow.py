@@ -16,6 +16,8 @@ class StartWindow(QtWidgets.QWidget):
         self.ui.setupUi(self)
         self.show()
 
+        self.setWindowTitle("Калибратор N4-25")
+
         self.ui.source_mode_button.clicked.connect(self.source_mode_chosen)
         self.ui.no_template_mode_button.clicked.connect(self.no_template_mode_chosen)
         self.ui.template_mode_button.clicked.connect(self.template_mode_chosen)

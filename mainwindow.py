@@ -2,6 +2,7 @@ import configparser
 import os
 
 from PyQt5.QtCore import pyqtSlot, pyqtSignal
+from PyQt5.QtWidgets import QMessageBox
 from PyQt5 import QtWidgets, QtCore, QtGui
 
 from new_no_template_measure_dialog import NewNoTemplateMeasureDialog, NoTemplateConfig
@@ -72,6 +73,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.active_window.source_mode_chosen.connect(self.open_source_mode_window)
             self.active_window.no_template_mode_chosen.connect(self.open_config_no_template_mode)
             self.active_window.template_mode_chosen.connect(self.template_mode_chosen)
+            self.setWindowTitle(self.active_window.windowTitle())
             self.move(self.previous_start_window_pos)
         except AssertionError as err:
             print(err)
@@ -132,6 +134,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.setCentralWidget(self.active_window)
         self.ui.back_action.triggered.connect(self.show_start_window)
 
+        self.setWindowTitle(self.active_window.windowTitle())
+
     @pyqtSlot()
     def open_source_mode_window(self):
         try:
@@ -170,6 +174,12 @@ class MainWindow(QtWidgets.QMainWindow):
     # def closeEvent(self, a_event: QtGui.QCloseEvent):
     #     if isinstance(self.active_window, NoTemplateWindow):
     #         self.active_window.close()
+    #         a_event.ignore()
+    #         #################################
+    #         reply = QMessageBox.question(self, "Подтвердите действие", "Завершить поверку?", QMessageBox.Yes |
+    #                                      QMessageBox.No, QMessageBox.No)
+    #         if reply == QMessageBox.Yes:
+    #             self.show_start_window()
     #         a_event.ignore()
 
 

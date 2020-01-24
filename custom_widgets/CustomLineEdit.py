@@ -55,9 +55,4 @@ class QEditCopyButton(QEditDoubleClick):
         super().setStyleSheet(styleSheet)
 
     def copy(self):
-        try:
-            edit_value: float = utils.parse_input(self.text())
-            QtWidgets.QApplication.clipboard().setText(str(edit_value))
-            print(edit_value)
-        except ValueError:
-            pass
+        QtWidgets.QApplication.clipboard().setText(self.text())

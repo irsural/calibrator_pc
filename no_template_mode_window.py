@@ -44,10 +44,6 @@ class NoTemplateWindow(QtWidgets.QWidget):
 
         self.value_to_user = utils.value_to_user_with_units(self.units_text)
 
-        self.fixed_step = 0
-        self.fixed_range_amplitudes_list = self.settings[cfg.NO_TEMPLATE_SECTION][cfg.FIXED_RANGES_KEY].split(',')
-        self.fill_fixed_step_combobox(self.fixed_range_amplitudes_list, a_save=False)
-
         self.calibrator = a_calibrator
         self.clb_state = clb.State.DISCONNECTED
         self.calibrator.signal_type = self.measure_config.signal_type
@@ -56,6 +52,10 @@ class NoTemplateWindow(QtWidgets.QWidget):
 
         self.connect_signals()
         self.started = False
+
+        self.fixed_step = 0
+        self.fixed_range_amplitudes_list = self.settings[cfg.NO_TEMPLATE_SECTION][cfg.FIXED_RANGES_KEY].split(',')
+        self.fill_fixed_step_combobox(self.fixed_range_amplitudes_list, a_save=False)
 
         self.clb_check_timer = QTimer(self)
         self.clb_check_timer.timeout.connect(self.sync_clb_parameters)
@@ -131,7 +131,7 @@ class NoTemplateWindow(QtWidgets.QWidget):
                 save_string += f"{val},"
 
         if a_save:
-            save_string.strip(',')
+            save_string = save_string.strip(',')
             self.settings[cfg.NO_TEMPLATE_SECTION][cfg.FIXED_RANGES_KEY] = save_string
             utils.save_settings(cfg.CONFIG_PATH, self.settings)
 
@@ -214,7 +214,6 @@ class NoTemplateWindow(QtWidgets.QWidget):
             if (keys & Qt.ControlModifier) and (keys & Qt.ShiftModifier):
                 if self.ui.amplitude_edit.underMouse():
                     self.set_amplitude(self.calibrator.amplitude + (self.fixed_step * steps))
-                    print(self.fixed_step)
             elif keys & Qt.ShiftModifier:
                 tune_foo(clb.AmplitudeStep.EXACT * steps)
             elif keys & Qt.ControlModifier:

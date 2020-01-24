@@ -120,7 +120,7 @@ class ClbDrv:
 
     def connect(self, a_clb_name: str):
         # Костыль чтобы частота не сбрасывалась при реконнекте калибратора
-        self.__frequency = 0
+        # self.__frequency = 0
         if a_clb_name:
             self.__clb_dll.connect_usb(a_clb_name)
         else:

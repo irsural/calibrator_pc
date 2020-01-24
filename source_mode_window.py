@@ -15,6 +15,8 @@ class SourceModeWindow(QtWidgets.QWidget):
         self.ui.setupUi(self)
         self.show()
 
+        self.setWindowTitle("Режим источника")
+
         self.calibrator = a_calibrator
 
         self.connect_signals()
