@@ -1,13 +1,16 @@
 import ui_to_py
 ui_to_py.convert_ui("./ui", "./ui/py")
+ui_to_py.convert_resources("./resources", "./resources/py")
 
-from mainwindow import MainWindow
-from PyQt5.QtWidgets import QApplication
-from PyQt5 import QtCore
 import sys
 
+from PyQt5.QtWidgets import QApplication
+from PyQt5 import QtCore
+
+from mainwindow import MainWindow
 
 if __name__ == "__main__":
+
     app = QApplication(sys.argv)
 
     translator = QtCore.QTranslator(app)
@@ -16,4 +19,4 @@ if __name__ == "__main__":
     app.installTranslator(translator)
 
     w = MainWindow()
-    sys.exit(app.exec_())
+    sys.exit(app.exec())
