@@ -65,6 +65,27 @@ enum_to_signal_type = {
     SignalType.DCV: "Постоянное напряжение"
 }
 
+signal_type_to_units = {
+    SignalType.ACI: "А",
+    SignalType.DCI: "А",
+    SignalType.ACV: "В",
+    SignalType.DCV: "В"
+}
+
+is_dc_signal = {
+    SignalType.ACI: False,
+    SignalType.ACV: False,
+    SignalType.DCI: True,
+    SignalType.DCV: True
+}
+
+is_voltage_signal = {
+    SignalType.ACI: False,
+    SignalType.DCI: False,
+    SignalType.ACV: True,
+    SignalType.DCV: True
+}
+
 signal_type_to_min_step = {
     SignalType.ACI: 2e-6,
     SignalType.ACV: 2e-6,

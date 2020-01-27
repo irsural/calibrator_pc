@@ -90,7 +90,7 @@ def value_to_user_with_units(a_postfix: str, a_reverse_check=False):
             a_value *= 1e3
             prefix_type = __UnitsPrefix.MILLI
         result = round(a_value, 9)
-        result_str = remove_tail_zeroes(f"{result:.9f}").replace(".", ",")
+        result_str = float_to_string(result)
         result_with_units = f"{result_str} {__enum_to_units[prefix_type]}{a_postfix}"
 
         # print(f"V->S. Input: {a_value}. Output: {result_str}")
@@ -103,8 +103,8 @@ def value_to_user_with_units(a_postfix: str, a_reverse_check=False):
     return value_to_user
 
 
-def remove_tail_zeroes(a_string_num: str):
-    return a_string_num.rstrip('0').rstrip('.')
+def float_to_string(a_number: float):
+    return f"{a_number:.9f}".rstrip('0').rstrip('.').replace(".", ",")
 
 
 def deviation(a_lval: float, a_rval: float):

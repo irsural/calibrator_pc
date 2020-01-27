@@ -1,7 +1,7 @@
 from typing import List
 import configparser
 
-from PyQt5.QtWidgets import QDialog, QMessageBox, QMenu, QAction, QTableView
+from PyQt5.QtWidgets import QMessageBox, QMenu, QAction, QTableView
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QTimer, QPoint, QModelIndex, Qt
 from PyQt5.QtGui import QWheelEvent
 from PyQt5 import QtCore, QtGui, QtWidgets
@@ -25,30 +25,32 @@ class NoTemplateWindow(QtWidgets.QWidget):
         super().__init__(a_parent)
 
         self.ui = NoTemplateForm()
-        self.ui.setupUi(self)
-        self.show()
 
+        self.ui.setupUi(self)
         pause_icon = QtGui.QIcon()
         pause_icon.addPixmap(QtGui.QPixmap(cfg.PAUSE_ICON_PATH), QtGui.QIcon.Normal, QtGui.QIcon.On)
         pause_icon.addPixmap(QtGui.QPixmap(cfg.PLAY_ICON_PATH), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.ui.pause_button.setIcon(pause_icon)
         self.ui.pause_button.setIconSize(QtCore.QSize(21, 21))
 
+        self.show()
+
         self.settings = a_settings
-
-        self.measure_model = QNoTemplateMeasureModel(self)
-        self.ui.measure_table.setModel(self.measure_model)
-        self.header_menu, self.manual_connections = self.create_table_header_context_menu(self.ui.measure_table)
-        self.current_point = PointData()
-
         self.measure_config = a_measure_config
-        self.units_text = "А"
-        self.set_window_elements()
+
+        self.units_text = clb.signal_type_to_units[self.measure_config.signal_type]
+        self.value_to_user = utils.value_to_user_with_units(self.units_text)
+
         self.fixed_range_amplitude = 0
         self.highest_amplitude = utils.increase_on_percent(self.measure_config.upper_bound,
                                                            self.measure_config.point_approach_accuracy)
 
-        self.value_to_user = utils.value_to_user_with_units(self.units_text)
+        self.measure_model = QNoTemplateMeasureModel(self, a_value_units=self.units_text)
+        self.ui.measure_table.setModel(self.measure_model)
+        self.current_point = PointData()
+
+        self.set_window_elements()
+        self.header_menu, self.manual_connections = self.create_table_header_context_menu(self.ui.measure_table)
 
         self.calibrator = a_calibrator
         self.clb_state = clb.State.DISCONNECTED
@@ -95,13 +97,10 @@ class NoTemplateWindow(QtWidgets.QWidget):
         return menu, lambda_connections
 
     def set_window_elements(self):
-        self.units_text = "А" if self.measure_config.signal_type == clb.SignalType.ACI or \
-                                 self.measure_config.signal_type == clb.SignalType.DCI else "В"
-
-        if self.measure_config.signal_type == clb.SignalType.DCI or \
-                self.measure_config.signal_type == clb.SignalType.DCV:
+        if clb.is_dc_signal[self.measure_config.signal_type]:
             self.ui.apply_frequency_button.setDisabled(True)
             self.ui.frequency_edit.setDisabled(True)
+            self.ui.measure_table.hideColumn(QNoTemplateMeasureModel.Column.FREQUENCY)
 
         self.setWindowTitle(f"{self.measure_config.clb_name}. Измерение без шаблона. "
                             f"{clb.enum_to_signal_type[self.measure_config.signal_type]}. "
@@ -185,7 +184,6 @@ class NoTemplateWindow(QtWidgets.QWidget):
         self.ui.clb_state_label.setText(clb.enum_to_state[a_status])
 
     def sync_clb_parameters(self):
-        # if self.clb_state != clb.State.DISCONNECTED:
         if self.calibrator.amplitude_changed():
             self.set_amplitude(self.calibrator.amplitude)
 
@@ -230,13 +228,17 @@ class NoTemplateWindow(QtWidgets.QWidget):
         event.accept()
 
     def set_amplitude(self, a_amplitude: float):
-        self.update_current_point(a_amplitude)
         self.calibrator.amplitude = a_amplitude
         self.ui.amplitude_edit.setText(self.value_to_user(self.calibrator.amplitude))
 
+        self.update_current_point(self.calibrator.amplitude)
+
     def set_frequency(self, a_frequency):
         self.calibrator.frequency = a_frequency
-        self.ui.frequency_edit.setText(utils.remove_tail_zeroes(f"{self.calibrator.frequency:.9f}"))
+        current_frequency = 0 if clb.is_dc_signal[self.measure_config.signal_type] else self.calibrator.frequency
+        self.ui.frequency_edit.setText(utils.float_to_string(current_frequency))
+
+        self.update_current_frequency(current_frequency)
 
     def tune_amplitude(self, a_step):
         self.set_amplitude(utils.relative_step_change(self.calibrator.amplitude, a_step,
@@ -254,6 +256,9 @@ class NoTemplateWindow(QtWidgets.QWidget):
         self.current_point.point = self.guess_point(a_current_value)
         self.current_point.prev_value = self.current_point.value
         self.current_point.value = a_current_value
+
+    def update_current_frequency(self, a_current_frequency):
+        self.current_point.frequency = a_current_frequency
 
     @pyqtSlot()
     def start_stop_measure(self):
@@ -286,8 +291,7 @@ class NoTemplateWindow(QtWidgets.QWidget):
     @pyqtSlot()
     def save_point(self):
         try:
-            self.measure_model.appendPoint(PointData(self.guess_point(self.calibrator.amplitude),
-                                                     self.calibrator.amplitude, 0))
+            self.measure_model.appendPoint(self.current_point)
         except Exception as err:
             print(err)
 
@@ -336,12 +340,13 @@ class NoTemplateWindow(QtWidgets.QWidget):
 
     @pyqtSlot()
     def frequency_edit_text_changed(self):
-        qt_utils.update_edit_color(self.calibrator.frequency, self.ui.frequency_edit.text(), self.ui.frequency_edit)
+        qt_utils.update_edit_color(self.calibrator.frequency, self.ui.frequency_edit.text().replace(",", "."),
+                                   self.ui.frequency_edit)
 
     @pyqtSlot()
     def apply_frequency_button_clicked(self):
         try:
-            new_frequency = float(self.ui.frequency_edit.text())
+            new_frequency = utils.parse_input(self.ui.frequency_edit.text())
             self.set_frequency(new_frequency)
             self.frequency_edit_text_changed()
         except ValueError:

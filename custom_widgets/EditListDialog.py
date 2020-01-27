@@ -107,7 +107,7 @@ class EditedListOnlyNumbers(EditedListDialog):
 
     def process_input(self, a_input: str):
         value = float(a_input)
-        return utils.remove_tail_zeroes(str(f"{value:.9f}")).replace(".", ",")
+        return utils.float_to_string(value)
 
 
 class EditedListWithUnits(EditedListDialog):

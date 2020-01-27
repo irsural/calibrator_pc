@@ -2,11 +2,13 @@ import enum
 
 from PyQt5.QtCore import QAbstractTableModel, QModelIndex, Qt, QVariant, pyqtSlot
 
+import utils
 
 class PointData:
 
-    def __init__(self, a_point=0., a_value=0., a_prev_value=0):
+    def __init__(self, a_point=0., a_frequency=0., a_value=0., a_prev_value=0):
         self.point = a_point
+        self.frequency = a_frequency
         self.value = a_value
         self.prev_value = a_prev_value
 
@@ -19,26 +21,28 @@ class PointData:
 class QNoTemplateMeasureModel(QAbstractTableModel):
     class Column(enum.IntEnum):
         POINT = 0
-        UP_VALUE = 1
-        UP_DEVIATION = 2
-        UP_DEVIATION_PERCENT = 3
-        DOWN_VALUE = 4
-        DOWN_DEVIATION = 5
-        DOWN_DEVIATION_PERCENT = 6
-        COUNT = 7
+        FREQUENCY = 1
+        UP_VALUE = 2
+        UP_DEVIATION = 3
+        UP_DEVIATION_PERCENT = 4
+        DOWN_VALUE = 5
+        DOWN_DEVIATION = 6
+        DOWN_DEVIATION_PERCENT = 7
+        COUNT = 8
 
     enum_to_column_header = {
         Column.POINT: "Поверяемая\nточка",
+        Column.FREQUENCY: "Частота, Гц",
         Column.UP_VALUE: "Значение\nсверху",
-        Column.UP_DEVIATION: "Отклонение\nсверху, В",
+        Column.UP_DEVIATION: "Отклонение\nсверху",
         Column.UP_DEVIATION_PERCENT: "Отклонение\nсверху, %",
         Column.DOWN_VALUE: "Значение\nснизу",
-        Column.DOWN_DEVIATION: "Отклонение\nсверху, В",
+        Column.DOWN_DEVIATION: "Отклонение\nсверху",
         Column.DOWN_DEVIATION_PERCENT: "Отклонение\nсверху, %",
         Column.COUNT: ">>>>>>ОШИБКА<<<<<<"
     }
 
-    def __init__(self, a_parent=None):
+    def __init__(self, a_parent=None, a_value_units="А"):
         super().__init__(a_parent)
 
         self.__row_count = 0
@@ -46,10 +50,15 @@ class QNoTemplateMeasureModel(QAbstractTableModel):
 
         self.__points: list[list[str]] = []
 
-    def appendPoint(self, a_point_data: PointData):
-        # if
+        self.value_to_user = utils.value_to_user_with_units(a_value_units)
 
-        point_data = [str(a_point_data.point), str(a_point_data.value), "0", "0", str(a_point_data.value), "0", "0"]
+    def appendPoint(self, a_point_data: PointData):
+        point_data = [self.value_to_user(a_point_data.point),
+                      utils.float_to_string(a_point_data.frequency),
+                      self.value_to_user(a_point_data.value), "0", "0",
+                      self.value_to_user(a_point_data.value), "0", "0"]
+
+        assert len(point_data) == self.Column.COUNT
 
         row = self.rowCount()
         self.beginInsertRows(QModelIndex(), row, row)
@@ -91,6 +100,6 @@ class QNoTemplateMeasureModel(QAbstractTableModel):
     def flags(self, index):
         item_flags = super().flags(index)
         if index.isValid():
-            if index.column() == self.Column.POINT:
+            if index.column() == self.Column.POINT or index.column() == self.Column.FREQUENCY:
                 item_flags |= Qt.ItemIsEditable
         return item_flags
