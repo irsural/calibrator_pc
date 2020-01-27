@@ -59,7 +59,7 @@ class NoTemplateWindow(QtWidgets.QWidget):
 
         self.clb_check_timer = QTimer(self)
         self.clb_check_timer.timeout.connect(self.sync_clb_parameters)
-        self.clb_check_timer.start(100)
+        self.clb_check_timer.start(10)
 
         self.window_existing_timer = QtCore.QTimer()
         self.window_existing_timer.timeout.connect(self.window_existing_chech)
@@ -178,22 +178,22 @@ class NoTemplateWindow(QtWidgets.QWidget):
         self.ui.clb_state_label.setText(clb.enum_to_state[a_status])
 
     def sync_clb_parameters(self):
-        if self.clb_state != clb.State.DISCONNECTED:
-            if self.calibrator.amplitude_changed():
-                self.set_amplitude(self.calibrator.amplitude)
+        # if self.clb_state != clb.State.DISCONNECTED:
+        if self.calibrator.amplitude_changed():
+            self.set_amplitude(self.calibrator.amplitude)
 
-            if self.calibrator.frequency_changed():
-                self.set_frequency(self.calibrator.frequency)
+        if self.calibrator.frequency_changed():
+            self.set_frequency(self.calibrator.frequency)
 
-            # Эта переменная синхронизируется в startwindow.py
-            if self.calibrator.signal_enable:
-                pass
-            else:
-                pass
+        # Эта переменная синхронизируется в startwindow.py
+        if self.calibrator.signal_enable:
+            pass
+        else:
+            pass
 
-            if self.calibrator.signal_type_changed():
-                if self.calibrator.signal_type != self.measure_config.signal_type:
-                    self.calibrator.signal_type = self.measure_config.signal_type
+        if self.calibrator.signal_type_changed():
+            if self.calibrator.signal_type != self.measure_config.signal_type:
+                self.calibrator.signal_type = self.measure_config.signal_type
 
     def keyPressEvent(self, event: QtGui.QKeyEvent):
         if self.ui.measure_table.hasFocus():
@@ -220,7 +220,6 @@ class NoTemplateWindow(QtWidgets.QWidget):
                 tune_foo(clb.AmplitudeStep.ROUGH * steps)
             else:
                 tune_foo(clb.AmplitudeStep.COMMON * steps)
-
         event.accept()
 
     def set_amplitude(self, a_amplitude: float):
@@ -233,20 +232,12 @@ class NoTemplateWindow(QtWidgets.QWidget):
         self.ui.frequency_edit.setText(utils.remove_tail_zeroes(f"{self.calibrator.frequency:.9f}"))
 
     def tune_amplitude(self, a_step):
-        try:
-            self.set_amplitude(utils.relative_step_change(self.calibrator.amplitude, a_step,
-                                                          clb.signal_type_to_min_step[self.measure_config.signal_type]))
-        except ValueError as err:
-            # Возникает при скролле с нуля
-            print(err)
+        self.set_amplitude(utils.relative_step_change(self.calibrator.amplitude, a_step,
+                                                      clb.signal_type_to_min_step[self.measure_config.signal_type]))
 
     def tune_frequency(self, a_step):
-        try:
-            if self.ui.frequency_edit.isEnabled():
-                self.set_frequency(utils.relative_step_change(self.calibrator.frequency, a_step, 1))
-        except ValueError as err:
-            # Возникает при скролле с нуля
-            print(err)
+        if self.ui.frequency_edit.isEnabled():
+            self.set_frequency(utils.relative_step_change(self.calibrator.frequency, a_step, clb.FREQUENCY_MIN_STEP))
 
     def update_current_point(self, a_current_value):
         """
@@ -259,23 +250,20 @@ class NoTemplateWindow(QtWidgets.QWidget):
 
     @pyqtSlot()
     def start_stop_measure(self):
-        try:
-            if not self.started:
-                reply = QMessageBox.question(self, "Подтвердите действие",
-                                             f"Начать поверку?\n"
-                                             f"На калибраторе будет включен сигнал и установлены следующие параметры:\n"
-                                             f"Режим измерения: Фиксированный диапазон\n"
-                                             f"Тип сигнала: "
-                                             f"{clb.enum_to_signal_type[self.measure_config.signal_type]}\n"
-                                             f"Амплитуда: {self.highest_amplitude} {self.units_text}",
-                                             QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+        if not self.started:
+            reply = QMessageBox.question(self, "Подтвердите действие",
+                                         f"Начать поверку?\n"
+                                         f"На калибраторе будет включен сигнал и установлены следующие параметры:\n"
+                                         f"Режим измерения: Фиксированный диапазон\n"
+                                         f"Тип сигнала: "
+                                         f"{clb.enum_to_signal_type[self.measure_config.signal_type]}\n"
+                                         f"Амплитуда: {self.highest_amplitude} {self.units_text}",
+                                         QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
 
-                if reply == QMessageBox.Yes:
-                    self.start_measure()
-            else:
-                self.close()
-        except Exception as err:
-            print(err)
+            if reply == QMessageBox.Yes:
+                self.start_measure()
+        else:
+            self.close()
 
     def start_measure(self):
         self.ui.start_stop_button.setText("Закончить\nповерку")
@@ -299,24 +287,20 @@ class NoTemplateWindow(QtWidgets.QWidget):
         return a_point_value
 
     def delete_point(self):
-        try:
-            rows: List[QModelIndex] = self.ui.measure_table.selectionModel().selectedRows()
+        rows: List[QModelIndex] = self.ui.measure_table.selectionModel().selectedRows()
 
-            if rows:
-                row_indexes = []
-                deleted_points = ""
-                for index_model in rows:
-                    point_str = self.get_table_item_by_index(index_model.row(), QNoTemplateMeasureModel.Column.POINT)
-                    deleted_points += f"{point_str}\n"
-                    row_indexes.append(index_model.row())
+        if rows:
+            row_indexes = []
+            deleted_points = ""
+            for index_model in rows:
+                point_str = self.get_table_item_by_index(index_model.row(), QNoTemplateMeasureModel.Column.POINT)
+                deleted_points += f"{point_str}\n"
+                row_indexes.append(index_model.row())
 
-                reply = QMessageBox.question(self, "Подтвердите действие", "Удалить следующие точки?\n\n" +
-                                             deleted_points, QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
-                if reply == QMessageBox.Yes:
-                    self.remove_points.emit(row_indexes)
-
-        except Exception as err:
-            print(err)
+            reply = QMessageBox.question(self, "Подтвердите действие", "Удалить следующие точки?\n\n" +
+                                         deleted_points, QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+            if reply == QMessageBox.Yes:
+                self.remove_points.emit(row_indexes)
 
     def get_table_item_by_index(self, a_row: int, a_column: int):
         index = self.ui.measure_table.model().index(a_row, a_column)
@@ -381,11 +365,11 @@ class NoTemplateWindow(QtWidgets.QWidget):
 
     @pyqtSlot()
     def fixed_plus_button_clicked(self):
-        self.tune_amplitude(1)
+        self.set_amplitude(self.calibrator.amplitude + self.fixed_step)
 
     @pyqtSlot()
     def fixed_minus_button_clicked(self):
-        self.tune_amplitude(-1)
+        self.set_amplitude(self.calibrator.amplitude - self.fixed_step)
 
     @pyqtSlot(QPoint)
     def show_active_table_columns(self, a_position: QPoint):

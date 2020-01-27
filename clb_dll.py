@@ -119,15 +119,21 @@ class ClbDrv:
         self.__signal_ready = False
 
     def connect(self, a_clb_name: str):
-        # Костыль чтобы частота не сбрасывалась при реконнекте калибратора
-        # self.__frequency = 0
         if a_clb_name:
             self.__clb_dll.connect_usb(a_clb_name)
         else:
+            self.__amplitude = 0
+            self.__frequency = 0
+            self.__signal_type = clb.SignalType.ACI
+            self.__dc_polarity = clb.Polatiry.POS
+            self.__signal_on = False
+            self.__mode = clb.Mode.SOURCE
+            self.__signal_ready = False
+            
             self.__clb_dll.disconnect_usb()
 
     def amplitude_changed(self):
-        actual_amplitude = self.__clb_dll.get_amplitude()
+        actual_amplitude = self.__bound_amplitude(self.__clb_dll.get_amplitude())
         signed_amplitude = actual_amplitude if self.__clb_dll.get_polarity() == clb.Polatiry.POS else -actual_amplitude
 
         if self.__amplitude != signed_amplitude:
@@ -164,7 +170,7 @@ class ClbDrv:
             self.__clb_dll.set_polarity(clb.Polatiry.POS)
 
     def frequency_changed(self):
-        actual_frequency = self.__clb_dll.get_frequency()
+        actual_frequency = utils.bound(self.__clb_dll.get_frequency(), clb.MIN_FREQUENCY, clb.MAX_FREQUENCY)
         if self.__frequency != actual_frequency:
             self.__frequency = actual_frequency
             return True
@@ -178,7 +184,7 @@ class ClbDrv:
     @frequency.setter
     def frequency(self, a_frequency: float):
         self.__frequency = utils.bound(a_frequency, clb.MIN_FREQUENCY, clb.MAX_FREQUENCY)
-        self.__clb_dll.set_frequency(a_frequency)
+        self.__clb_dll.set_frequency(self.__frequency)
 
     def signal_type_changed(self):
         actual_signal_type = self.__clb_dll.get_signal_type()

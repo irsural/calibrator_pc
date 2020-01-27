@@ -72,5 +72,7 @@ signal_type_to_min_step = {
     SignalType.DCV: 2e-7,
 }
 
+FREQUENCY_MIN_STEP = 1
+
 Step = namedtuple("Step", "ROUGH COMMON EXACT")
 AmplitudeStep = Step(0.005, 0.0005, 0.00002)

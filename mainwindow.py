@@ -89,7 +89,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.usb_state = self.usb_driver.get_status()
 
         current_state = clb.State.DISCONNECTED
-        if not self.usb_state == clb_dll.UsbDrv.UsbState.DISABLED:
+        if self.usb_state == clb_dll.UsbDrv.UsbState.CONNECTED:
             self.calibrator.signal_enable_changed()
 
             if not self.calibrator.signal_enable:
