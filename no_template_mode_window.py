@@ -28,6 +28,12 @@ class NoTemplateWindow(QtWidgets.QWidget):
         self.ui.setupUi(self)
         self.show()
 
+        pause_icon = QtGui.QIcon()
+        pause_icon.addPixmap(QtGui.QPixmap(cfg.PAUSE_ICON_PATH), QtGui.QIcon.Normal, QtGui.QIcon.On)
+        pause_icon.addPixmap(QtGui.QPixmap(cfg.PLAY_ICON_PATH), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.ui.pause_button.setIcon(pause_icon)
+        self.ui.pause_button.setIconSize(QtCore.QSize(21, 21))
+
         self.settings = a_settings
 
         self.measure_model = QNoTemplateMeasureModel(self)
@@ -167,6 +173,7 @@ class NoTemplateWindow(QtWidgets.QWidget):
         self.ui.frequency_edit.returnPressed.connect(self.apply_frequency_button_clicked)
 
         self.ui.fixed_step_combobox.currentTextChanged.connect(self.set_fixed_step)
+        self.ui.pause_button.toggled.connect(self.pause_start_signal)
 
     @pyqtSlot(list)
     def update_clb_list(self, a_clb_list: list):
@@ -187,9 +194,9 @@ class NoTemplateWindow(QtWidgets.QWidget):
 
         # Эта переменная синхронизируется в startwindow.py
         if self.calibrator.signal_enable:
-            pass
+            self.ui.pause_button.setChecked(True)
         else:
-            pass
+            self.ui.pause_button.setChecked(False)
 
         if self.calibrator.signal_type_changed():
             if self.calibrator.signal_type != self.measure_config.signal_type:
@@ -267,12 +274,14 @@ class NoTemplateWindow(QtWidgets.QWidget):
 
     def start_measure(self):
         self.ui.start_stop_button.setText("Закончить\nповерку")
-        self.started = True
+        self.ui.pause_button.setEnabled(True)
 
         self.set_amplitude(self.highest_amplitude)
         self.calibrator.mode = clb.Mode.FIXED_RANGE
         self.calibrator.signal_type = self.measure_config.signal_type
         self.calibrator.signal_enable = True
+
+        self.started = True
 
     @pyqtSlot()
     def save_point(self):
@@ -370,6 +379,16 @@ class NoTemplateWindow(QtWidgets.QWidget):
     @pyqtSlot()
     def fixed_minus_button_clicked(self):
         self.set_amplitude(self.calibrator.amplitude - self.fixed_step)
+
+    @pyqtSlot(bool)
+    def pause_start_signal(self, a_enabled: bool):
+        if a_enabled:
+            self.ui.pause_button.setText("Пауза")
+            self.calibrator.signal_enable = True
+
+        else:
+            self.calibrator.signal_enable = False
+            self.ui.pause_button.setText("Возобновить")
 
     @pyqtSlot(QPoint)
     def show_active_table_columns(self, a_position: QPoint):
