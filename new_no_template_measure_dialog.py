@@ -24,6 +24,17 @@ class NoTemplateConfig:
         X_0000 = 6
         X_00000 = 7
 
+    RESOLUTION_TO_PRECISION = {
+        DisplayResolution.XXX: -2,
+        DisplayResolution.XX: -1,
+        DisplayResolution.X: 0,
+        DisplayResolution.X_0: 1,
+        DisplayResolution.X_00: 2,
+        DisplayResolution.X_000: 3,
+        DisplayResolution.X_0000: 4,
+        DisplayResolution.X_00000: 5,
+    }
+
     class StartPoint(enum.IntEnum):
         LOWER = 0
         UPPER = 1

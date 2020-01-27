@@ -248,7 +248,7 @@ class NoTemplateWindow(QtWidgets.QWidget):
         if self.ui.frequency_edit.isEnabled():
             self.set_frequency(utils.relative_step_change(self.calibrator.frequency, a_step, clb.FREQUENCY_MIN_STEP))
 
-    def update_current_point(self, a_current_value):
+    def update_current_point(self, a_current_value: float):
         """
         Обновляет данные, которые будут записаны в таблицу по кнопке "Сохранить точку"
         :param a_current_value: Новое значение амплитуды
@@ -295,9 +295,9 @@ class NoTemplateWindow(QtWidgets.QWidget):
         except Exception as err:
             print(err)
 
-    def guess_point(self, a_point_value):
-        resolution = self.measure_config.display_resolution
-        return a_point_value
+    def guess_point(self, a_point_value: float):
+        round_precision = NoTemplateConfig.RESOLUTION_TO_PRECISION[self.measure_config.display_resolution]
+        return round(a_point_value, round_precision)
 
     def delete_point(self):
         rows: List[QModelIndex] = self.ui.measure_table.selectionModel().selectedRows()
