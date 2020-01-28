@@ -48,6 +48,7 @@ class NoTemplateWindow(QtWidgets.QWidget):
         self.measure_model = QNoTemplateMeasureModel(self, a_value_units=self.units_text)
         self.ui.measure_table.setModel(self.measure_model)
         self.current_point = PointData()
+        self.current_point.normalize_value = self.measure_config.upper_bound
 
         self.set_window_elements()
         self.header_menu, self.manual_connections = self.create_table_header_context_menu(self.ui.measure_table)

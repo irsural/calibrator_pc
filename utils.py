@@ -107,10 +107,17 @@ def float_to_string(a_number: float):
     return f"{a_number:.9f}".rstrip('0').rstrip('.').replace(".", ",")
 
 
-def deviation(a_lval: float, a_rval: float):
-    if a_lval == 0 or a_rval == 0:
-        return 0
-    return (a_lval - a_rval) / a_lval * 100
+def absolute_error(a_reference: float, a_value: float):
+    return a_reference - a_value
+
+
+def relative_error(a_reference: float, a_value: float, a_normalize: float):
+    assert a_normalize != 0, "Normalize value must not be zero"
+    return (a_reference - a_value) / a_normalize * 100
+
+
+def variation(a_lval: float, a_rval: float):
+    return abs(a_lval - a_rval)
 
 
 def auto_calc_points(a_start: float, a_stop: float, a_step: float):
