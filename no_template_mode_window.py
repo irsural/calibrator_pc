@@ -36,14 +36,14 @@ class NoTemplateWindow(QtWidgets.QWidget):
         self.show()
 
         self.settings = a_settings
-        self.measure_config = a_measure_config
+        self.measure_config: NoTemplateConfig = a_measure_config
 
         self.units_text = clb.signal_type_to_units[self.measure_config.signal_type]
         self.value_to_user = utils.value_to_user_with_units(self.units_text)
 
         self.fixed_range_amplitude = 0
         self.highest_amplitude = utils.increase_on_percent(self.measure_config.upper_bound,
-                                                           self.measure_config.point_approach_accuracy)
+                                                           self.measure_config.start_deviation)
 
         self.measure_model = QNoTemplateMeasureModel(self, a_value_units=self.units_text)
         self.ui.measure_table.setModel(self.measure_model)
@@ -296,8 +296,7 @@ class NoTemplateWindow(QtWidgets.QWidget):
             print(err)
 
     def guess_point(self, a_point_value: float):
-        round_precision = NoTemplateConfig.RESOLUTION_TO_PRECISION[self.measure_config.display_resolution]
-        return round(a_point_value, round_precision)
+        return round(a_point_value / self.measure_config.minimal_discrete) * self.measure_config.minimal_discrete
 
     def delete_point(self):
         rows: List[QModelIndex] = self.ui.measure_table.selectionModel().selectedRows()

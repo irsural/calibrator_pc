@@ -9,6 +9,7 @@ from PyQt5 import QtCore
 
 from mainwindow import MainWindow
 
+
 if __name__ == "__main__":
 
     app = QApplication(sys.argv)
@@ -18,5 +19,8 @@ if __name__ == "__main__":
     translator.load("/".join([path, "qtbase_ru.qm"]))
     app.installTranslator(translator)
 
-    w = MainWindow()
-    sys.exit(app.exec())
+    try:
+        w = MainWindow()
+        sys.exit(app.exec())
+    except Exception as err:
+        print("MAIN: ", err)

@@ -14,27 +14,6 @@ import qt_utils
 
 
 class NoTemplateConfig:
-    class DisplayResolution(enum.IntEnum):
-        XXX = 0
-        XX = 1
-        X = 2
-        X_0 = 3
-        X_00 = 4
-        X_000 = 5
-        X_0000 = 6
-        X_00000 = 7
-
-    RESOLUTION_TO_PRECISION = {
-        DisplayResolution.XXX: -2,
-        DisplayResolution.XX: -1,
-        DisplayResolution.X: 0,
-        DisplayResolution.X_0: 1,
-        DisplayResolution.X_00: 2,
-        DisplayResolution.X_000: 3,
-        DisplayResolution.X_0000: 4,
-        DisplayResolution.X_00000: 5,
-    }
-
     class StartPoint(enum.IntEnum):
         LOWER = 0
         UPPER = 1
@@ -42,25 +21,30 @@ class NoTemplateConfig:
     def __init__(self):
         self.signal_type = clb.SignalType.ACI
         self.clb_name = ""
-        self.lower_bound = 0.
+        self.accuracy_class = 0.05
         self.upper_bound = 1.
-        self.display_resolution = self.DisplayResolution.X
-        self.point_approach_accuracy = 10.
+        self.minimal_discrete = 1
+        self.start_deviation = 10.
+        self.comment = ""
 
         self.auto_calc_points = False
+        self.lower_bound = 0.
         self.points_step = 0.
         self.start_point_side = self.StartPoint.LOWER
+        self.frequency = []
 
     def __str__(self):
         return f"Signal type: {self.signal_type.name}\n" \
             f"Clb name: {self.clb_name}\n" \
             f"Lower: {self.lower_bound}\n" \
             f"Upper: {self.upper_bound}\n" \
-            f"Resolution: {self.display_resolution}\n" \
-            f"Accuracy: {self.point_approach_accuracy}\n" \
+            f"Discrete: {self.minimal_discrete}\n" \
+            f"Class: {self.accuracy_class}\n" \
+            f"Accuracy: {self.start_deviation}\n" \
             f"Auto calc: {self.auto_calc_points}\n" \
             f"Step: {self.points_step}\n" \
-            f"Side: {self.start_point_side.name}\n"
+            f"Side: {self.start_point_side.name}\n"            \
+            f"Frequency: {self.frequency}\n"
 
 
 class NewNoTemplateMeasureDialog(QDialog):
@@ -76,6 +60,8 @@ class NewNoTemplateMeasureDialog(QDialog):
         current_too_big = 6
         voltage_too_big = 7
         bad_input = 8
+        zero_minimal_discrete = 9
+        no_frequency = 10
 
     input_status_to_msg = {
         InputStatus.ok: "Ввод корректен",
@@ -86,7 +72,9 @@ class NewNoTemplateMeasureDialog(QDialog):
         InputStatus.empty_fields: "Необходимо заполнить все поля",
         InputStatus.current_too_big: f"Значение тока не должно превышать |{clb.MAX_CURRENT}| А",
         InputStatus.voltage_too_big: f"Значение напряжения не должно превышать |{clb.MAX_VOLTAGE}| В",
-        InputStatus.bad_input: f"Некорректный ввод. Необходимо исправить поля, отмеченные красным цветом"
+        InputStatus.bad_input: f"Некорректный ввод. Необходимо исправить поля, отмеченные красным цветом",
+        InputStatus.zero_minimal_discrete: f"Минимальный дискрет не должен быть равен нулю",
+        InputStatus.no_frequency: "Значения частоты не заданы"
     }
 
     def __init__(self, a_calibrator: clb_dll.ClbDrv, a_measure_config=None, a_parent=None):
@@ -121,7 +109,6 @@ class NewNoTemplateMeasureDialog(QDialog):
         self.ui.acv_radio.clicked.connect(self.set_mode_acv)
         self.ui.dcv_radio.clicked.connect(self.set_mode_dcv)
 
-        self.ui.step_help_button.clicked.connect(self.show_step_help)
         self.ui.edit_frequency_button.clicked.connect(self.show_frequency_list)
         self.ui.clb_list_combobox.currentTextChanged.connect(self.connect_to_clb)
 
@@ -197,27 +184,31 @@ class NewNoTemplateMeasureDialog(QDialog):
         }
         signal_type_to_radio[self.measure_config.signal_type].click()
 
-        self.ui.lower_bound_edit.setText(str(self.measure_config.lower_bound))
-        self.ui.upper_bound_edit.setText(str(self.measure_config.upper_bound))
-        self.ui.step_edit.setText(str(self.measure_config.points_step))
-        self.ui.accuracy_spinbox.setValue(self.measure_config.point_approach_accuracy)
-
-        self.ui.display_resolution_combobox.setCurrentIndex(self.measure_config.display_resolution)
-
-        start_point_upper_chosen = self.measure_config.start_point_side == NoTemplateConfig.StartPoint.UPPER
-        self.ui.start_point_up_radio.setChecked(start_point_upper_chosen)
+        self.ui.upper_bound_edit.setText(self.value_to_user(self.measure_config.upper_bound))
+        self.ui.accuracy_class_spinbox.setValue(self.measure_config.accuracy_class)
+        self.ui.minimal_discrete.setText(self.value_to_user(self.measure_config.minimal_discrete))
+        self.ui.start_deviation_spinbox.setValue(self.measure_config.start_deviation)
+        self.ui.comment_edit.setText(self.measure_config.comment)
 
         self.ui.auto_calc_points_checkbox.setChecked(self.measure_config.auto_calc_points)
+        self.ui.lower_bound_edit.setText(self.value_to_user(self.measure_config.lower_bound))
+        self.ui.frequency_edit.setText(";".join(self.measure_config.frequency))
+        self.ui.step_edit.setText(self.value_to_user(self.measure_config.points_step))
+        start_point_upper_chosen = self.measure_config.start_point_side == NoTemplateConfig.StartPoint.UPPER
+        self.ui.start_point_up_radio.setChecked(start_point_upper_chosen)
 
     def save_config(self):
         try:
             self.measure_config.clb_name = self.ui.clb_list_combobox.currentText()
-            self.measure_config.lower_bound = utils.parse_input(self.ui.lower_bound_edit.text())
             self.measure_config.upper_bound = utils.parse_input(self.ui.upper_bound_edit.text())
-            self.measure_config.display_resolution = self.ui.display_resolution_combobox.currentIndex()
-            self.measure_config.point_approach_accuracy = self.ui.accuracy_spinbox.value()
+            self.measure_config.accuracy_class = self.ui.accuracy_class_spinbox.value()
+            self.measure_config.minimal_discrete = utils.parse_input(self.ui.minimal_discrete.text())
+            self.measure_config.start_deviation = self.ui.start_deviation_spinbox.value()
+            self.measure_config.comment = self.ui.comment_edit.text()
 
             self.measure_config.auto_calc_points = bool(self.ui.auto_calc_points_checkbox.isChecked())
+            self.measure_config.lower_bound = utils.parse_input(self.ui.lower_bound_edit.text())
+            self.measure_config.frequency = self.ui.frequency_edit.text().split(';')
             self.measure_config.points_step = utils.parse_input(self.ui.step_edit.text())
 
             self.measure_config.start_point_side = NoTemplateConfig.StartPoint.UPPER if \
@@ -262,19 +253,22 @@ class NewNoTemplateMeasureDialog(QDialog):
     def check_input(self, a_config: NoTemplateConfig):
         if a_config.clb_name == "":
             return self.InputStatus.no_calibrator
+        elif a_config.minimal_discrete == 0:
+            return self.InputStatus.zero_minimal_discrete
         elif a_config.upper_bound <= a_config.lower_bound:
             return self.InputStatus.upper_less_than_lower
-        elif (a_config.signal_type == clb.SignalType.ACI or a_config.signal_type == clb.SignalType.ACV) and \
-                (a_config.upper_bound < 0 or a_config.lower_bound < 0):
+        elif not clb.is_dc_signal[a_config.signal_type] and (a_config.upper_bound < 0 or a_config.lower_bound < 0):
             return self.InputStatus.upper_less_than_zero
-        elif (a_config.signal_type == clb.SignalType.ACI or a_config.signal_type == clb.SignalType.DCI) and \
+        elif not clb.is_voltage_signal[a_config.signal_type] and \
                 (abs(a_config.upper_bound) > clb.MAX_CURRENT or abs(a_config.lower_bound) > clb.MAX_CURRENT):
             return self.InputStatus.current_too_big
-        elif (a_config.signal_type == clb.SignalType.ACV or a_config.signal_type == clb.SignalType.DCV) and \
+        elif clb.is_voltage_signal[a_config.signal_type] and \
                 (abs(a_config.upper_bound) > clb.MAX_VOLTAGE or abs(a_config.lower_bound) > clb.MAX_VOLTAGE):
             return self.InputStatus.voltage_too_big
         elif a_config.auto_calc_points and a_config.points_step == 0:
             return self.InputStatus.step_is_zero
+        elif not clb.is_dc_signal[a_config.signal_type] and not a_config.frequency:
+            return self.InputStatus.no_frequency
         else:
             return self.InputStatus.ok
 
@@ -290,12 +284,6 @@ class NewNoTemplateMeasureDialog(QDialog):
     @pyqtSlot(list)
     def frequency_editing_finished(self, a_frequency_list: List[str]):
         self.ui.frequency_edit.setText(";".join(a_frequency_list))
-
-    @pyqtSlot()
-    def show_step_help(self):
-        QMessageBox.information(self, "Ввод шага", "Параметры \"Снизу\" и \"Сверху\" определяют начальную точку,\n"
-                                                   "от которой будут рассчитываться точки с интервалом \"Шаг\n"
-                                                   "поверки\" (верхняя граница, либо нижняя граница)", QMessageBox.Ok)
 
     def set_units(self, a_units_str: str):
         self.value_to_user = utils.value_to_user_with_units(a_units_str)

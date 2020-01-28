@@ -155,10 +155,10 @@ class ClbDrv:
     def __bound_amplitude(self, a_amplitude):
         min_value = clb.MIN_VOLTAGE
         max_value = clb.MAX_VOLTAGE
-        if self.__signal_type == clb.SignalType.ACI or self.__signal_type == clb.SignalType.DCI:
+        if not clb.is_voltage_signal[self.__signal_type]:
             min_value = clb.MIN_CURRENT
             max_value = clb.MAX_CURRENT
-        if self.__signal_type == clb.SignalType.ACV or self.__signal_type == clb.SignalType.ACI:
+        if not clb.is_dc_signal[self.__signal_type]:
             min_value = clb.MIN_ALTERNATIVE
 
         return utils.bound(a_amplitude, min_value, max_value)

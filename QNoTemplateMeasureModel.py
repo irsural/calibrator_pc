@@ -28,7 +28,8 @@ class QNoTemplateMeasureModel(QAbstractTableModel):
         DOWN_VALUE = 5
         DOWN_DEVIATION = 6
         DOWN_DEVIATION_PERCENT = 7
-        COUNT = 8
+        VARIATION = 8
+        COUNT = 9
 
     enum_to_column_header = {
         Column.POINT: "Поверяемая\nточка",
@@ -39,6 +40,7 @@ class QNoTemplateMeasureModel(QAbstractTableModel):
         Column.DOWN_VALUE: "Значение\nснизу",
         Column.DOWN_DEVIATION: "Отклонение\nсверху",
         Column.DOWN_DEVIATION_PERCENT: "Отклонение\nсверху, %",
+        Column.VARIATION: "Вариация",
         Column.COUNT: ">>>>>>ОШИБКА<<<<<<"
     }
 
@@ -56,9 +58,9 @@ class QNoTemplateMeasureModel(QAbstractTableModel):
         point_data = [self.value_to_user(a_point_data.point),
                       utils.float_to_string(a_point_data.frequency),
                       self.value_to_user(a_point_data.value), "0", "0",
-                      self.value_to_user(a_point_data.value), "0", "0"]
+                      self.value_to_user(a_point_data.value), "0", "0", "0"]
 
-        assert len(point_data) == self.Column.COUNT
+        assert len(point_data) == self.Column.COUNT, "Размер point_data не соответствует количеству колонок таблицы"
 
         row = self.rowCount()
         self.beginInsertRows(QModelIndex(), row, row)

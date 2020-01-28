@@ -430,7 +430,7 @@ class Ui_main_widget(object):
         self.measure_table = QtWidgets.QTableView(self.frame_7)
         self.measure_table.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.measure_table.setAlternatingRowColors(True)
-        self.measure_table.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
+        self.measure_table.setSelectionMode(QtWidgets.QAbstractItemView.ContiguousSelection)
         self.measure_table.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
         self.measure_table.setTextElideMode(QtCore.Qt.ElideLeft)
         self.measure_table.setSortingEnabled(False)
