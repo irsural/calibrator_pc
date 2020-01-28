@@ -255,6 +255,10 @@ class NoTemplateWindow(QtWidgets.QWidget):
         """
         self.current_point.point = self.guess_point(a_current_value)
         self.current_point.prev_value = self.current_point.value
+
+        self.current_point.approach_side = PointData.ApproachSide.UP \
+            if a_current_value < self.current_point.value else PointData.ApproachSide.DOWN
+
         self.current_point.value = a_current_value
 
     def update_current_frequency(self, a_current_frequency):

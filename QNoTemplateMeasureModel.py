@@ -4,18 +4,25 @@ from PyQt5.QtCore import QAbstractTableModel, QModelIndex, Qt, QVariant, pyqtSlo
 
 import utils
 
+
 class PointData:
+    class ApproachSide(enum.IntEnum):
+        UP = 0
+        DOWN = 1
 
     def __init__(self, a_point=0., a_frequency=0., a_value=0., a_prev_value=0):
         self.point = a_point
         self.frequency = a_frequency
         self.value = a_value
         self.prev_value = a_prev_value
+        self.approach_side = self.ApproachSide.UP
 
     def __str__(self):
         return f"Point: {self.point}\n" \
+            f"Frequency: {self.frequency}" \
             f"Value: {self.value}\n" \
-            f"Prev value: {self.prev_value}\n"
+            f"Prev value: {self.prev_value}\n" \
+            f"Side: {self.approach_side.name}"
 
 
 class QNoTemplateMeasureModel(QAbstractTableModel):
@@ -38,8 +45,8 @@ class QNoTemplateMeasureModel(QAbstractTableModel):
         Column.UP_DEVIATION: "Отклонение\nсверху",
         Column.UP_DEVIATION_PERCENT: "Отклонение\nсверху, %",
         Column.DOWN_VALUE: "Значение\nснизу",
-        Column.DOWN_DEVIATION: "Отклонение\nсверху",
-        Column.DOWN_DEVIATION_PERCENT: "Отклонение\nсверху, %",
+        Column.DOWN_DEVIATION: "Отклонение\nснизу",
+        Column.DOWN_DEVIATION_PERCENT: "Отклонение\nснизу, %",
         Column.VARIATION: "Вариация",
         Column.COUNT: ">>>>>>ОШИБКА<<<<<<"
     }
@@ -50,22 +57,31 @@ class QNoTemplateMeasureModel(QAbstractTableModel):
         self.__row_count = 0
         self.__column_count = self.Column.COUNT
 
-        self.__points: list[list[str]] = []
+        self.__points: list[list[float]] = []
 
         self.value_to_user = utils.value_to_user_with_units(a_value_units)
 
     def appendPoint(self, a_point_data: PointData):
-        point_data = [self.value_to_user(a_point_data.point),
-                      utils.float_to_string(a_point_data.frequency),
-                      self.value_to_user(a_point_data.value), "0", "0",
-                      self.value_to_user(a_point_data.value), "0", "0", "0"]
+        row_idx = self.rowCount()
+        for idx, row_data in enumerate(self.__points):
+            if a_point_data.point == row_data[self.Column.POINT]:
+                row_idx = idx
+                break
 
-        assert len(point_data) == self.Column.COUNT, "Размер point_data не соответствует количеству колонок таблицы"
+        if row_idx == self.rowCount():
+            # Добавляемой точки еще нет в списке
+            point_data = [a_point_data.point, a_point_data.frequency, 0, 0, 0, 0, 0, 0, 0]
+            assert len(point_data) == self.Column.COUNT, "Размер point_data не соответствует количеству колонок таблицы"
 
-        row = self.rowCount()
-        self.beginInsertRows(QModelIndex(), row, row)
-        self.__points.append(point_data)
-        self.endInsertRows()
+            new_row = self.rowCount()
+            self.beginInsertRows(QModelIndex(), new_row, new_row)
+            self.__points.append(point_data)
+            self.endInsertRows()
+
+        column_idx = self.Column.UP_VALUE if \
+            a_point_data.approach_side == PointData.ApproachSide.UP else self.Column.DOWN_VALUE
+        
+        self.setData(self.index(row_idx, column_idx), str(a_point_data.value))
 
     def rowCount(self, parent=QModelIndex()):
         return len(self.__points)
@@ -84,14 +100,26 @@ class QNoTemplateMeasureModel(QAbstractTableModel):
         if not index.isValid or (len(self.__points) < index.row()) or (role != Qt.DisplayRole and role != Qt.EditRole):
             return QVariant()
 
-        return self.__points[index.row()][index.column()]
+        value: float = self.__points[index.row()][index.column()]
 
-    def setData(self, index: QModelIndex, value, role=Qt.EditRole):
+        raw_columns = self.Column.FREQUENCY, self.Column.DOWN_DEVIATION_PERCENT, self.Column.UP_DEVIATION_PERCENT
+        if index.column() not in raw_columns:
+            value = self.value_to_user(value)
+        return value
+
+    def setData(self, index: QModelIndex, value: str, role=Qt.EditRole):
         if not index.isValid() or role != Qt.EditRole or self.rowCount() <= index.row():
             return False
-        self.__points[index.row()][index.column()] = value
-        self.dataChanged.emit(index, index)
-        return True
+        try:
+            float_value = utils.parse_input(value)
+            self.__points[index.row()][index.column()] = float_value
+            self.dataChanged.emit(index, index)
+            return True
+        except ValueError:
+            return False
+
+    def __recalculate_parameters(self):
+        pass
 
     @pyqtSlot(list)
     def removeSelected(self, a_row_indexes: list):
