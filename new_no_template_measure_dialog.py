@@ -82,6 +82,7 @@ class NewNoTemplateMeasureDialog(QDialog):
 
         self.ui = NewMeasureForm()
         self.ui.setupUi(self)
+        self.ui.invisible_default_button.hide()
         self.setFixedSize(self.width(), self.height())
 
         self.measure_config = a_measure_config if a_measure_config is not None else NoTemplateConfig()
@@ -123,6 +124,10 @@ class NewNoTemplateMeasureDialog(QDialog):
         self.ui.step_edit.textEdited.connect(self.edit_text_edited)
         self.ui.step_edit.editingFinished.connect(self.editinig_finished)
         self.ui.step_edit.editingFinished.connect(self.ui.step_edit.clearFocus)
+
+        self.ui.minimal_discrete.textEdited.connect(self.edit_text_edited)
+        self.ui.minimal_discrete.editingFinished.connect(self.editinig_finished)
+        self.ui.minimal_discrete.editingFinished.connect(self.ui.minimal_discrete.clearFocus)
 
         self.ui.accept_button.clicked.connect(self.accept)
         self.ui.cancel_button.clicked.connect(self.reject)

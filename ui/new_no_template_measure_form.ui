@@ -573,6 +573,19 @@
         </item>
        </layout>
       </item>
+      <item row="2" column="0">
+       <widget class="QPushButton" name="invisible_default_button">
+        <property name="text">
+         <string>invisible_default_button</string>
+        </property>
+        <property name="autoDefault">
+         <bool>true</bool>
+        </property>
+        <property name="flat">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
      </layout>
     </widget>
    </item>
@@ -600,6 +613,9 @@
        </property>
        <property name="text">
         <string>Принять</string>
+       </property>
+       <property name="autoDefault">
+        <bool>false</bool>
        </property>
       </widget>
      </item>

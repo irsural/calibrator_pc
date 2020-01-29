@@ -13,7 +13,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_main_widget(object):
     def setupUi(self, main_widget):
         main_widget.setObjectName("main_widget")
-        main_widget.resize(754, 462)
+        main_widget.resize(796, 498)
         self.verticalLayout_4 = QtWidgets.QVBoxLayout(main_widget)
         self.verticalLayout_4.setSpacing(3)
         self.verticalLayout_4.setObjectName("verticalLayout_4")
@@ -492,6 +492,25 @@ class Ui_main_widget(object):
         self.verticalLayout.addWidget(self.start_stop_button)
         self.horizontalLayout.addLayout(self.verticalLayout)
         self.verticalLayout_4.addWidget(self.splitter)
+        self.horizontalLayout_4 = QtWidgets.QHBoxLayout()
+        self.horizontalLayout_4.setContentsMargins(-1, 5, -1, -1)
+        self.horizontalLayout_4.setObjectName("horizontalLayout_4")
+        self.zero_deviation_label = QtWidgets.QLabel(main_widget)
+        font = QtGui.QFont()
+        font.setPointSize(13)
+        self.zero_deviation_label.setFont(font)
+        self.zero_deviation_label.setObjectName("zero_deviation_label")
+        self.horizontalLayout_4.addWidget(self.zero_deviation_label)
+        self.zero_deviation_edit = QtWidgets.QLineEdit(main_widget)
+        self.zero_deviation_edit.setMaximumSize(QtCore.QSize(100, 16777215))
+        font = QtGui.QFont()
+        font.setPointSize(13)
+        self.zero_deviation_edit.setFont(font)
+        self.zero_deviation_edit.setObjectName("zero_deviation_edit")
+        self.horizontalLayout_4.addWidget(self.zero_deviation_edit)
+        spacerItem2 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        self.horizontalLayout_4.addItem(spacerItem2)
+        self.verticalLayout_4.addLayout(self.horizontalLayout_4)
 
         self.retranslateUi(main_widget)
         self.fixed_step_combobox.setCurrentIndex(-1)
@@ -533,4 +552,5 @@ class Ui_main_widget(object):
 "точку"))
         self.start_stop_button.setText(_translate("main_widget", "Начать\n"
 "поверку"))
+        self.zero_deviation_label.setText(_translate("main_widget", "Отклонение от нуля, мм"))
 from custom_widgets.CustomLineEdit import QEditCopyButton

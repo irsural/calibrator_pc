@@ -233,6 +233,7 @@ class NoTemplateWindow(QtWidgets.QWidget):
     def set_amplitude(self, a_amplitude: float):
         self.calibrator.amplitude = a_amplitude
         self.ui.amplitude_edit.setText(self.value_to_user(self.calibrator.amplitude))
+        self.amplitude_edit_text_changed()
 
         self.update_current_point(self.calibrator.amplitude)
 
@@ -379,7 +380,6 @@ class NoTemplateWindow(QtWidgets.QWidget):
         try:
             new_amplitude = utils.parse_input(self.ui.amplitude_edit.text())
             self.set_amplitude(new_amplitude)
-            self.amplitude_edit_text_changed()
         except ValueError:
             # Отлавливает некорректный ввод
             pass
