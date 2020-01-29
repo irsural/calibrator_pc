@@ -1,6 +1,8 @@
 import enum
+from typing import List
 
 from PyQt5.QtCore import QAbstractTableModel, QModelIndex, Qt, QVariant, pyqtSlot
+from PyQt5.QtGui import QBrush, QColor
 
 import utils
 
@@ -54,25 +56,39 @@ class QNoTemplateMeasureModel(QAbstractTableModel):
         Column.COUNT: ">>>>>>ОШИБКА<<<<<<"
     }
 
-    def __init__(self, a_parent=None, a_value_units="А"):
+    __side_to_value_column = {
+        PointData.ApproachSide.DOWN: Column.DOWN_VALUE,
+        PointData.ApproachSide.UP: Column.UP_VALUE
+    }
+    __side_to_error_column = {
+        PointData.ApproachSide.DOWN: Column.DOWN_DEVIATION,
+        PointData.ApproachSide.UP: Column.UP_DEVIATION
+    }
+    __side_to_error_percent_column = {
+        PointData.ApproachSide.DOWN: Column.DOWN_DEVIATION_PERCENT,
+        PointData.ApproachSide.UP: Column.UP_DEVIATION_PERCENT
+    }
+
+    def __init__(self, a_normalize_value, a_error_limit, a_value_units="А", a_parent=None):
         super().__init__(a_parent)
 
         self.__row_count = 0
         self.__column_count = self.Column.COUNT
         self.__raw_columns = self.Column.FREQUENCY, self.Column.DOWN_DEVIATION_PERCENT, self.Column.UP_DEVIATION_PERCENT
 
-        self.__points: list[list[float]] = []
+        self.__points: List[List[float]] = []
 
         self.value_to_user = utils.value_to_user_with_units(a_value_units)
+        self.normalize_value = a_normalize_value
+        self.error_limit = a_error_limit
+        self.__good_color = QColor(0, 255, 0, 127)
+        self.__bad_color = QColor(255, 0, 0, 127)
 
     def appendPoint(self, a_point_data: PointData):
-        row_idx = self.rowCount()
-        for idx, row_data in enumerate(self.__points):
-            if a_point_data.point == row_data[self.Column.POINT]:
-                row_idx = idx
-                break
+        row_idx = self.__find_point(a_point_data.point)
+        point_row = self.rowCount() if row_idx is None else row_idx
 
-        if row_idx == self.rowCount():
+        if point_row == self.rowCount():
             # Добавляемой точки еще нет в списке
             point_data = [a_point_data.point, a_point_data.frequency, 0, 0, 0, 0, 0, 0, 0]
             assert len(point_data) == self.Column.COUNT, "Размер point_data не соответствует количеству колонок таблицы"
@@ -82,24 +98,70 @@ class QNoTemplateMeasureModel(QAbstractTableModel):
             self.__points.append(point_data)
             self.endInsertRows()
 
-        column_idx = self.Column.UP_VALUE if \
-            a_point_data.approach_side == PointData.ApproachSide.UP else self.Column.DOWN_VALUE
+        value_column = self.__side_to_value_column[a_point_data.approach_side]
+        self.setData(self.index(point_row, value_column), str(a_point_data.value))
+        self.__recalculate_parameters(point_row, a_point_data.approach_side, a_point_data.point, a_point_data.value)
 
-        self.setData(self.index(row_idx, column_idx), str(a_point_data.value))
-
-        self.__recalculate_parameters(row_idx, a_point_data)
-
-    def __recalculate_parameters(self, a_row_idx, a_point_data: PointData):
-        if a_point_data.approach_side == PointData.ApproachSide.DOWN:
-            dev_col, dev_col_percent = self.Column.DOWN_DEVIATION, self.Column.DOWN_DEVIATION_PERCENT
+    def isPointGood(self, a_point: float, a_approach_side: PointData.ApproachSide) -> bool:
+        """
+        Проверяет, есть ли точка в массиве, если точка есть, то проверяет ее состояние (входит в погрешность или нет)
+        Если точки нет, или она не входит в погрешность, возвращает False, иначе возвращает True
+        :param a_approach_side: Сторона подхода к точке
+        :param a_point: Значение точки
+        :return: bool
+        """
+        row_idx = self.__find_point(a_point)
+        if row_idx is None:
+            return False
         else:
-            dev_col, dev_col_percent = self.Column.UP_DEVIATION, self.Column.UP_DEVIATION_PERCENT
+            row_data = self.__points[row_idx]
+            if self.__is_point_measured(row_idx, a_approach_side):
+                return abs(row_data[self.__side_to_error_percent_column[a_approach_side]]) <= self.error_limit
+            else:
+                return False
 
-        absolute_error = utils.absolute_error(a_point_data.point, a_point_data.value)
-        relative_error = utils.relative_error(a_point_data.point, a_point_data.value, a_point_data.normalize_value)
+    def __find_point(self, a_point: float):
+        for idx, row_data in enumerate(self.__points):
+            if a_point == row_data[self.Column.POINT]:
+                return idx
+        return None
 
-        self.setData(self.index(a_row_idx, dev_col), str(absolute_error))
-        self.setData(self.index(a_row_idx, dev_col_percent), str(relative_error))
+    def __is_point_measured(self, a_point_row, a_approach_side: PointData.ApproachSide):
+        data_row = self.__points[a_point_row]
+
+        val, err, err_percent = self.__side_to_value_column[a_approach_side], \
+                                self.__side_to_error_column[a_approach_side], \
+                                self.__side_to_error_percent_column[a_approach_side]
+
+        if data_row[val] == 0 and data_row[err] == 0 and data_row[err_percent] == 0:
+            return False
+        else:
+            return True
+
+    def __get_cell_color(self, a_row, a_column):
+        if a_column in (self.Column.UP_VALUE, self.Column.DOWN_VALUE):
+            approach_side = PointData.ApproachSide.UP if a_column == self.Column.UP_VALUE \
+                else PointData.ApproachSide.DOWN
+
+            if self.__is_point_measured(a_row, approach_side):
+                if abs(self.__points[a_row][self.__side_to_error_percent_column[approach_side]]) <= self.error_limit:
+                    # Если отклонение в процентах не превышает предела погрешности
+                    return QVariant(QBrush(self.__good_color))
+                else:
+                    return QVariant(QBrush(self.__bad_color))
+        else:
+            return QVariant(QBrush(QColor(Qt.white)))
+
+    def __recalculate_parameters(self, a_row_idx, a_approach_size: PointData.ApproachSide, a_point, a_value):
+        if a_point != 0 and a_value == 0:
+            # Если точка добавлена в таблицу, но еще не измерена
+            return
+
+        absolute_error = utils.absolute_error(a_point, a_value)
+        relative_error = utils.relative_error(a_point, a_value, self.normalize_value)
+
+        self.setData(self.index(a_row_idx, self.__side_to_error_column[a_approach_size]), str(absolute_error))
+        self.setData(self.index(a_row_idx, self.__side_to_error_percent_column[a_approach_size]), str(relative_error))
 
         down_value = self.__points[a_row_idx][self.Column.DOWN_VALUE]
         up_value = self.__points[a_row_idx][self.Column.UP_VALUE]
@@ -120,14 +182,17 @@ class QNoTemplateMeasureModel(QAbstractTableModel):
         return self.enum_to_column_header[section]
 
     def data(self, index, role=Qt.DisplayRole):
-        if not index.isValid or (len(self.__points) < index.row()) or (role != Qt.DisplayRole and role != Qt.EditRole):
+        if not index.isValid() or (len(self.__points) < index.row()) or \
+                (role != Qt.DisplayRole and role != Qt.EditRole and role != Qt.BackgroundRole):
             return QVariant()
 
-        value: float = self.__points[index.row()][index.column()]
-
-        if index.column() not in self.__raw_columns:
-            value = self.value_to_user(value)
-        return value
+        if role == Qt.BackgroundRole:
+            return self.__get_cell_color(index.row(), index.column())
+        else:
+            value: float = self.__points[index.row()][index.column()]
+            if index.column() not in self.__raw_columns:
+                value = self.value_to_user(value)
+            return value
 
     def setData(self, index: QModelIndex, value: str, role=Qt.EditRole):
         if not index.isValid() or role != Qt.EditRole or self.rowCount() <= index.row():
@@ -136,6 +201,13 @@ class QNoTemplateMeasureModel(QAbstractTableModel):
             float_value = utils.parse_input(value)
             self.__points[index.row()][index.column()] = float_value
             self.dataChanged.emit(index, index)
+
+            if index.column() == self.Column.POINT:
+                self.__recalculate_parameters(index.row(), PointData.ApproachSide.UP, float_value,
+                                              self.__points[index.row()][self.Column.UP_VALUE])
+                self.__recalculate_parameters(index.row(), PointData.ApproachSide.DOWN, float_value,
+                                              self.__points[index.row()][self.Column.DOWN_VALUE])
+
             return True
         except ValueError:
             return False
@@ -143,7 +215,7 @@ class QNoTemplateMeasureModel(QAbstractTableModel):
     @pyqtSlot(list)
     def removeSelected(self, a_row_indexes: list):
         self.beginRemoveRows(QModelIndex(), a_row_indexes[0], a_row_indexes[-1])
-        del self.__points[a_row_indexes[0]:a_row_indexes[-1]+1]
+        del self.__points[a_row_indexes[0]:a_row_indexes[-1] + 1]
         self.endRemoveRows()
 
     def flags(self, index):

@@ -285,7 +285,7 @@ class Ui_Dialog(object):
     def retranslateUi(self, Dialog):
         _translate = QtCore.QCoreApplication.translate
         Dialog.setWindowTitle(_translate("Dialog", "Измерение без шаблона"))
-        self.label.setText(_translate("Dialog", "Режим"))
+        self.label.setText(_translate("Dialog", "<html><head/><body><p>Режим<span style=\" color:#ff0000;\">*</span></p></body></html>"))
         self.aci_radio.setText(_translate("Dialog", "I~"))
         self.acv_radio.setText(_translate("Dialog", "U~"))
         self.dci_radio.setText(_translate("Dialog", "I="))

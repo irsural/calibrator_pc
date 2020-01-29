@@ -41,14 +41,16 @@ class NoTemplateWindow(QtWidgets.QWidget):
         self.units_text = clb.signal_type_to_units[self.measure_config.signal_type]
         self.value_to_user = utils.value_to_user_with_units(self.units_text)
 
-        self.fixed_range_amplitude = 0
         self.highest_amplitude = utils.increase_on_percent(self.measure_config.upper_bound,
                                                            self.measure_config.start_deviation)
 
-        self.measure_model = QNoTemplateMeasureModel(self, a_value_units=self.units_text)
+        self.current_point = PointData(a_normalize_value=self.measure_config.upper_bound)
+
+        self.measure_model = QNoTemplateMeasureModel(self.current_point.normalize_value,
+                                                     a_error_limit=self.measure_config.accuracy_class,
+                                                     a_value_units=self.units_text,
+                                                     a_parent=self)
         self.ui.measure_table.setModel(self.measure_model)
-        self.current_point = PointData()
-        self.current_point.normalize_value = self.measure_config.upper_bound
 
         self.set_window_elements()
         self.header_menu, self.manual_connections = self.create_table_header_context_menu(self.ui.measure_table)
@@ -118,7 +120,7 @@ class NoTemplateWindow(QtWidgets.QWidget):
                                                            self.measure_config.points_step)
 
             for point in calculated_points:
-                self.measure_model.appendPoint(PointData(point, 0, 0))
+                self.measure_model.appendPoint(PointData(a_point=point))
 
     @pyqtSlot(list)
     def fill_fixed_step_combobox(self, a_values: List[float], a_save=True):
@@ -296,7 +298,18 @@ class NoTemplateWindow(QtWidgets.QWidget):
     @pyqtSlot()
     def save_point(self):
         try:
-            self.measure_model.appendPoint(self.current_point)
+            if self.measure_model.isPointGood(self.current_point.point, self.current_point.approach_side):
+                side_text = "СНИЗУ" if self.current_point.approach_side == PointData.ApproachSide.DOWN \
+                    else "СВЕРХУ"
+                reply = QMessageBox.question(self, "Подтвердите действие", f"Значение {side_text} уже измерено "
+                                             f"для точки {self.value_to_user(self.current_point.point)} и не превышает "
+                                             f"допустимую погрешность. Перезаписать значение {side_text} для точки "
+                                             f"{self.value_to_user(self.current_point.point)} ?",
+                                             QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+                if reply == QMessageBox.Yes:
+                    self.measure_model.appendPoint(self.current_point)
+            else:
+                self.measure_model.appendPoint(self.current_point)
         except Exception as err:
             print(err)
 

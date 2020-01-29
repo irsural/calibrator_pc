@@ -21,9 +21,9 @@ class NoTemplateConfig:
     def __init__(self):
         self.signal_type = clb.SignalType.ACI
         self.clb_name = ""
-        self.accuracy_class = 0.05
-        self.upper_bound = 1.
-        self.minimal_discrete = 1
+        self.accuracy_class = 2.5
+        self.upper_bound = 10.
+        self.minimal_discrete = 2.
         self.start_deviation = 10.
         self.comment = ""
 
