@@ -14,6 +14,6 @@ class NonOverlappingPainter(QtWidgets.QStyledItemDelegate):
         self.initStyleOption(item_option, index)
 
         # if item_option.state & QStyle.State_Selected and not (item_option.state & QStyle.State_Active):
-        #     item_option.palette.setColor(QtGui.QPalette.Active, QtGui.QPalette.Highlight, QtCore.Qt.red)
+        #     item_option.palette.setColor(QtGui.QPalette.Inactive, QtGui.QPalette.Highlight, QtCore.Qt.red)
 
         QtWidgets.QApplication.style().drawControl(QStyle.CE_ItemViewItem, item_option, painter)

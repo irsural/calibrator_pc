@@ -217,20 +217,17 @@ class NoTemplateWindow(QtWidgets.QWidget):
             event.accept()
 
     def wheelEvent(self, event: QWheelEvent):
-        if self.ui.amplitude_edit.underMouse() or self.ui.frequency_edit.underMouse():
-            steps = qt_utils.get_wheel_steps(event)
-            keys = event.modifiers()
-            tune_foo = self.tune_amplitude if self.ui.amplitude_edit.underMouse() else self.tune_frequency
+        steps = qt_utils.get_wheel_steps(event)
+        keys = event.modifiers()
+        if (keys & Qt.ControlModifier) and (keys & Qt.ShiftModifier):
+            self.set_amplitude(self.calibrator.amplitude + (self.fixed_step * steps))
+        elif keys & Qt.ShiftModifier:
+            self.tune_amplitude(clb.AmplitudeStep.EXACT * steps)
+        elif keys & Qt.ControlModifier:
+            self.tune_amplitude(clb.AmplitudeStep.ROUGH * steps)
+        else:
+            self.tune_amplitude(clb.AmplitudeStep.COMMON * steps)
 
-            if (keys & Qt.ControlModifier) and (keys & Qt.ShiftModifier):
-                if self.ui.amplitude_edit.underMouse():
-                    self.set_amplitude(self.calibrator.amplitude + (self.fixed_step * steps))
-            elif keys & Qt.ShiftModifier:
-                tune_foo(clb.AmplitudeStep.EXACT * steps)
-            elif keys & Qt.ControlModifier:
-                tune_foo(clb.AmplitudeStep.ROUGH * steps)
-            else:
-                tune_foo(clb.AmplitudeStep.COMMON * steps)
         event.accept()
 
     def set_amplitude(self, a_amplitude: float):
@@ -250,9 +247,9 @@ class NoTemplateWindow(QtWidgets.QWidget):
         self.set_amplitude(utils.relative_step_change(self.calibrator.amplitude, a_step,
                                                       clb.signal_type_to_min_step[self.measure_config.signal_type]))
 
-    def tune_frequency(self, a_step):
-        if self.ui.frequency_edit.isEnabled():
-            self.set_frequency(utils.relative_step_change(self.calibrator.frequency, a_step, clb.FREQUENCY_MIN_STEP))
+    # def tune_frequency(self, a_step):
+    #     if self.ui.frequency_edit.isEnabled():
+    #         self.set_frequency(utils.relative_step_change(self.calibrator.frequency, a_step, clb.FREQUENCY_MIN_STEP))
 
     def update_current_point(self, a_current_value: float):
         """
@@ -305,9 +302,9 @@ class NoTemplateWindow(QtWidgets.QWidget):
                 side_text = "СНИЗУ" if self.current_point.approach_side == PointData.ApproachSide.DOWN \
                     else "СВЕРХУ"
                 reply = QMessageBox.question(self, "Подтвердите действие", f"Значение {side_text} уже измерено "
-                f"для точки {self.value_to_user(self.current_point.point)} и не превышает "
-                f"допустимую погрешность. Перезаписать значение {side_text} для точки "
-                f"{self.value_to_user(self.current_point.point)} ?",
+                                             f"для точки {self.value_to_user(self.current_point.point)} и не превышает "
+                                             f"допустимую погрешность. Перезаписать значение {side_text} для точки "
+                                             f"{self.value_to_user(self.current_point.point)} ?",
                                              QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
                 if reply == QMessageBox.Yes:
                     self.update_table(self.current_point)
