@@ -84,7 +84,7 @@ class QNoTemplateMeasureModel(QAbstractTableModel):
         self.__good_color = QColor(0, 255, 0, 127)
         self.__bad_color = QColor(255, 0, 0, 127)
 
-    def appendPoint(self, a_point_data: PointData):
+    def appendPoint(self, a_point_data: PointData) -> int:
         row_idx = self.__find_point(a_point_data.point)
         point_row = self.rowCount() if row_idx is None else row_idx
 
@@ -101,6 +101,13 @@ class QNoTemplateMeasureModel(QAbstractTableModel):
         value_column = self.__side_to_value_column[a_point_data.approach_side]
         self.setData(self.index(point_row, value_column), str(a_point_data.value))
         self.__recalculate_parameters(point_row, a_point_data.approach_side, a_point_data.point, a_point_data.value)
+        return point_row
+
+    def getPointByRow(self, a_row_idx):
+        if len(self.__points) < a_row_idx:
+            return None
+        else:
+            return self.__points[a_row_idx][self.Column.POINT]
 
     def isPointGood(self, a_point: float, a_approach_side: PointData.ApproachSide) -> bool:
         """
@@ -115,7 +122,7 @@ class QNoTemplateMeasureModel(QAbstractTableModel):
             return False
         else:
             row_data = self.__points[row_idx]
-            if self.__is_point_measured(row_idx, a_approach_side):
+            if self.isPointMeasured(row_idx, a_approach_side):
                 return abs(row_data[self.__side_to_error_percent_column[a_approach_side]]) <= self.error_limit
             else:
                 return False
@@ -126,7 +133,7 @@ class QNoTemplateMeasureModel(QAbstractTableModel):
                 return idx
         return None
 
-    def __is_point_measured(self, a_point_row, a_approach_side: PointData.ApproachSide):
+    def isPointMeasured(self, a_point_row, a_approach_side: PointData.ApproachSide):
         data_row = self.__points[a_point_row]
 
         val, err, err_percent = self.__side_to_value_column[a_approach_side], \
@@ -143,7 +150,7 @@ class QNoTemplateMeasureModel(QAbstractTableModel):
             approach_side = PointData.ApproachSide.UP if a_column == self.Column.UP_VALUE \
                 else PointData.ApproachSide.DOWN
 
-            if self.__is_point_measured(a_row, approach_side):
+            if self.isPointMeasured(a_row, approach_side):
                 if abs(self.__points[a_row][self.__side_to_error_percent_column[approach_side]]) <= self.error_limit:
                     # Если отклонение в процентах не превышает предела погрешности
                     return QVariant(QBrush(self.__good_color))
@@ -221,6 +228,8 @@ class QNoTemplateMeasureModel(QAbstractTableModel):
     def flags(self, index):
         item_flags = super().flags(index)
         if index.isValid():
-            if index.column() == self.Column.POINT or index.column() == self.Column.FREQUENCY:
+            if index.column() == self.Column.POINT: # or index.column() == self.Column.FREQUENCY:
                 item_flags |= Qt.ItemIsEditable
+            # if index.column() in (self.Column.UP_VALUE, self.Column.DOWN_VALUE):
+            #     item_flags &= ~Qt.ItemIsSelectable
         return item_flags

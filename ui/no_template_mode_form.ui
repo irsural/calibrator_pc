@@ -922,8 +922,15 @@
        </property>
        <item>
         <widget class="QTableView" name="measure_table">
+         <property name="enabled">
+          <bool>true</bool>
+         </property>
          <property name="contextMenuPolicy">
           <enum>Qt::CustomContextMenu</enum>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">selection-color: rgb(0, 0, 0);
+selection-background-color: rgb(170, 170, 255);</string>
          </property>
          <property name="alternatingRowColors">
           <bool>true</bool>
@@ -970,7 +977,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="approach_point_button">
+          <widget class="QPushButton" name="go_to_point_button">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
              <horstretch>0</horstretch>

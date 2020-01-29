@@ -10,6 +10,7 @@ from QNoTemplateMeasureModel import PointData, QNoTemplateMeasureModel
 from ui.py.no_template_mode_form import Ui_main_widget as NoTemplateForm
 from new_no_template_measure_dialog import NoTemplateConfig
 from custom_widgets.EditListDialog import EditedListWithUnits
+from custom_widgets.NonOverlappingPainter import NonOverlappingPainter
 import calibrator_constants as clb
 import constants as cfg
 import clb_dll
@@ -41,7 +42,7 @@ class NoTemplateWindow(QtWidgets.QWidget):
         self.units_text = clb.signal_type_to_units[self.measure_config.signal_type]
         self.value_to_user = utils.value_to_user_with_units(self.units_text)
 
-        self.highest_amplitude = utils.increase_on_percent(self.measure_config.upper_bound,
+        self.highest_amplitude = utils.increase_by_percent(self.measure_config.upper_bound,
                                                            self.measure_config.start_deviation)
 
         self.current_point = PointData(a_normalize_value=self.measure_config.upper_bound)
@@ -51,6 +52,7 @@ class NoTemplateWindow(QtWidgets.QWidget):
                                                      a_value_units=self.units_text,
                                                      a_parent=self)
         self.ui.measure_table.setModel(self.measure_model)
+        self.ui.measure_table.setItemDelegate(NonOverlappingPainter(self))
 
         self.set_window_elements()
         self.header_menu, self.manual_connections = self.create_table_header_context_menu(self.ui.measure_table)
@@ -154,6 +156,7 @@ class NoTemplateWindow(QtWidgets.QWidget):
     def connect_signals(self):
         self.ui.start_stop_button.clicked.connect(self.start_stop_measure)
         self.ui.save_point_button.clicked.connect(self.save_point)
+        self.ui.go_to_point_button.clicked.connect(self.go_to_point)
         self.ui.delete_point_button.clicked.connect(self.delete_point)
         self.remove_points.connect(self.measure_model.removeSelected)
 
@@ -207,7 +210,7 @@ class NoTemplateWindow(QtWidgets.QWidget):
         if self.ui.measure_table.hasFocus():
             key = event.key()
             if key == Qt.Key_Return or key == Qt.Key_Enter:
-                rows: List[QModelIndex] = self.ui.measure_table.selectionModel().selectedRows()
+                rows: List[QModelIndex] = self.get_selected_rows()
                 if rows:
                     self.ui.measure_table.edit(rows[0])
         else:
@@ -302,23 +305,49 @@ class NoTemplateWindow(QtWidgets.QWidget):
                 side_text = "СНИЗУ" if self.current_point.approach_side == PointData.ApproachSide.DOWN \
                     else "СВЕРХУ"
                 reply = QMessageBox.question(self, "Подтвердите действие", f"Значение {side_text} уже измерено "
-                                             f"для точки {self.value_to_user(self.current_point.point)} и не превышает "
-                                             f"допустимую погрешность. Перезаписать значение {side_text} для точки "
-                                             f"{self.value_to_user(self.current_point.point)} ?",
+                f"для точки {self.value_to_user(self.current_point.point)} и не превышает "
+                f"допустимую погрешность. Перезаписать значение {side_text} для точки "
+                f"{self.value_to_user(self.current_point.point)} ?",
                                              QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
                 if reply == QMessageBox.Yes:
-                    self.measure_model.appendPoint(self.current_point)
+                    self.update_table(self.current_point)
             else:
-                self.measure_model.appendPoint(self.current_point)
+                self.update_table(self.current_point)
         except Exception as err:
             print(err)
+
+    def update_table(self, a_point: PointData):
+        point_row = self.measure_model.appendPoint(a_point)
+        self.ui.measure_table.selectRow(point_row)
+
+    def go_to_point(self):
+        rows = self.get_selected_rows()
+        if rows:
+            row_idx = rows[0].row()
+            measured_up = self.measure_model.isPointMeasured(row_idx, PointData.ApproachSide.UP)
+            measured_down = self.measure_model.isPointMeasured(row_idx, PointData.ApproachSide.DOWN)
+
+            target_amplitude = self.measure_model.getPointByRow(row_idx)
+
+            if measured_down == measured_up:
+                # Точка измерена полностью либо совсем не измерена, подходим с ближайшей стороны
+                if self.calibrator.amplitude > target_amplitude:
+                    target_amplitude = utils.increase_by_percent(target_amplitude, self.measure_config.start_deviation)
+                else:
+                    target_amplitude = utils.decrease_by_percent(target_amplitude, self.measure_config.start_deviation)
+            else:
+                if measured_up:
+                    target_amplitude = utils.decrease_by_percent(target_amplitude, self.measure_config.start_deviation)
+                else:
+                    target_amplitude = utils.increase_by_percent(target_amplitude, self.measure_config.start_deviation)
+
+            self.set_amplitude(target_amplitude)
 
     def guess_point(self, a_point_value: float):
         return round(a_point_value / self.measure_config.minimal_discrete) * self.measure_config.minimal_discrete
 
     def delete_point(self):
-        rows: List[QModelIndex] = self.ui.measure_table.selectionModel().selectedRows()
-
+        rows = self.get_selected_rows()
         if rows:
             row_indexes = []
             deleted_points = ""
@@ -331,6 +360,9 @@ class NoTemplateWindow(QtWidgets.QWidget):
                                          deleted_points, QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
             if reply == QMessageBox.Yes:
                 self.remove_points.emit(row_indexes)
+
+    def get_selected_rows(self) -> List[QModelIndex]:
+        return self.ui.measure_table.selectionModel().selectedRows()
 
     def get_table_item_by_index(self, a_row: int, a_column: int):
         index = self.ui.measure_table.model().index(a_row, a_column)
