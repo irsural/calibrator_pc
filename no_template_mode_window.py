@@ -255,10 +255,6 @@ class NoTemplateWindow(QtWidgets.QWidget):
                                                       clb.signal_type_to_min_step[self.measure_config.signal_type],
                                                       a_normalize_value=self.measure_config.upper_bound))
 
-    # def tune_frequency(self, a_step):
-    #     if self.ui.frequency_edit.isEnabled():
-    #         self.set_frequency(utils.relative_step_change(self.calibrator.frequency, a_step, clb.FREQUENCY_MIN_STEP))
-
     def update_current_point(self, a_current_value: float):
         """
         Обновляет данные, которые будут записаны в таблицу по кнопке "Сохранить точку"
@@ -288,6 +284,7 @@ class NoTemplateWindow(QtWidgets.QWidget):
                                          QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
 
             if reply == QMessageBox.Yes:
+                self.started = True
                 self.start_measure()
         else:
             self.close()
@@ -300,8 +297,6 @@ class NoTemplateWindow(QtWidgets.QWidget):
         self.calibrator.mode = clb.Mode.FIXED_RANGE
         self.calibrator.signal_type = self.measure_config.signal_type
         self.calibrator.signal_enable = True
-
-        self.started = True
 
     @pyqtSlot()
     def save_point(self):
@@ -337,15 +332,18 @@ class NoTemplateWindow(QtWidgets.QWidget):
             if measured_down == measured_up:
                 # Точка измерена полностью либо совсем не измерена, подходим с ближайшей стороны
                 if self.calibrator.amplitude > target_amplitude:
-                    target_amplitude = utils.increase_by_percent(target_amplitude, self.measure_config.start_deviation)
+                    target_amplitude = utils.increase_by_percent(target_amplitude, self.measure_config.start_deviation,
+                                                                 a_normalize_value=self.measure_config.upper_bound)
                 else:
-                    target_amplitude = utils.decrease_by_percent(target_amplitude, self.measure_config.start_deviation)
+                    target_amplitude = utils.decrease_by_percent(target_amplitude, self.measure_config.start_deviation,
+                                                                 a_normalize_value=self.measure_config.upper_bound)
             else:
                 if measured_up:
-                    target_amplitude = utils.decrease_by_percent(target_amplitude, self.measure_config.start_deviation)
+                    target_amplitude = utils.decrease_by_percent(target_amplitude, self.measure_config.start_deviation,
+                                                                 a_normalize_value=self.measure_config.upper_bound)
                 else:
-                    target_amplitude = utils.increase_by_percent(target_amplitude, self.measure_config.start_deviation)
-
+                    target_amplitude = utils.increase_by_percent(target_amplitude, self.measure_config.start_deviation,
+                                                                 a_normalize_value=self.measure_config.upper_bound)
             self.set_amplitude(target_amplitude)
 
     def guess_point(self, a_point_value: float):
@@ -370,8 +368,8 @@ class NoTemplateWindow(QtWidgets.QWidget):
         return self.ui.measure_table.selectionModel().selectedRows()
 
     def get_table_item_by_index(self, a_row: int, a_column: int):
-        index = self.ui.measure_table.model().index(a_row, a_column)
-        data = self.ui.measure_table.model().data(index)
+        index = self.measure_model.index(a_row, a_column)
+        data = self.measure_model.data(index)
         return str(data)
 
     @pyqtSlot()

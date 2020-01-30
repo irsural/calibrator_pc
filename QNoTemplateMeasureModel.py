@@ -222,6 +222,7 @@ class QNoTemplateMeasureModel(QAbstractTableModel):
 
     @pyqtSlot(list)
     def removeSelected(self, a_row_indexes: list):
+        # Работает только для последовательного выделения
         self.beginRemoveRows(QModelIndex(), a_row_indexes[0], a_row_indexes[-1])
         del self.__points[a_row_indexes[0]:a_row_indexes[-1] + 1]
         self.endRemoveRows()

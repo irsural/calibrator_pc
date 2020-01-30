@@ -137,12 +137,12 @@ def bound(a_value, a_min, a_max):
     return max(min(a_value, a_max), a_min)
 
 
-def relative_step_change(a_value: float, a_step: float, a_min_step: float, a_normalize_value=0):
+def relative_step_change(a_value: float, a_step: float, a_min_step: float, a_normalize_value=None):
     value_sign = 1 if a_step >= 0 else -1
     if a_value == 0:
         return a_min_step * value_sign
 
-    if a_normalize_value == 0:
+    if not a_normalize_value:
         a_normalize_value = a_value
 
     absolute_step = abs(a_normalize_value * a_step)
@@ -174,12 +174,14 @@ def relative_step_change(a_value: float, a_step: float, a_min_step: float, a_nor
     return finish_value
 
 
-def increase_by_percent(a_value, a_percent):
-    return a_value + abs(a_value) * a_percent / 100
+def increase_by_percent(a_value, a_percent, a_normalize_value=None):
+    normalize = a_normalize_value if a_normalize_value else a_value
+    return a_value + abs(normalize) * a_percent / 100
 
 
-def decrease_by_percent(a_value, a_percent):
-    return a_value - abs(a_value) * a_percent / 100
+def decrease_by_percent(a_value, a_percent, a_normalize_value=None):
+    normalize = a_normalize_value if a_normalize_value else a_value
+    return a_value - abs(normalize) * a_percent / 100
 
 
 def save_settings(a_path: str, a_config: configparser):
