@@ -8,6 +8,8 @@ import clb_dll
 
 
 class SourceModeWindow(QtWidgets.QWidget):
+    close_confirmed = pyqtSignal()
+
     def __init__(self, a_calibrator: clb_dll.ClbDrv, a_parent=None):
         super().__init__(a_parent)
 
@@ -152,3 +154,7 @@ class SourceModeWindow(QtWidgets.QWidget):
     def detuning_radio_checked(self):
         if not self.block_signals:
             self.calibrator.mode = clb.Mode.DETUNING
+
+    def ask_for_close(self):
+        self.calibrator.signal_enable = False
+        self.close_confirmed.emit()

@@ -20,6 +20,7 @@ import qt_utils
 
 class NoTemplateWindow(QtWidgets.QWidget):
     remove_points = pyqtSignal(list)
+    close_confirmed = pyqtSignal()
 
     def __init__(self, a_calibrator: clb_dll.ClbDrv, a_measure_config: NoTemplateConfig,
                  a_settings: configparser.ConfigParser, a_parent=None):
@@ -44,7 +45,7 @@ class NoTemplateWindow(QtWidgets.QWidget):
         self.current_point = PointData(a_normalize_value=self.measure_config.upper_bound)
         self.start_button_active = True
         # Нужен, чтобы убедиться, что фиксированный диапазон выставлен, после чего включить сигнал
-        self.start_measure_timer = QTimer()
+        self.start_measure_timer = QTimer(self)
 
         self.calibrator = a_calibrator
         self.clb_state = clb.State.DISCONNECTED
@@ -79,7 +80,7 @@ class NoTemplateWindow(QtWidgets.QWidget):
         self.clb_check_timer.timeout.connect(self.sync_clb_parameters)
         self.clb_check_timer.start(10)
 
-        self.window_existing_timer = QtCore.QTimer()
+        self.window_existing_timer = QtCore.QTimer(self)
         self.window_existing_timer.timeout.connect(self.window_existing_check)
         self.window_existing_timer.start(3000)
 
@@ -204,6 +205,10 @@ class NoTemplateWindow(QtWidgets.QWidget):
         if self.calibrator.frequency_changed():
             self.set_frequency(self.calibrator.frequency)
 
+        if self.start_button_active and self.calibrator.signal_enable:
+            # Пока измерение не начато, запрещаем включать сигнал
+            self.calibrator.signal_enable = False
+
         # Эта переменная синхронизируется в startwindow.py
         if self.calibrator.signal_enable:
             self.ui.pause_button.setChecked(True)
@@ -290,7 +295,7 @@ class NoTemplateWindow(QtWidgets.QWidget):
                 self.start_button_active = False
                 self.start_measure()
         else:
-            self.close()
+            self.ask_for_close()
 
     def start_measure(self):
         self.ui.start_stop_button.setText("Закончить\nповерку")
@@ -475,7 +480,7 @@ class NoTemplateWindow(QtWidgets.QWidget):
             self.calibrator.signal_enable = True
             self.start_measure_timer.stop()
 
-    def closeEvent(self, event: QtGui.QCloseEvent):
+    def ask_for_close(self):
         reply = QMessageBox.question(self, "Подтвердите действие", "Завершить поверку?", QMessageBox.Yes |
                                      QMessageBox.No, QMessageBox.No)
         if reply == QMessageBox.Yes:
@@ -484,6 +489,5 @@ class NoTemplateWindow(QtWidgets.QWidget):
             # Без этого диалог не уничтожится
             for sender, connection in self.manual_connections:
                 sender.triggered.disconnect(connection)
-            event.accept()
-        else:
-            event.ignore()
+
+            self.close_confirmed.emit()

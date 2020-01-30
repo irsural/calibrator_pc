@@ -39,7 +39,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.calibrator = clb_dll.ClbDrv(self.clb_driver)
         self.clb_state = clb.State.DISCONNECTED
 
-        self.usb_check_timer = QtCore.QTimer()
+        self.usb_check_timer = QtCore.QTimer(self)
         self.usb_check_timer.timeout.connect(self.usb_tick)
         self.usb_check_timer.start(10)
 
@@ -136,6 +136,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.setWindowTitle(self.active_window.windowTitle())
 
+        self.active_window.close_confirmed.connect(self.close_child_widget)
+
     @pyqtSlot()
     def open_source_mode_window(self):
         try:
@@ -171,15 +173,18 @@ class MainWindow(QtWidgets.QMainWindow):
     def template_mode_chosen(self):
         pass
 
-    # def closeEvent(self, a_event: QtGui.QCloseEvent):
-    #     if isinstance(self.active_window, NoTemplateWindow):
-    #         self.active_window.close()
-    #         a_event.ignore()
-    #         #################################
-    #         reply = QMessageBox.question(self, "Подтвердите действие", "Завершить поверку?", QMessageBox.Yes |
-    #                                      QMessageBox.No, QMessageBox.No)
-    #         if reply == QMessageBox.Yes:
-    #             self.show_start_window()
-    #         a_event.ignore()
+    def close_child_widget(self):
+        # self.active_window.close()
+        self.show_start_window()
 
-
+    def closeEvent(self, a_event: QtGui.QCloseEvent):
+        try:
+            if not isinstance(self.active_window, StartWindow):
+                assert hasattr(self.active_window, "ask_for_close"), "no method ask_for_close"
+                # Эмитит close_confirmed при подтверждении закрытия
+                self.active_window.ask_for_close()
+                a_event.ignore()
+            else:
+                self.calibrator.signal_enable = False
+        except AssertionError as err:
+            print(err)
