@@ -180,6 +180,9 @@ class NoTemplateWindow(QtWidgets.QWidget):
         self.ui.fixed_step_combobox.currentTextChanged.connect(self.set_fixed_step)
         self.ui.pause_button.toggled.connect(self.pause_start_signal)
 
+        self.ui.zero_deviation_edit.editingFinished.connect(self.ui.zero_deviation_edit.clearFocus)
+
+
     @pyqtSlot(list)
     def update_clb_list(self, a_clb_list: list):
         pass
@@ -246,7 +249,8 @@ class NoTemplateWindow(QtWidgets.QWidget):
 
     def tune_amplitude(self, a_step):
         self.set_amplitude(utils.relative_step_change(self.calibrator.amplitude, a_step,
-                                                      clb.signal_type_to_min_step[self.measure_config.signal_type]))
+                                                      clb.signal_type_to_min_step[self.measure_config.signal_type],
+                                                      self.measure_config.upper_bound))
 
     # def tune_frequency(self, a_step):
     #     if self.ui.frequency_edit.isEnabled():

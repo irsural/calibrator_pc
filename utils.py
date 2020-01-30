@@ -137,12 +137,15 @@ def bound(a_value, a_min, a_max):
     return max(min(a_value, a_max), a_min)
 
 
-def relative_step_change(a_value: float, a_step: float, a_min_step: float):
+def relative_step_change(a_value: float, a_step: float, a_min_step: float, a_normalize_value=0):
     value_sign = 1 if a_step >= 0 else -1
     if a_value == 0:
         return a_min_step * value_sign
 
-    absolute_step = abs(a_value * a_step)
+    if a_normalize_value == 0:
+        a_normalize_value = a_value
+
+    absolute_step = abs(a_normalize_value * a_step)
     exp = int(math.floor(math.log10(absolute_step)))
 
     absolute_step /= pow(10., exp)
@@ -164,6 +167,7 @@ def relative_step_change(a_value: float, a_step: float, a_min_step: float):
     new_step: float = max(new_step, a_min_step)
     a_value += new_step * value_sign
 
+    # Если это преобразование убрать, то шаг будет равномерным на любой амплитуде
     finish_value = math.ceil(a_value / new_step) * new_step if value_sign > 0 \
         else math.floor(a_value / new_step) * new_step
 

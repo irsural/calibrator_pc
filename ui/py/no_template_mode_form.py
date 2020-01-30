@@ -506,6 +506,7 @@ class Ui_main_widget(object):
         font = QtGui.QFont()
         font.setPointSize(13)
         self.zero_deviation_edit.setFont(font)
+        self.zero_deviation_edit.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
         self.zero_deviation_edit.setObjectName("zero_deviation_edit")
         self.horizontalLayout_4.addWidget(self.zero_deviation_edit)
         spacerItem2 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
