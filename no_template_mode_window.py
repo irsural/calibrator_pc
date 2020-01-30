@@ -233,8 +233,8 @@ class NoTemplateWindow(QtWidgets.QWidget):
     def set_amplitude(self, a_amplitude: float):
         self.calibrator.amplitude = a_amplitude
         self.ui.amplitude_edit.setText(self.value_to_user(self.calibrator.amplitude))
-        self.amplitude_edit_text_changed()
 
+        self.amplitude_edit_text_changed()
         self.update_current_point(self.calibrator.amplitude)
 
     def set_frequency(self, a_frequency):
