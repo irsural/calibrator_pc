@@ -230,7 +230,7 @@ class QNoTemplateMeasureModel(QAbstractTableModel):
     def flags(self, index):
         item_flags = super().flags(index)
         if index.isValid():
-            if index.column() == self.Column.POINT: # or index.column() == self.Column.FREQUENCY:
+            if index.column() == self.Column.POINT or index.column() == self.Column.FREQUENCY:
                 item_flags |= Qt.ItemIsEditable
             # if index.column() in (self.Column.UP_VALUE, self.Column.DOWN_VALUE):
             #     item_flags &= ~Qt.ItemIsSelectable

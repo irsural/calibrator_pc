@@ -42,7 +42,9 @@ class NoTemplateWindow(QtWidgets.QWidget):
         self.units_text = clb.signal_type_to_units[self.measure_config.signal_type]
         self.value_to_user = utils.value_to_user_with_units(self.units_text)
         self.current_point = PointData(a_normalize_value=self.measure_config.upper_bound)
-        self.started = False
+        self.start_button_active = True
+        # Нужен, чтобы убедиться, что фиксированный диапазон выставлен, после чего включить сигнал
+        self.start_measure_timer = QTimer()
 
         self.calibrator = a_calibrator
         self.clb_state = clb.State.DISCONNECTED
@@ -184,6 +186,7 @@ class NoTemplateWindow(QtWidgets.QWidget):
         self.ui.pause_button.toggled.connect(self.pause_start_signal)
 
         self.ui.zero_deviation_edit.editingFinished.connect(self.ui.zero_deviation_edit.clearFocus)
+        self.start_measure_timer.timeout.connect(self.check_fixed_range)
 
     @pyqtSlot(list)
     def update_clb_list(self, a_clb_list: list):
@@ -273,7 +276,7 @@ class NoTemplateWindow(QtWidgets.QWidget):
 
     @pyqtSlot()
     def start_stop_measure(self):
-        if not self.started:
+        if self.start_button_active:
             reply = QMessageBox.question(self, "Подтвердите действие",
                                          f"Начать поверку?\n"
                                          f"На калибраторе будет включен сигнал и установлены следующие параметры:\n"
@@ -284,7 +287,7 @@ class NoTemplateWindow(QtWidgets.QWidget):
                                          QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
 
             if reply == QMessageBox.Yes:
-                self.started = True
+                self.start_button_active = False
                 self.start_measure()
         else:
             self.close()
@@ -296,7 +299,9 @@ class NoTemplateWindow(QtWidgets.QWidget):
         self.set_amplitude(self.highest_amplitude)
         self.calibrator.mode = clb.Mode.FIXED_RANGE
         self.calibrator.signal_type = self.measure_config.signal_type
-        self.calibrator.signal_enable = True
+        # self.calibrator.signal_enable = True
+
+        self.start_measure_timer.start(1100)
 
     @pyqtSlot()
     def save_point(self):
@@ -463,6 +468,12 @@ class NoTemplateWindow(QtWidgets.QWidget):
             self.ui.measure_table.showColumn(a_column)
         else:
             self.ui.measure_table.hideColumn(a_column)
+
+    @pyqtSlot()
+    def check_fixed_range(self):
+        if self.calibrator.mode == clb.Mode.FIXED_RANGE and self.calibrator.amplitude == self.highest_amplitude:
+            self.calibrator.signal_enable = True
+            self.start_measure_timer.stop()
 
     def closeEvent(self, event: QtGui.QCloseEvent):
         reply = QMessageBox.question(self, "Подтвердите действие", "Завершить поверку?", QMessageBox.Yes |
