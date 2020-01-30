@@ -29,11 +29,19 @@ class NoTemplateWindow(QtWidgets.QWidget):
         self.ui = NoTemplateForm()
 
         self.ui.setupUi(self)
+
         pause_icon = QtGui.QIcon()
         pause_icon.addPixmap(QtGui.QPixmap(cfg.PAUSE_ICON_PATH), QtGui.QIcon.Normal, QtGui.QIcon.On)
         pause_icon.addPixmap(QtGui.QPixmap(cfg.PLAY_ICON_PATH), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.ui.pause_button.setIcon(pause_icon)
         self.ui.pause_button.setIconSize(QtCore.QSize(21, 21))
+
+        self.ui.status_warning_label.hide()
+        self.warning_animation = QtGui.QMovie(cfg.WARNING_GIF_PATH)
+        self.ui.status_warning_label.setMovie(self.warning_animation)
+        self.warning_animation.setScaledSize(QtCore.QSize(28, 28))
+        self.warning_animation.setSpeed(500)
+        self.warning_animation.finished.connect(self.ui.status_warning_label.hide)
 
         self.show()
 
@@ -310,25 +318,33 @@ class NoTemplateWindow(QtWidgets.QWidget):
 
     @pyqtSlot()
     def save_point(self):
-        try:
-            if self.measure_model.isPointGood(self.current_point.point, self.current_point.approach_side):
-                side_text = "СНИЗУ" if self.current_point.approach_side == PointData.ApproachSide.DOWN \
-                    else "СВЕРХУ"
-                reply = QMessageBox.question(self, "Подтвердите действие", f"Значение {side_text} уже измерено "
-                                             f"для точки {self.value_to_user(self.current_point.point)} и не превышает "
-                                             f"допустимую погрешность. Перезаписать значение {side_text} для точки "
-                                             f"{self.value_to_user(self.current_point.point)} ?",
-                                             QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
-                if reply == QMessageBox.Yes:
+        if self.clb_state == clb.State.READY:
+            try:
+                if self.measure_model.isPointGood(self.current_point.point, self.current_point.approach_side):
+                    side_text = "СНИЗУ" if self.current_point.approach_side == PointData.ApproachSide.DOWN \
+                        else "СВЕРХУ"
+                    reply = QMessageBox.question(self, "Подтвердите действие", f"Значение {side_text} уже измерено "
+                                                 f"для точки {self.value_to_user(self.current_point.point)} и не превышает "
+                                                 f"допустимую погрешность. Перезаписать значение {side_text} для точки "
+                                                 f"{self.value_to_user(self.current_point.point)} ?",
+                                                 QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+                    if reply == QMessageBox.Yes:
+                        self.update_table(self.current_point)
+                else:
                     self.update_table(self.current_point)
-            else:
-                self.update_table(self.current_point)
-        except Exception as err:
-            print(err)
+            except AssertionError as err:
+                print(err)
+        else:
+            self.clb_not_ready_warning()
 
     def update_table(self, a_point: PointData):
         point_row = self.measure_model.appendPoint(a_point)
         self.ui.measure_table.selectRow(point_row)
+
+    def clb_not_ready_warning(self):
+        QtWidgets.QApplication.beep()
+        self.ui.status_warning_label.show()
+        self.warning_animation.start()
 
     def go_to_point(self):
         rows = self.get_selected_rows()
