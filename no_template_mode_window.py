@@ -36,16 +36,24 @@ class NoTemplateWindow(QtWidgets.QWidget):
 
         self.show()
 
-        self.settings = a_settings
         self.measure_config: NoTemplateConfig = a_measure_config
+        self.settings = a_settings
 
         self.units_text = clb.signal_type_to_units[self.measure_config.signal_type]
         self.value_to_user = utils.value_to_user_with_units(self.units_text)
+        self.current_point = PointData(a_normalize_value=self.measure_config.upper_bound)
+        self.started = False
+
+        self.calibrator = a_calibrator
+        self.clb_state = clb.State.DISCONNECTED
+        self.calibrator.signal_type = self.measure_config.signal_type
 
         self.highest_amplitude = utils.increase_by_percent(self.measure_config.upper_bound,
                                                            self.measure_config.start_deviation)
+        self.lowest_amplitude = -self.highest_amplitude if clb.is_dc_signal[self.measure_config.signal_type] else 0
 
-        self.current_point = PointData(a_normalize_value=self.measure_config.upper_bound)
+        self.highest_amplitude = self.calibrator.limit_amplitude(self.highest_amplitude, self.lowest_amplitude,
+                                                                 self.highest_amplitude)
 
         self.measure_model = QNoTemplateMeasureModel(self.current_point.normalize_value,
                                                      a_error_limit=self.measure_config.accuracy_class,
@@ -55,30 +63,25 @@ class NoTemplateWindow(QtWidgets.QWidget):
         self.ui.measure_table.setItemDelegate(NonOverlappingPainter(self))
 
         self.set_window_elements()
+        # Обязательно вызывать после set_window_elements иначе будет рассинхрон галочек хэдера и отображаемых колонок
         self.header_menu, self.manual_connections = self.create_table_header_context_menu(self.ui.measure_table)
-
-        self.calibrator = a_calibrator
-        self.clb_state = clb.State.DISCONNECTED
-        self.calibrator.signal_type = self.measure_config.signal_type
-        self.set_amplitude(self.calibrator.amplitude)
-        self.set_frequency(self.calibrator.frequency)
-
-        self.connect_signals()
-        self.started = False
 
         self.fixed_step = 0
         self.fixed_range_amplitudes_list = self.settings[cfg.NO_TEMPLATE_SECTION][cfg.FIXED_RANGES_KEY].split(',')
         self.fill_fixed_step_combobox(self.fixed_range_amplitudes_list, a_save=False)
+
+        # Вызывать после создания self.measure_model и после self.fill_fixed_step_combobox
+        self.connect_signals()
 
         self.clb_check_timer = QTimer(self)
         self.clb_check_timer.timeout.connect(self.sync_clb_parameters)
         self.clb_check_timer.start(10)
 
         self.window_existing_timer = QtCore.QTimer()
-        self.window_existing_timer.timeout.connect(self.window_existing_chech)
+        self.window_existing_timer.timeout.connect(self.window_existing_check)
         self.window_existing_timer.start(3000)
 
-    def window_existing_chech(self):
+    def window_existing_check(self):
         print("No template window")
 
     def create_table_header_context_menu(self, a_table: QTableView):
@@ -107,9 +110,9 @@ class NoTemplateWindow(QtWidgets.QWidget):
             self.ui.frequency_edit.setDisabled(True)
             self.ui.measure_table.hideColumn(QNoTemplateMeasureModel.Column.FREQUENCY)
 
-        self.setWindowTitle(f"{self.measure_config.clb_name}. Измерение без шаблона. "
+        self.setWindowTitle(f"{self.measure_config.clb_name}. "
                             f"{clb.enum_to_signal_type[self.measure_config.signal_type]}. "
-                            f"{self.measure_config.upper_bound} {self.units_text}")
+                            f"{self.measure_config.upper_bound} {self.units_text}.")
 
         if self.measure_config.auto_calc_points:
             if self.measure_config.start_point_side == NoTemplateConfig.StartPoint.LOWER:
@@ -182,7 +185,6 @@ class NoTemplateWindow(QtWidgets.QWidget):
 
         self.ui.zero_deviation_edit.editingFinished.connect(self.ui.zero_deviation_edit.clearFocus)
 
-
     @pyqtSlot(list)
     def update_clb_list(self, a_clb_list: list):
         pass
@@ -234,7 +236,8 @@ class NoTemplateWindow(QtWidgets.QWidget):
         event.accept()
 
     def set_amplitude(self, a_amplitude: float):
-        self.calibrator.amplitude = a_amplitude
+        self.calibrator.amplitude = self.calibrator.limit_amplitude(a_amplitude, self.lowest_amplitude,
+                                                                    self.highest_amplitude)
         self.ui.amplitude_edit.setText(self.value_to_user(self.calibrator.amplitude))
 
         self.amplitude_edit_text_changed()
@@ -250,7 +253,7 @@ class NoTemplateWindow(QtWidgets.QWidget):
     def tune_amplitude(self, a_step):
         self.set_amplitude(utils.relative_step_change(self.calibrator.amplitude, a_step,
                                                       clb.signal_type_to_min_step[self.measure_config.signal_type],
-                                                      self.measure_config.upper_bound))
+                                                      a_normalize_value=self.measure_config.upper_bound))
 
     # def tune_frequency(self, a_step):
     #     if self.ui.frequency_edit.isEnabled():

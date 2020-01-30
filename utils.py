@@ -175,11 +175,11 @@ def relative_step_change(a_value: float, a_step: float, a_min_step: float, a_nor
 
 
 def increase_by_percent(a_value, a_percent):
-    return a_value + a_value * a_percent / 100
+    return a_value + abs(a_value) * a_percent / 100
 
 
 def decrease_by_percent(a_value, a_percent):
-    return a_value - a_value * a_percent / 100
+    return a_value - abs(a_value) * a_percent / 100
 
 
 def save_settings(a_path: str, a_config: configparser):

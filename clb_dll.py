@@ -163,6 +163,15 @@ class ClbDrv:
 
         return utils.bound(a_amplitude, min_value, max_value)
 
+    def limit_amplitude(self, a_amplitude, a_lower, a_upper):
+        """
+        Обрезает значение амплитуды с учетом типа сигнала и параметров пользователя
+        :param a_amplitude: Заданная амплитуда
+        :param a_lower: Нижняя граница
+        :param a_upper: Верхняя граница
+        """
+        return utils.bound(self.__bound_amplitude(a_amplitude), a_lower, a_upper)
+
     def __set_polarity_by_amplitude_sign(self, a_amplitude):
         if a_amplitude < 0 and self.__clb_dll.get_polarity() != clb.Polatiry.NEG:
             self.__clb_dll.set_polarity(clb.Polatiry.NEG)

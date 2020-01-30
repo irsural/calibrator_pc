@@ -493,7 +493,7 @@ class Ui_main_widget(object):
         self.horizontalLayout.addLayout(self.verticalLayout)
         self.verticalLayout_4.addWidget(self.splitter)
         self.horizontalLayout_4 = QtWidgets.QHBoxLayout()
-        self.horizontalLayout_4.setContentsMargins(-1, 5, -1, -1)
+        self.horizontalLayout_4.setContentsMargins(9, 5, -1, -1)
         self.horizontalLayout_4.setObjectName("horizontalLayout_4")
         self.zero_deviation_label = QtWidgets.QLabel(main_widget)
         font = QtGui.QFont()

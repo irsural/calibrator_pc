@@ -185,8 +185,9 @@ class QNoTemplateMeasureModel(QAbstractTableModel):
         if role != Qt.DisplayRole:
             return QVariant()
         if orientation == Qt.Vertical:
-            return section
-        return self.enum_to_column_header[section]
+            return section + 1
+        else:
+            return self.enum_to_column_header[self.Column(section)]
 
     def data(self, index, role=Qt.DisplayRole):
         if not index.isValid() or (len(self.__points) < index.row()) or \
