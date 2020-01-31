@@ -190,26 +190,28 @@ def save_settings(a_path: str, a_config: configparser):
 
 
 def calc_smooth_approach(a_from, a_to, a_count, a_dt, sigma=0.01):
+    """
+    Вычисляет экспоненциальное изменение величины во времени от a_from до a_to с ассимптотическим подходом к a_to
+    :param a_from: Стартовое значение
+    :param a_to: Конечное значение
+    :param a_count: Количество точек между a_from и a_to
+    :param a_dt: Дискрет времени, с которым должна изменяться величина
+    :param sigma: Кэффициент плавного подхода. Чем меньше, там плавнее будет подход к a_to
+    :return: Список точек, размером a_count
+    """
     dt_stop = a_dt * a_count
     dt_stop_s = dt_stop / 1000
     a_k = -1 / dt_stop_s * math.log(sigma)
 
     delta = abs(a_from - a_to)
-    if a_from < a_to:
-        slope = delta / (1 - math.e**(-a_k * dt_stop_s))
-
-        def calc_point(a_t):
-            p = a_from + slope * (1 - math.e**(-a_k * a_t / 1000))
-            return round(p, 9)
-    else:
-        slope = delta / (1 - math.e**(-a_k * dt_stop_s))
-
-        def calc_point(a_t):
-            p = a_from + slope * (math.e**(-a_k * a_t / 1000) - 1)
-            return round(p, 9)
+    slope = delta / (1 - math.e ** (-a_k * dt_stop_s))
 
     points = []
     for t in range(a_dt, dt_stop + a_dt, a_dt):
-        points.append(calc_point(t))
+
+        point = a_from + slope * (1 - math.e**(-a_k * t / 1000)) if a_from < a_to else \
+            a_from + slope * (math.e ** (-a_k * t / 1000) - 1)
+
+        points.append(round(point, 9))
 
     return points
