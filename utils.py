@@ -187,3 +187,29 @@ def decrease_by_percent(a_value, a_percent, a_normalize_value=None):
 def save_settings(a_path: str, a_config: configparser):
     with open(a_path, 'w') as config_file:
         a_config.write(config_file)
+
+
+def calc_smooth_approach(a_from, a_to, a_count, a_dt, sigma=0.01):
+    dt_stop = a_dt * a_count
+    dt_stop_s = dt_stop / 1000
+    a_k = -1 / dt_stop_s * math.log(sigma)
+
+    delta = abs(a_from - a_to)
+    if a_from < a_to:
+        slope = delta / (1 - math.e**(-a_k * dt_stop_s))
+
+        def calc_point(a_t):
+            p = a_from + slope * (1 - math.e**(-a_k * a_t / 1000))
+            return round(p, 9)
+    else:
+        slope = delta / (1 - math.e**(-a_k * dt_stop_s))
+
+        def calc_point(a_t):
+            p = a_from + slope * (math.e**(-a_k * a_t / 1000) - 1)
+            return round(p, 9)
+
+    points = []
+    for t in range(a_dt, dt_stop + a_dt, a_dt):
+        points.append(calc_point(t))
+
+    return points

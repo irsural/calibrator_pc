@@ -52,6 +52,10 @@ class NoTemplateWindow(QtWidgets.QWidget):
         self.value_to_user = utils.value_to_user_with_units(self.units_text)
         self.current_point = PointData(a_normalize_value=self.measure_config.upper_bound)
         self.start_button_active = True
+        self.soft_approach_points = []
+        self.soft_approach_timer = QTimer()
+        self.next_soft_point_time_ms = 200
+        self.soft_approach_time_s = 3
         # Нужен, чтобы убедиться, что фиксированный диапазон выставлен, после чего включить сигнал
         self.start_measure_timer = QTimer(self)
 
@@ -197,6 +201,8 @@ class NoTemplateWindow(QtWidgets.QWidget):
         self.ui.zero_deviation_edit.editingFinished.connect(self.ui.zero_deviation_edit.clearFocus)
         self.start_measure_timer.timeout.connect(self.check_fixed_range)
 
+        self.soft_approach_timer.timeout.connect(self.set_amplitude_soft)
+
     @pyqtSlot(list)
     def update_clb_list(self, a_clb_list: list):
         pass
@@ -258,6 +264,15 @@ class NoTemplateWindow(QtWidgets.QWidget):
 
         self.amplitude_edit_text_changed()
         self.update_current_point(self.calibrator.amplitude)
+
+    def set_amplitude_soft(self):
+        try:
+            assert self.soft_approach_points, "soft_approach_points must not be empty!"
+            self.set_amplitude(self.soft_approach_points.pop(0))
+            if not self.soft_approach_points:
+                self.soft_approach_timer.stop()
+        except AssertionError as err:
+            print(err)
 
     def set_frequency(self, a_frequency):
         self.calibrator.frequency = a_frequency
@@ -370,7 +385,14 @@ class NoTemplateWindow(QtWidgets.QWidget):
                 else:
                     target_amplitude = utils.increase_by_percent(target_amplitude, self.measure_config.start_deviation,
                                                                  a_normalize_value=self.measure_config.upper_bound)
-            self.set_amplitude(target_amplitude)
+
+            points_count = int((self.soft_approach_time_s * 1000) // self.next_soft_point_time_ms)
+            self.soft_approach_points = utils.calc_smooth_approach(a_from=self.calibrator.amplitude,
+                                                                   a_to=target_amplitude,
+                                                                   a_count=points_count,
+                                                                   a_dt=self.next_soft_point_time_ms,
+                                                                   sigma=0.002)
+            self.soft_approach_timer.start(self.next_soft_point_time_ms)
 
     def guess_point(self, a_point_value: float):
         return round(a_point_value / self.measure_config.minimal_discrete) * self.measure_config.minimal_discrete
