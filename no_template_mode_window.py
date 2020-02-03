@@ -54,8 +54,8 @@ class NoTemplateWindow(QtWidgets.QWidget):
         self.start_button_active = True
         self.soft_approach_points = []
         self.soft_approach_timer = QTimer()
-        self.next_soft_point_time_ms = 100
-        self.soft_approach_time_s = 3
+        self.next_soft_point_time_ms = 300
+        self.soft_approach_time_s = 4
         # Нужен, чтобы убедиться, что фиксированный диапазон выставлен, после чего включить сигнал
         self.start_measure_timer = QTimer(self)
 
@@ -387,6 +387,9 @@ class NoTemplateWindow(QtWidgets.QWidget):
                 else:
                     target_amplitude = utils.increase_by_percent(target_amplitude, self.measure_config.start_deviation,
                                                                  a_normalize_value=self.measure_config.upper_bound)
+
+            target_amplitude = self.calibrator.limit_amplitude(target_amplitude, self.lowest_amplitude,
+                                                               self.highest_amplitude)
 
             points_count = int((self.soft_approach_time_s * 1000) // self.next_soft_point_time_ms)
             self.soft_approach_points = utils.calc_smooth_approach(a_from=self.calibrator.amplitude,
