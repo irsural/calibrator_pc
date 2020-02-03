@@ -54,7 +54,7 @@ class NoTemplateWindow(QtWidgets.QWidget):
         self.start_button_active = True
         self.soft_approach_points = []
         self.soft_approach_timer = QTimer()
-        self.next_soft_point_time_ms = 200
+        self.next_soft_point_time_ms = 100
         self.soft_approach_time_s = 3
         # Нужен, чтобы убедиться, что фиксированный диапазон выставлен, после чего включить сигнал
         self.start_measure_timer = QTimer(self)
@@ -62,6 +62,7 @@ class NoTemplateWindow(QtWidgets.QWidget):
         self.calibrator = a_calibrator
         self.clb_state = clb.State.DISCONNECTED
         self.calibrator.signal_type = self.measure_config.signal_type
+        self.calibrator.fast_control_mode_enable(False)
 
         self.highest_amplitude = utils.increase_by_percent(self.measure_config.upper_bound,
                                                            self.measure_config.start_deviation)
@@ -267,10 +268,11 @@ class NoTemplateWindow(QtWidgets.QWidget):
 
     def set_amplitude_soft(self):
         try:
-            assert self.soft_approach_points, "soft_approach_points must not be empty!"
-            self.set_amplitude(self.soft_approach_points.pop(0))
-            if not self.soft_approach_points:
+            if self.soft_approach_points:
+                self.set_amplitude(self.soft_approach_points.pop(0))
+            else:
                 self.soft_approach_timer.stop()
+                self.calibrator.fast_control_mode_enable(False)
         except AssertionError as err:
             print(err)
 
@@ -391,7 +393,8 @@ class NoTemplateWindow(QtWidgets.QWidget):
                                                                    a_to=target_amplitude,
                                                                    a_count=points_count,
                                                                    a_dt=self.next_soft_point_time_ms,
-                                                                   sigma=0.002)
+                                                                   sigma=0.005)
+            self.calibrator.fast_control_mode_enable(True)
             self.soft_approach_timer.start(self.next_soft_point_time_ms)
 
     def guess_point(self, a_point_value: float):
@@ -486,6 +489,8 @@ class NoTemplateWindow(QtWidgets.QWidget):
 
     @pyqtSlot(bool)
     def pause_start_signal(self, a_enabled: bool):
+        self.soft_approach_points.clear()
+
         if a_enabled:
             self.ui.pause_button.setText("Пауза")
             self.calibrator.signal_enable = True

@@ -19,17 +19,17 @@ class NoTemplateConfig:
         UPPER = 1
 
     def __init__(self):
-        self.signal_type = clb.SignalType.ACV
+        self.signal_type = clb.SignalType.DCI
         self.clb_name = ""
         self.accuracy_class = 2.5
-        self.upper_bound = 600.
-        self.minimal_discrete = 100.
+        self.upper_bound = 10.
+        self.minimal_discrete = 2.
         self.start_deviation = 5.
         self.comment = ""
 
         self.auto_calc_points = True
         self.lower_bound = 0.
-        self.points_step = 100.
+        self.points_step = 2.
         self.start_point_side = self.StartPoint.LOWER
         self.frequency = []
 

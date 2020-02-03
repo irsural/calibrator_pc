@@ -40,6 +40,8 @@ def set_up_driver(a_full_path):
 
     clb_driver_lib.is_signal_ready.restype = ctypes.c_int
 
+    clb_driver_lib.fast_control_mode_enable.argtypes = [ctypes.c_int]
+
     return clb_driver_lib
 
 
@@ -276,3 +278,5 @@ class ClbDrv:
         self.__mode = a_mode
         self.__clb_dll.set_mode(a_mode)
 
+    def fast_control_mode_enable(self, a_enable: int):
+        self.__clb_dll.fast_control_mode_enable(a_enable)
