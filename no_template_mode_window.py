@@ -56,7 +56,7 @@ class NoTemplateWindow(QtWidgets.QWidget):
         self.soft_approach_timer = QTimer()
         # Минимум стабильной передачи - 200 мс
         self.next_soft_point_time_ms = 200
-        self.soft_approach_time_s = 3
+        self.soft_approach_time_s = 4
         # Нужен, чтобы убедиться, что фиксированный диапазон выставлен, после чего включить сигнал
         self.start_measure_timer = QTimer(self)
 
@@ -396,7 +396,7 @@ class NoTemplateWindow(QtWidgets.QWidget):
                                                                        a_to=target_amplitude,
                                                                        a_count=points_count,
                                                                        a_dt=self.next_soft_point_time_ms,
-                                                                       sigma=0.01)
+                                                                       sigma=0.001)
                 print(self.soft_approach_points)
                 self.soft_approach_timer.start(self.next_soft_point_time_ms)
             else:

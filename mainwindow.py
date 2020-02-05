@@ -45,6 +45,10 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.no_template_config: NoTemplateConfig = None
 
+        self.clb_signal_off_timer = QtCore.QTimer()
+        self.clb_signal_off_timer.timeout.connect(self.close)
+        self.SIGNAL_OFF_TIME_MS = 200
+
     @staticmethod
     def restore_settings(a_path: str):
         settings = configparser.ConfigParser()
@@ -179,11 +183,15 @@ class MainWindow(QtWidgets.QMainWindow):
     def closeEvent(self, a_event: QtGui.QCloseEvent):
         try:
             if not isinstance(self.active_window, StartWindow):
-                assert hasattr(self.active_window, "ask_for_close"), "no method ask_for_close"
+                assert hasattr(self.active_window, "ask_for_close"), \
+                    f"Class {type(self.active_window)} has no method ask_for_close"
                 # Эмитит close_confirmed при подтверждении закрытия
                 self.active_window.ask_for_close()
                 a_event.ignore()
             else:
-                self.calibrator.signal_enable = False
+                if self.calibrator.signal_enable:
+                    self.calibrator.signal_enable = False
+                    self.clb_signal_off_timer.start(self.SIGNAL_OFF_TIME_MS)
+                    a_event.ignore()
         except AssertionError as err:
             print(err)
