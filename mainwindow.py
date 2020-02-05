@@ -8,6 +8,7 @@ from PyQt5 import QtWidgets, QtCore, QtGui
 from new_no_template_measure_dialog import NewNoTemplateMeasureDialog, NoTemplateConfig
 from ui.py.mainwindow import Ui_MainWindow as MainForm
 from no_template_mode_window import NoTemplateWindow
+from template_list_window import TemplateListWindow
 from source_mode_window import SourceModeWindow
 from startwindow import StartWindow
 import calibrator_constants as clb
@@ -174,7 +175,12 @@ class MainWindow(QtWidgets.QMainWindow):
 
     @pyqtSlot()
     def template_mode_chosen(self):
-        pass
+        try:
+            template_list_dialog = TemplateListWindow(self)
+            if template_list_dialog.exec() == QtWidgets.QDialog.Accepted:
+                pass
+        except Exception as err:
+            print(err)
 
     def close_child_widget(self):
         # self.active_window.close()
