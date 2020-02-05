@@ -54,15 +54,15 @@ class NoTemplateWindow(QtWidgets.QWidget):
         self.start_button_active = True
         self.soft_approach_points = []
         self.soft_approach_timer = QTimer()
-        self.next_soft_point_time_ms = 300
-        self.soft_approach_time_s = 4
+        # Минимум стабильной передачи - 200 мс
+        self.next_soft_point_time_ms = 200
+        self.soft_approach_time_s = 3
         # Нужен, чтобы убедиться, что фиксированный диапазон выставлен, после чего включить сигнал
         self.start_measure_timer = QTimer(self)
 
         self.calibrator = a_calibrator
         self.clb_state = clb.State.DISCONNECTED
         self.calibrator.signal_type = self.measure_config.signal_type
-        self.calibrator.fast_control_mode_enable(False)
 
         self.highest_amplitude = utils.increase_by_percent(self.measure_config.upper_bound,
                                                            self.measure_config.start_deviation)
@@ -272,7 +272,6 @@ class NoTemplateWindow(QtWidgets.QWidget):
                 self.set_amplitude(self.soft_approach_points.pop(0))
             else:
                 self.soft_approach_timer.stop()
-                self.calibrator.fast_control_mode_enable(False)
         except AssertionError as err:
             print(err)
 
@@ -308,12 +307,12 @@ class NoTemplateWindow(QtWidgets.QWidget):
     def start_stop_measure(self):
         if self.start_button_active:
             reply = QMessageBox.question(self, "Подтвердите действие",
-                                         f"Начать поверку?\n"
-                                         f"На калибраторе будет включен сигнал и установлены следующие параметры:\n"
+                                         f"Начать поверку?\n\n"
+                                         f"На калибраторе будет включен сигнал и установлены следующие параметры:\n\n"
                                          f"Режим измерения: Фиксированный диапазон\n"
                                          f"Тип сигнала: "
                                          f"{clb.enum_to_signal_type[self.measure_config.signal_type]}\n"
-                                         f"Амплитуда: {self.highest_amplitude} {self.units_text}",
+                                         f"Амплитуда: {self.value_to_user(self.highest_amplitude)}",
                                          QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
 
             if reply == QMessageBox.Yes:
@@ -391,14 +390,17 @@ class NoTemplateWindow(QtWidgets.QWidget):
             target_amplitude = self.calibrator.limit_amplitude(target_amplitude, self.lowest_amplitude,
                                                                self.highest_amplitude)
 
-            points_count = int((self.soft_approach_time_s * 1000) // self.next_soft_point_time_ms)
-            self.soft_approach_points = utils.calc_smooth_approach(a_from=self.calibrator.amplitude,
-                                                                   a_to=target_amplitude,
-                                                                   a_count=points_count,
-                                                                   a_dt=self.next_soft_point_time_ms,
-                                                                   sigma=0.005)
-            self.calibrator.fast_control_mode_enable(True)
-            self.soft_approach_timer.start(self.next_soft_point_time_ms)
+            if self.calibrator.signal_enable:
+                points_count = int((self.soft_approach_time_s * 1000) // self.next_soft_point_time_ms)
+                self.soft_approach_points = utils.calc_smooth_approach(a_from=self.calibrator.amplitude,
+                                                                       a_to=target_amplitude,
+                                                                       a_count=points_count,
+                                                                       a_dt=self.next_soft_point_time_ms,
+                                                                       sigma=0.01)
+                print(self.soft_approach_points)
+                self.soft_approach_timer.start(self.next_soft_point_time_ms)
+            else:
+                self.set_amplitude(target_amplitude)
 
     def guess_point(self, a_point_value: float):
         return round(a_point_value / self.measure_config.minimal_discrete) * self.measure_config.minimal_discrete

@@ -132,7 +132,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.move(self.sync_centers(self, self.active_window))
         self.resize(self.active_window.size())
         self.setCentralWidget(self.active_window)
-        self.ui.back_action.triggered.connect(self.show_start_window)
 
         self.setWindowTitle(self.active_window.windowTitle())
 
