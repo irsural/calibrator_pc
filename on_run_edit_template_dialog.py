@@ -11,4 +11,4 @@ class OnRunEditTemplateDialog(QtWidgets.QDialog):
 
         self.ui = OnRunEditTemplateForm()
         self.ui.setupUi(self)
-        self.show()
+        # self.show()

@@ -19,7 +19,7 @@ class EditedListDialog(QDialog):
         self.ui.setupUi(self)
         self.setWindowTitle(a_title)
         self.ui.lsitname_label.setText(a_list_name)
-        self.show()
+        # self.show()
 
         self.delete_key_sc = QtWidgets.QShortcut(QtGui.QKeySequence(QtCore.Qt.Key_Delete), self.ui.list_widget)
         self.delete_key_sc.activated.connect(self.delete_selected_row)

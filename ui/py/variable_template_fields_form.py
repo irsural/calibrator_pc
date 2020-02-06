@@ -117,5 +117,5 @@ class Ui_Dialog(object):
         self.label_10.setText(_translate("Dialog", "Температура, °С"))
         self.label_9.setText(_translate("Dialog", "Влажность, %"))
         self.label_11.setText(_translate("Dialog", "Прогрев прибора, мин"))
-        self.accept_button.setText(_translate("Dialog", "Начать поверку"))
+        self.accept_button.setText(_translate("Dialog", "Принять"))
         self.reject_button.setText(_translate("Dialog", "Отмена"))

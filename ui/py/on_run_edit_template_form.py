@@ -13,9 +13,9 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_Dialog(object):
     def setupUi(self, Dialog):
         Dialog.setObjectName("Dialog")
-        Dialog.resize(631, 459)
+        Dialog.resize(631, 440)
         font = QtGui.QFont()
-        font.setPointSize(13)
+        font.setPointSize(10)
         Dialog.setFont(font)
         self.verticalLayout = QtWidgets.QVBoxLayout(Dialog)
         self.verticalLayout.setObjectName("verticalLayout")
@@ -228,6 +228,7 @@ class Ui_Dialog(object):
         self.add_mark_button = QtWidgets.QPushButton(self.widget_2)
         self.add_mark_button.setMaximumSize(QtCore.QSize(40, 16777215))
         font = QtGui.QFont()
+        font.setPointSize(10)
         font.setBold(True)
         font.setWeight(75)
         self.add_mark_button.setFont(font)
@@ -236,6 +237,7 @@ class Ui_Dialog(object):
         self.remove_mark_button = QtWidgets.QPushButton(self.widget_2)
         self.remove_mark_button.setMaximumSize(QtCore.QSize(40, 16777215))
         font = QtGui.QFont()
+        font.setPointSize(10)
         font.setBold(True)
         font.setWeight(75)
         self.remove_mark_button.setFont(font)

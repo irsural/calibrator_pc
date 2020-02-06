@@ -1,7 +1,7 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import pyqtSignal, pyqtSlot
 
-from ui.py.template_list_form_2 import Ui_Dialog as TemplateListForm
+from ui.py.template_list_form import Ui_Dialog as TemplateListForm
 from variable_template_fields_dialog import VariableTemplateFieldsDialog, VariableTemplateParams
 import utils
 
@@ -18,7 +18,6 @@ class TemplateListWindow(QtWidgets.QDialog):
         self.ui = TemplateListForm()
         self.ui.setupUi(self)
         self.ui.template_params_widget.setDisabled(True)
-        self.show()
 
         self.ui.choose_template_button.clicked.connect(self.choose_template)
         self.ui.templates_list.itemDoubleClicked.connect(self.choose_template)
@@ -60,12 +59,11 @@ class TemplateListWindow(QtWidgets.QDialog):
     def choose_template(self):
         item = self.ui.templates_list.currentItem()
         if item is not None:
-            # Показать переменные параметры
             variable_params_dialog = VariableTemplateFieldsDialog()
             params: VariableTemplateParams = variable_params_dialog.exec_and_get_params()
             if params is not None:
                 print(params.serial_num, params.date)
-
+                # Здесь начинаем измерение
 
     @pyqtSlot()
     def create_new_template(self, a_template_params=TemplateParams()):

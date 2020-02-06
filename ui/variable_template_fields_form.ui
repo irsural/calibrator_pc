@@ -162,7 +162,7 @@
      <item>
       <widget class="QPushButton" name="accept_button">
        <property name="text">
-        <string>Начать поверку</string>
+        <string>Принять</string>
        </property>
       </widget>
      </item>
