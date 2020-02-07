@@ -176,10 +176,10 @@
               </widget>
              </item>
              <item row="8" column="0" colspan="2">
-              <widget class="QLineEdit" name="name_edit"/>
+              <widget class="QLineEdit" name="device_name_edit"/>
              </item>
              <item row="11" column="0" colspan="2">
-              <widget class="QLineEdit" name="creator_edit"/>
+              <widget class="QLineEdit" name="device_creator_edit"/>
              </item>
              <item row="3" column="0" colspan="2">
               <widget class="QLabel" name="label_13">
@@ -206,7 +206,7 @@
               </widget>
              </item>
              <item row="13" column="0" colspan="2">
-              <widget class="QComboBox" name="system_combobox">
+              <widget class="QComboBox" name="device_system_combobox">
                <item>
                 <property name="text">
                  <string>Магнитоэлектрическая</string>
@@ -295,7 +295,7 @@
               </widget>
              </item>
              <item row="6" column="0" colspan="2">
-              <widget class="QLineEdit" name="calibrator_edit">
+              <widget class="QLineEdit" name="etalon_device_edit">
                <property name="text">
                 <string>Калибратор N4-25</string>
                </property>

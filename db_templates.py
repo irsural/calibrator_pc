@@ -1,0 +1,71 @@
+from collections import namedtuple
+from typing import List
+from enum import IntEnum
+
+import utils
+import calibrator_constants as clb
+from constants import DeviceSystem, enum_to_device_system
+
+
+Point = namedtuple("Point", ["amplitude", "frequency"])
+Mark = namedtuple("Mark", ["description", "mark", "value"])
+
+
+class TemplateParams:
+    def __init__(self, a_name="Новый шаблон2", a_organisation="", a_etalon_device="", a_device_name="",
+                 a_device_creator="", a_device_system=DeviceSystem.MAGNETOELECTRIC, a_signal_type=clb.SignalType.ACI,
+                 a_device_class=0.05, a_points: List[Point] = None, a_marks: List[Mark] = None):
+        print(a_name)
+        self.name = a_name
+        self.organisation = a_organisation
+        self.etalon_device = a_etalon_device
+        self.device_name = a_device_name
+        self.device_creator = a_device_creator
+        self.device_system = a_device_system
+        self.signal_type = a_signal_type
+        self.device_class = a_device_class
+        self.points: List[Point] = a_points if a_points is not None else [Point(0, 0)]
+        self.marks: List[Mark] = a_marks if a_marks is not None else [Mark("1", "2", "3")]
+
+
+class OperationDB(IntEnum):
+    ADD = 0
+    EDIT = 1
+
+
+class TemplatesDB:
+    def __init__(self, a_db_name="templates"):
+        self.names = []
+
+    def add(self, a_params: TemplateParams):
+        # assert not self.is_name_exist(a_params.name), f"{a_params.name} already exist in TemplatesDB!!"
+        if self.is_name_exist(a_params.name):
+            return False
+        else:
+            self.names.append(a_params.name)
+            return True
+
+    def get(self, a_name: str) -> TemplateParams:
+        return TemplateParams(a_name)
+
+    def edit(self, a_name: str, a_params: TemplateParams):
+        if self.is_name_exist(a_params.name) and (a_name != a_params.name):
+            # Если имя изменилось и оно уже существует
+            return False
+        else:
+            self.names.append(a_params.name)
+            if a_name in self.names:
+                self.names.remove(a_name)
+            return True
+
+    def delete(self, a_name: str):
+        if a_name in self.names:
+            self.names.remove(a_name)
+            return True
+        else:
+            assert True, "delte must not be called for non-existing names!!!"
+            return False
+
+    def is_name_exist(self, a_name: str):
+        return a_name in self.names
+
