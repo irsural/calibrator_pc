@@ -19,8 +19,11 @@ class TemplateListWindow(QtWidgets.QDialog):
 
         self.db_operation = OperationDB.ADD
         self.prev_template_name = ""
-        self.templates_db = TemplatesDB("templates")
-        self.current_template = TemplateParams()
+        self.templates_db = TemplatesDB("templates.db")
+
+        self.current_template = None
+        for params in self.templates_db:
+            QtWidgets.QListWidgetItem(params.name, self.ui.templates_list)
 
         self.ui.choose_template_button.clicked.connect(self.choose_template)
         self.ui.templates_list.itemDoubleClicked.connect(self.choose_template)
@@ -72,11 +75,11 @@ class TemplateListWindow(QtWidgets.QDialog):
             if a_current is not None:
                 self.current_template: TemplateParams = self.templates_db.get(a_current.text())
                 assert self.current_template is not None, "database operation 'get' has failed!"
-                self.fill_template_info(self.current_template)
+                self.fill_template_info_to_ui(self.current_template)
         except AssertionError as err:
             print(err)
 
-    def fill_template_info(self, a_template_params):
+    def fill_template_info_to_ui(self, a_template_params):
         self.ui.template_name_edit.setText(a_template_params.name)
         self.ui.organisation_edit.setText(a_template_params.organisation)
         self.ui.etalon_device_edit.setText(a_template_params.etalon_device)
@@ -91,9 +94,14 @@ class TemplateListWindow(QtWidgets.QDialog):
         for point in a_template_params.points:
             qt_utils.qtablewidget_append_row(self.ui.points_table, point)
 
-        qt_utils.qtablewidget_clear(self.ui.marks_table)
-        for mark in a_template_params.marks:
-            qt_utils.qtablewidget_append_row(self.ui.marks_table, mark)
+    def fill_template_info_to_db(self):
+        self.current_template.organisation = self.ui.organisation_edit.text()
+        self.current_template.etalon_device = self.ui.etalon_device_edit.text()
+        self.current_template.device_name = self.ui.device_name_edit.text()
+        self.current_template.device_creator = self.ui.device_creator_edit.text()
+        self.current_template.device_system = self.ui.device_system_combobox.currentIndex()
+        self.current_template.signal_type = self.ui.signal_type_combobox.currentIndex()
+        self.current_template.device_class = self.ui.class_spinbox.value()
 
     @pyqtSlot()
     def create_new_template(self, a_template_params=None):
@@ -109,7 +117,7 @@ class TemplateListWindow(QtWidgets.QDialog):
 
         new_item = QtWidgets.QListWidgetItem(a_template_params.name, self.ui.templates_list)
         self.ui.templates_list.setCurrentItem(new_item)
-        self.fill_template_info(self.current_template)
+        self.fill_template_info_to_ui(self.current_template)
         self.db_operation = OperationDB.ADD
         self.activate_edit_template()
 
@@ -132,29 +140,30 @@ class TemplateListWindow(QtWidgets.QDialog):
 
     @pyqtSlot()
     def save_template(self):
-        if self.db_operation == OperationDB.ADD:
-            result = self.templates_db.add(self.current_template)
-        else:
-            result = self.templates_db.edit(self.prev_template_name, self.current_template)
+        try:
+            self.fill_template_info_to_db()
+            if self.db_operation == OperationDB.ADD:
+                result = self.templates_db.add(self.current_template)
+            else:
+                result = self.templates_db.edit(self.prev_template_name, self.current_template)
 
-        if result:
-            self.activate_choose_template()
-        else:
-            QtWidgets.QMessageBox.critical(self, "Ошибка сохранения шаблона",
-                                           "Шаблон с таким именем уже существует!", QtWidgets.QMessageBox.Ok)
+            if result:
+                self.activate_choose_template()
+            else:
+                QtWidgets.QMessageBox.critical(self, "Ошибка сохранения шаблона",
+                                               "Шаблон с таким именем уже существует!", QtWidgets.QMessageBox.Ok)
+        except Exception as err:
+            print(err)
 
     @pyqtSlot()
     def cancel_template_edit(self):
-        try:
-            self.activate_choose_template()
-            if self.db_operation == OperationDB.ADD:
-                self.ui.templates_list.takeItem(self.ui.templates_list.currentRow())
-            else:
-                # Восстанавливаем значения в полях
-                self.current_template.name = self.prev_template_name
-                self.fill_template_info(self.current_template)
-        except Exception as err:
-            print(err)
+        self.activate_choose_template()
+        if self.db_operation == OperationDB.ADD:
+            self.ui.templates_list.takeItem(self.ui.templates_list.currentRow())
+        else:
+            # Восстанавливаем значения в полях
+            self.current_template.name = self.prev_template_name
+            self.fill_template_info_to_ui(self.current_template)
 
     @pyqtSlot()
     def delete_current_template(self):

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file './ui/no_template_mode_form.ui'
+# Form implementation generated from reading ui file './ui/measure_form.ui'
 #
 # Created by: PyQt5 UI code generator 5.13.1
 #

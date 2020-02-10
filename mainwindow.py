@@ -5,9 +5,9 @@ from PyQt5.QtCore import pyqtSlot, pyqtSignal
 from PyQt5.QtWidgets import QMessageBox
 from PyQt5 import QtWidgets, QtCore, QtGui
 
-from new_no_template_measure_dialog import NewNoTemplateMeasureDialog, NoTemplateConfig
+from new_no_template_measure_dialog import NewFastMeasureDialog, FastMeasureParams
 from ui.py.mainwindow import Ui_MainWindow as MainForm
-from no_template_mode_window import NoTemplateWindow
+from measure_window import MeasureWindow
 from template_list_window import TemplateListWindow
 from source_mode_window import SourceModeWindow
 from startwindow import StartWindow
@@ -44,7 +44,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.usb_check_timer.timeout.connect(self.usb_tick)
         self.usb_check_timer.start(10)
 
-        self.no_template_config: NoTemplateConfig = None
+        self.no_template_config: FastMeasureParams = None
 
         self.clb_signal_off_timer = QtCore.QTimer()
         self.clb_signal_off_timer.timeout.connect(self.close)
@@ -152,7 +152,7 @@ class MainWindow(QtWidgets.QMainWindow):
     @pyqtSlot()
     def open_config_no_template_mode(self):
         try:
-            new_no_template_window = NewNoTemplateMeasureDialog(self.calibrator, self.no_template_config, self)
+            new_no_template_window = NewFastMeasureDialog(self.calibrator, self.no_template_config, self)
             self.attach_calibrator_to_window(new_no_template_window)
             new_no_template_window.config_ready.connect(self.save_no_template_config)
 
@@ -163,12 +163,12 @@ class MainWindow(QtWidgets.QMainWindow):
         except AssertionError as err:
             print(err)
 
-    def save_no_template_config(self, a_config: NoTemplateConfig):
+    def save_no_template_config(self, a_config: FastMeasureParams):
         self.no_template_config = a_config
 
     def no_template_mode_chosen(self):
         try:
-            self.change_window(NoTemplateWindow(self.calibrator, self.no_template_config, self.settings, self))
+            self.change_window(MeasureWindow(self.calibrator, self.no_template_config, self.settings, self))
             self.ui.change_fixed_range_action.triggered.connect(self.active_window.edit_fixed_step)
         except Exception as err:
             print(err)

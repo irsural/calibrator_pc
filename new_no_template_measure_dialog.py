@@ -5,7 +5,7 @@ from PyQt5.QtWidgets import QDialog, QMessageBox
 from PyQt5.QtCore import pyqtSignal, pyqtSlot
 from PyQt5 import QtWidgets, QtCore
 
-from ui.py.new_no_template_measure_form import Ui_Dialog as NewMeasureForm
+from ui.py.new_fast_measure_form import Ui_Dialog as NewMeasureForm
 from custom_widgets.EditListDialog import EditedListOnlyNumbers
 import calibrator_constants as clb
 import clb_dll
@@ -13,7 +13,7 @@ import utils
 import qt_utils
 
 
-class NoTemplateConfig:
+class FastMeasureParams:
     class StartPoint(enum.IntEnum):
         LOWER = 0
         UPPER = 1
@@ -47,8 +47,8 @@ class NoTemplateConfig:
             f"Frequency: {self.frequency}\n"
 
 
-class NewNoTemplateMeasureDialog(QDialog):
-    config_ready = pyqtSignal(NoTemplateConfig)
+class NewFastMeasureDialog(QDialog):
+    config_ready = pyqtSignal(FastMeasureParams)
 
     class InputStatus(enum.IntEnum):
         ok = 0
@@ -77,7 +77,7 @@ class NewNoTemplateMeasureDialog(QDialog):
         InputStatus.no_frequency: "Значения частоты не заданы"
     }
 
-    def __init__(self, a_calibrator: clb_dll.ClbDrv, a_measure_config=None, a_parent=None):
+    def __init__(self, a_calibrator: clb_dll.ClbDrv, a_fast_params=None, a_parent=None):
         super().__init__(a_parent)
 
         self.ui = NewMeasureForm()
@@ -85,7 +85,7 @@ class NewNoTemplateMeasureDialog(QDialog):
         self.ui.invisible_default_button.hide()
         self.setFixedSize(self.width(), self.height())
 
-        self.measure_config = a_measure_config if a_measure_config is not None else NoTemplateConfig()
+        self.fast_params = a_fast_params if a_fast_params is not None else FastMeasureParams()
         self.value_to_user = utils.value_to_user_with_units("А")
 
         self.connect_signals()
@@ -187,59 +187,59 @@ class NewNoTemplateMeasureDialog(QDialog):
             clb.SignalType.DCI: self.ui.dci_radio,
             clb.SignalType.DCV: self.ui.dcv_radio,
         }
-        signal_type_to_radio[self.measure_config.signal_type].click()
+        signal_type_to_radio[self.fast_params.signal_type].click()
 
-        self.ui.upper_bound_edit.setText(self.value_to_user(self.measure_config.upper_bound))
-        self.ui.accuracy_class_spinbox.setValue(self.measure_config.accuracy_class)
-        self.ui.minimal_discrete.setText(self.value_to_user(self.measure_config.minimal_discrete))
-        self.ui.start_deviation_spinbox.setValue(self.measure_config.start_deviation)
-        self.ui.comment_edit.setText(self.measure_config.comment)
+        self.ui.upper_bound_edit.setText(self.value_to_user(self.fast_params.upper_bound))
+        self.ui.accuracy_class_spinbox.setValue(self.fast_params.accuracy_class)
+        self.ui.minimal_discrete.setText(self.value_to_user(self.fast_params.minimal_discrete))
+        self.ui.start_deviation_spinbox.setValue(self.fast_params.start_deviation)
+        self.ui.comment_edit.setText(self.fast_params.comment)
 
-        self.ui.auto_calc_points_checkbox.setChecked(self.measure_config.auto_calc_points)
-        self.ui.lower_bound_edit.setText(self.value_to_user(self.measure_config.lower_bound))
-        self.ui.frequency_edit.setText(";".join(self.measure_config.frequency))
-        self.ui.step_edit.setText(self.value_to_user(self.measure_config.points_step))
-        start_point_upper_chosen = self.measure_config.start_point_side == NoTemplateConfig.StartPoint.UPPER
+        self.ui.auto_calc_points_checkbox.setChecked(self.fast_params.auto_calc_points)
+        self.ui.lower_bound_edit.setText(self.value_to_user(self.fast_params.lower_bound))
+        self.ui.frequency_edit.setText(";".join(self.fast_params.frequency))
+        self.ui.step_edit.setText(self.value_to_user(self.fast_params.points_step))
+        start_point_upper_chosen = self.fast_params.start_point_side == FastMeasureParams.StartPoint.UPPER
         self.ui.start_point_up_radio.setChecked(start_point_upper_chosen)
 
     def save_config(self):
         try:
-            self.measure_config.clb_name = self.ui.clb_list_combobox.currentText()
-            self.measure_config.upper_bound = utils.parse_input(self.ui.upper_bound_edit.text())
-            self.measure_config.accuracy_class = self.ui.accuracy_class_spinbox.value()
-            self.measure_config.minimal_discrete = utils.parse_input(self.ui.minimal_discrete.text())
-            self.measure_config.start_deviation = self.ui.start_deviation_spinbox.value()
-            self.measure_config.comment = self.ui.comment_edit.text()
+            self.fast_params.clb_name = self.ui.clb_list_combobox.currentText()
+            self.fast_params.upper_bound = utils.parse_input(self.ui.upper_bound_edit.text())
+            self.fast_params.accuracy_class = self.ui.accuracy_class_spinbox.value()
+            self.fast_params.minimal_discrete = utils.parse_input(self.ui.minimal_discrete.text())
+            self.fast_params.start_deviation = self.ui.start_deviation_spinbox.value()
+            self.fast_params.comment = self.ui.comment_edit.text()
 
-            self.measure_config.auto_calc_points = bool(self.ui.auto_calc_points_checkbox.isChecked())
-            self.measure_config.lower_bound = utils.parse_input(self.ui.lower_bound_edit.text())
-            self.measure_config.frequency = self.ui.frequency_edit.text().split(';')
-            self.measure_config.points_step = utils.parse_input(self.ui.step_edit.text())
+            self.fast_params.auto_calc_points = bool(self.ui.auto_calc_points_checkbox.isChecked())
+            self.fast_params.lower_bound = utils.parse_input(self.ui.lower_bound_edit.text())
+            self.fast_params.frequency = self.ui.frequency_edit.text().split(';')
+            self.fast_params.points_step = utils.parse_input(self.ui.step_edit.text())
 
-            self.measure_config.start_point_side = NoTemplateConfig.StartPoint.UPPER if \
-                self.ui.start_point_up_radio.isChecked() else NoTemplateConfig.StartPoint.LOWER
+            self.fast_params.start_point_side = FastMeasureParams.StartPoint.UPPER if \
+                self.ui.start_point_up_radio.isChecked() else FastMeasureParams.StartPoint.LOWER
             return True
         except ValueError:
             return False
 
     @pyqtSlot()
     def set_mode_aci(self):
-        self.measure_config.signal_type = clb.SignalType.ACI
+        self.fast_params.signal_type = clb.SignalType.ACI
         self.set_units("А")
 
     @pyqtSlot()
     def set_mode_dci(self):
-        self.measure_config.signal_type = clb.SignalType.DCI
+        self.fast_params.signal_type = clb.SignalType.DCI
         self.set_units("А")
 
     @pyqtSlot()
     def set_mode_acv(self):
-        self.measure_config.signal_type = clb.SignalType.ACV
+        self.fast_params.signal_type = clb.SignalType.ACV
         self.set_units("В")
 
     @pyqtSlot()
     def set_mode_dcv(self):
-        self.measure_config.signal_type = clb.SignalType.DCV
+        self.fast_params.signal_type = clb.SignalType.DCV
         self.set_units("В")
 
     @pyqtSlot()
@@ -247,15 +247,15 @@ class NewNoTemplateMeasureDialog(QDialog):
         if not self.save_config():
             input_status = self.InputStatus.bad_input
         else:
-            input_status = self.check_input(self.measure_config)
+            input_status = self.check_input(self.fast_params)
 
         if input_status == self.InputStatus.ok:
-            self.config_ready.emit(self.measure_config)
+            self.config_ready.emit(self.fast_params)
             self.done(QDialog.Accepted)
         else:
             QMessageBox.critical(self, "Ошибка ввода", self.input_status_to_msg[input_status], QMessageBox.Ok)
 
-    def check_input(self, a_config: NoTemplateConfig):
+    def check_input(self, a_config: FastMeasureParams):
         if a_config.clb_name == "":
             return self.InputStatus.no_calibrator
         elif a_config.minimal_discrete == 0:

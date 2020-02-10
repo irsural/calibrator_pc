@@ -7,8 +7,8 @@ from PyQt5.QtGui import QWheelEvent
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 from QNoTemplateMeasureModel import PointData, QNoTemplateMeasureModel
-from ui.py.no_template_mode_form import Ui_main_widget as NoTemplateForm
-from new_no_template_measure_dialog import NoTemplateConfig
+from ui.py.measure_form import Ui_main_widget as MeasureForm
+from new_no_template_measure_dialog import FastMeasureParams
 from custom_widgets.EditListDialog import EditedListWithUnits
 from custom_widgets.NonOverlappingPainter import NonOverlappingPainter
 import calibrator_constants as clb
@@ -18,15 +18,15 @@ import utils
 import qt_utils
 
 
-class NoTemplateWindow(QtWidgets.QWidget):
+class MeasureWindow(QtWidgets.QWidget):
     remove_points = pyqtSignal(list)
     close_confirmed = pyqtSignal()
 
-    def __init__(self, a_calibrator: clb_dll.ClbDrv, a_measure_config: NoTemplateConfig,
+    def __init__(self, a_calibrator: clb_dll.ClbDrv, a_measure_config: FastMeasureParams,
                  a_settings: configparser.ConfigParser, a_parent=None):
         super().__init__(a_parent)
 
-        self.ui = NoTemplateForm()
+        self.ui = MeasureForm()
 
         self.ui.setupUi(self)
 
@@ -45,7 +45,7 @@ class NoTemplateWindow(QtWidgets.QWidget):
 
         self.show()
 
-        self.measure_config: NoTemplateConfig = a_measure_config
+        self.measure_config: FastMeasureParams = a_measure_config
         self.settings = a_settings
 
         self.units_text = clb.signal_type_to_units[self.measure_config.signal_type]
@@ -131,7 +131,7 @@ class NoTemplateWindow(QtWidgets.QWidget):
                             f"{self.measure_config.upper_bound} {self.units_text}.")
 
         if self.measure_config.auto_calc_points:
-            if self.measure_config.start_point_side == NoTemplateConfig.StartPoint.LOWER:
+            if self.measure_config.start_point_side == FastMeasureParams.StartPoint.LOWER:
                 calculated_points = utils.auto_calc_points(self.measure_config.lower_bound,
                                                            self.measure_config.upper_bound,
                                                            self.measure_config.points_step)

@@ -1,7 +1,7 @@
 from typing import List
 
 from QNoTemplateMeasureModel import PointData
-from new_no_template_measure_dialog import NoTemplateConfig
+from new_no_template_measure_dialog import FastMeasureParams
 from db_templates import TemplateParams
 from variable_template_fields_dialog import VariableTemplateParams
 from constants import DeviceSystem, Mark
@@ -37,7 +37,7 @@ class MeasureParams:
         self.marks: List[Mark] = a_marks if a_marks is not None else []
 
     @classmethod
-    def fromFastParams(cls, a_params: NoTemplateConfig):
+    def fromFastParams(cls, a_params: FastMeasureParams):
         return cls()
 
     @classmethod
@@ -47,10 +47,9 @@ class MeasureParams:
         return cls(a_organisation=a_params.organisation, a_etalon_device=a_params.etalon_device,
                    a_device_name=a_params.device_name, a_device_creator=a_params.device_creator,
                    a_device_system=a_params.device_system, a_signal_type=a_params.signal_type,
-                   a_device_class=a_params.device_class, a_points=points, a_marks=a_params.marks,
-                   a_owner=a_var_params.owner, a_user=a_var_params.user_name, a_date=a_var_params.date,
-                   a_temperature=a_var_params.temperature, a_wet=a_var_params.wet, a_pressure=a_var_params.pressure,
-                   a_warming_time=a_var_params.warming_time)
+                   a_device_class=a_params.device_class, a_points=points, a_owner=a_var_params.owner, 
+                   a_user=a_var_params.user_name, a_date=a_var_params.date, a_temperature=a_var_params.temperature, 
+                   a_wet=a_var_params.wet, a_pressure=a_var_params.pressure, a_warming_time=a_var_params.warming_time)
 
 
 class MeasuresDB:
@@ -71,7 +70,7 @@ class MeasuresDB:
         pass
         # if self.is_measure_exist(a_params.id) and (a_id != a_params.id):
         #     Если имя изменилось и оно уже существует
-            # return False
+        #     return False
         # else:
         #     self.ids.append(a_params.id)
         #     if a_id in self.ids:
