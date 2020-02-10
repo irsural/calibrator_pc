@@ -17,6 +17,7 @@ class TemplateListWindow(QtWidgets.QDialog):
         self.ui.template_params_widget.setDisabled(True)
 
         self.db_operation = OperationDB.ADD
+        self.prev_template_name = ""
         self.templates_db = TemplatesDB("templates")
         self.current_template = TemplateParams()
 
@@ -27,7 +28,7 @@ class TemplateListWindow(QtWidgets.QDialog):
         self.ui.cancel_edit_template_button.clicked.connect(self.cancel_template_edit)
 
         self.ui.templates_list.customContextMenuRequested.connect(self.show_context_menu)
-        self.ui.templates_list.currentItemChanged.connect(self.template_changed)
+        self.ui.templates_list.itemClicked.connect(self.template_changed)
 
         self.ui.template_name_edit.textChanged.connect(self.template_name_changed)
 
@@ -52,6 +53,7 @@ class TemplateListWindow(QtWidgets.QDialog):
 
     @pyqtSlot(str)
     def template_name_changed(self, new_template_name: str):
+        self.current_template.name = new_template_name
         self.ui.templates_list.currentItem().setText(new_template_name)
 
     def activate_edit_template(self):
@@ -63,11 +65,15 @@ class TemplateListWindow(QtWidgets.QDialog):
         self.ui.template_params_widget.setDisabled(True)
         self.ui.choose_templates_widget.setDisabled(False)
 
-    @pyqtSlot(QtWidgets.QListWidgetItem, QtWidgets.QListWidgetItem)
-    def template_changed(self, a_current: QtWidgets.QListWidgetItem, _prev: QtWidgets.QListWidgetItem):
-        if a_current is not None:
-            self.current_template: TemplateParams = self.templates_db.get(a_current.text())
-            self.fill_template_info(self.current_template)
+    @pyqtSlot(QtWidgets.QListWidgetItem)
+    def template_changed(self, a_current: QtWidgets.QListWidgetItem):
+        try:
+            if a_current is not None:
+                self.current_template: TemplateParams = self.templates_db.get(a_current.text())
+                assert self.current_template is not None, "database operation 'get' has failed!"
+                self.fill_template_info(self.current_template)
+        except AssertionError as err:
+            print(err)
 
     def fill_template_info(self, a_template_params):
         self.ui.template_name_edit.setText(a_template_params.name)
@@ -90,43 +96,45 @@ class TemplateListWindow(QtWidgets.QDialog):
 
     @pyqtSlot()
     def create_new_template(self, a_template_params=None):
+        if a_template_params is None:
+            a_template_params = TemplateParams(a_name="Новый шаблон")
+        self.current_template = a_template_params
+
+        copy_number = 0
+        source_template_name = str(a_template_params.name)
+        while self.templates_db.is_name_exist(a_template_params.name):
+            copy_number += 1
+            a_template_params.name = f"{source_template_name}_{copy_number}"
+
+        new_item = QtWidgets.QListWidgetItem(a_template_params.name, self.ui.templates_list)
+        self.ui.templates_list.setCurrentItem(new_item)
+        self.fill_template_info(self.current_template)
+        self.db_operation = OperationDB.ADD
+        self.activate_edit_template()
+
+    @pyqtSlot()
+    def duplicate_template(self):
         try:
-            if a_template_params is None:
-                a_template_params = TemplateParams(a_name="Новый шаблон")
+            current_template_name = self.ui.templates_list.currentItem().text()
+            duplicate_template = self.templates_db.get(current_template_name)
+            assert duplicate_template is not None, "database operation 'get' has failed!"
 
-            copy_number = 0
-            source_template_name = str(a_template_params.name)
-            while self.templates_db.is_name_exist(a_template_params.name):
-                copy_number += 1
-                a_template_params.name = f"{source_template_name}_{copy_number}"
-
-            new_item = QtWidgets.QListWidgetItem(a_template_params.name, self.ui.templates_list)
-            self.ui.templates_list.setCurrentItem(new_item)
-            self.db_operation = OperationDB.ADD
-            self.activate_edit_template()
+            self.create_new_template(duplicate_template)
         except AssertionError as err:
             print(err)
 
     @pyqtSlot()
-    def duplicate_template(self):
-        current_template_name = self.ui.templates_list.currentItem().text()
-        duplicate_template = self.templates_db.get(current_template_name)
-        self.create_new_template(duplicate_template)
-
-    @pyqtSlot()
     def edit_template(self):
         self.db_operation = OperationDB.EDIT
+        self.prev_template_name = self.current_template.name
         self.activate_edit_template()
 
     @pyqtSlot()
     def save_template(self):
-        previous_name = self.current_template.name
-        self.current_template.name = self.ui.template_name_edit.text()
-
         if self.db_operation == OperationDB.ADD:
             result = self.templates_db.add(self.current_template)
         else:
-            result = self.templates_db.edit(previous_name, self.current_template)
+            result = self.templates_db.edit(self.prev_template_name, self.current_template)
 
         if result:
             self.activate_choose_template()
@@ -142,14 +150,19 @@ class TemplateListWindow(QtWidgets.QDialog):
                 self.ui.templates_list.takeItem(self.ui.templates_list.currentRow())
             else:
                 # Восстанавливаем значения в полях
+                self.current_template.name = self.prev_template_name
                 self.fill_template_info(self.current_template)
         except Exception as err:
             print(err)
 
     @pyqtSlot()
     def delete_current_template(self):
-        deleted_item = self.ui.templates_list.takeItem(self.ui.templates_list.currentRow())
-        self.templates_db.delete(deleted_item.text())
+        try:
+            deleted_item = self.ui.templates_list.takeItem(self.ui.templates_list.currentRow())
+            result = self.templates_db.delete(deleted_item.text())
+            assert result, "database operation 'delete' has failed!"
+        except AssertionError as err:
+            print(err)
 
     @pyqtSlot()
     def choose_template(self):

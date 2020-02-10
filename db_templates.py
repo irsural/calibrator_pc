@@ -15,7 +15,6 @@ class TemplateParams:
     def __init__(self, a_name="Новый шаблон2", a_organisation="", a_etalon_device="", a_device_name="",
                  a_device_creator="", a_device_system=DeviceSystem.MAGNETOELECTRIC, a_signal_type=clb.SignalType.ACI,
                  a_device_class=0.05, a_points: List[Point] = None, a_marks: List[Mark] = None):
-        print(a_name)
         self.name = a_name
         self.organisation = a_organisation
         self.etalon_device = a_etalon_device
@@ -24,8 +23,8 @@ class TemplateParams:
         self.device_system = a_device_system
         self.signal_type = a_signal_type
         self.device_class = a_device_class
-        self.points: List[Point] = a_points if a_points is not None else [Point(0, 0)]
-        self.marks: List[Mark] = a_marks if a_marks is not None else [Mark("1", "2", "3")]
+        self.points: List[Point] = a_points if a_points is not None else []
+        self.marks: List[Mark] = a_marks if a_marks is not None else []
 
 
 class OperationDB(IntEnum):
@@ -45,8 +44,11 @@ class TemplatesDB:
             self.names.append(a_params.name)
             return True
 
-    def get(self, a_name: str) -> TemplateParams:
-        return TemplateParams(a_name)
+    def get(self, a_name: str):
+        if a_name in self.names:
+            return TemplateParams(a_name)
+        else:
+            return None
 
     def edit(self, a_name: str, a_params: TemplateParams):
         if self.is_name_exist(a_params.name) and (a_name != a_params.name):
@@ -63,7 +65,6 @@ class TemplatesDB:
             self.names.remove(a_name)
             return True
         else:
-            assert True, "delte must not be called for non-existing names!!!"
             return False
 
     def is_name_exist(self, a_name: str):

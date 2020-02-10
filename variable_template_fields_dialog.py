@@ -24,7 +24,6 @@ class VariableTemplateFieldsDialog(QtWidgets.QDialog):
 
         self.ui = VariableTemplateFieldsForm()
         self.ui.setupUi(self)
-        # self.show()
 
         self.variable_params = a_variable_params
         self.recover_params(self.variable_params)
