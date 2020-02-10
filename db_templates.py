@@ -1,18 +1,12 @@
-from collections import namedtuple
 from typing import List
-from enum import IntEnum
 
-import utils
 import calibrator_constants as clb
-from constants import DeviceSystem, enum_to_device_system
-
-
-Point = namedtuple("Point", ["amplitude", "frequency"])
-Mark = namedtuple("Mark", ["description", "mark", "value"])
+from constants import DeviceSystem, Point, Mark
+import utils
 
 
 class TemplateParams:
-    def __init__(self, a_name="Новый шаблон2", a_organisation="", a_etalon_device="", a_device_name="",
+    def __init__(self, a_name="Новый шаблон", a_organisation="", a_etalon_device="", a_device_name="",
                  a_device_creator="", a_device_system=DeviceSystem.MAGNETOELECTRIC, a_signal_type=clb.SignalType.ACI,
                  a_device_class=0.05, a_points: List[Point] = None, a_marks: List[Mark] = None):
         self.name = a_name
@@ -27,17 +21,11 @@ class TemplateParams:
         self.marks: List[Mark] = a_marks if a_marks is not None else []
 
 
-class OperationDB(IntEnum):
-    ADD = 0
-    EDIT = 1
-
-
 class TemplatesDB:
     def __init__(self, a_db_name="templates"):
         self.names = []
 
     def add(self, a_params: TemplateParams):
-        # assert not self.is_name_exist(a_params.name), f"{a_params.name} already exist in TemplatesDB!!"
         if self.is_name_exist(a_params.name):
             return False
         else:

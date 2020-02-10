@@ -1,4 +1,5 @@
 from enum import IntEnum
+from collections import namedtuple
 
 CONFIG_PATH = "./settings.ini"
 
@@ -13,6 +14,10 @@ WARNING_GIF_PATH = "./resources/gif/warning.gif"
 FLOAT_EPSILON = 1e-9
 
 
+Point = namedtuple("Point", ["amplitude", "frequency"])
+Mark = namedtuple("Mark", ["description", "mark", "value"])
+
+
 class DeviceSystem(IntEnum):
     MAGNETOELECTRIC = 0
     ELECTRODYNAMIC = 1
@@ -24,3 +29,8 @@ enum_to_device_system = {
     DeviceSystem.ELECTRODYNAMIC: "Электродинамическая",
     DeviceSystem.ELECTROMAGNETIC: "Электромагнитная",
 }
+
+
+class OperationDB(IntEnum):
+    ADD = 0
+    EDIT = 1

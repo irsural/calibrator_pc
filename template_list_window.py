@@ -3,7 +3,8 @@ from PyQt5.QtCore import pyqtSignal, pyqtSlot
 
 from ui.py.template_list_form import Ui_Dialog as TemplateListForm
 from variable_template_fields_dialog import VariableTemplateFieldsDialog, VariableTemplateParams
-from db_templates import TemplateParams, TemplatesDB, OperationDB
+from db_templates import TemplateParams, TemplatesDB
+from constants import OperationDB
 import qt_utils
 import utils
 
@@ -97,7 +98,7 @@ class TemplateListWindow(QtWidgets.QDialog):
     @pyqtSlot()
     def create_new_template(self, a_template_params=None):
         if a_template_params is None:
-            a_template_params = TemplateParams(a_name="Новый шаблон")
+            a_template_params = TemplateParams(a_name="Новый шаблон", a_device_name="Калибратор N4-25")
         self.current_template = a_template_params
 
         copy_number = 0
