@@ -44,7 +44,7 @@ class TemplateListWindow(QtWidgets.QDialog):
         self.ui.templates_list.currentItemChanged.connect(self.template_changed)
 
         self.ui.template_name_edit.textChanged.connect(self.template_name_changed)
-        self.ui.show_template_details_button.clicked.connect(self.ui.template_params_widget.hide)
+        self.ui.filter_edit.textChanged.connect(self.filter_templates)
 
     @pyqtSlot(QtCore.QPoint)
     def show_context_menu(self, a_pos: QtCore.QPoint):
@@ -193,6 +193,11 @@ class TemplateListWindow(QtWidgets.QDialog):
             if params is not None:
                 print(params.serial_num, params.date)
                 # Здесь начинаем измерение
+
+    def filter_templates(self, a_text):
+        for row in range(self.ui.templates_list.count()):
+            item = self.ui.templates_list.item(row)
+            item.setHidden(a_text not in item.text())
 
 
 class PointsDataTable:
