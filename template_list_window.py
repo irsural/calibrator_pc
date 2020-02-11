@@ -1,9 +1,12 @@
+from enum import IntEnum
+
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import pyqtSignal, pyqtSlot
 
 from ui.py.template_list_form import Ui_Dialog as TemplateListForm
 from variable_template_fields_dialog import VariableTemplateFieldsDialog, VariableTemplateParams
 from db_templates import TemplateParams, TemplatesDB
+import calibrator_constants as clb
 from constants import OperationDB
 import qt_utils
 import utils
@@ -21,9 +24,15 @@ class TemplateListWindow(QtWidgets.QDialog):
         self.prev_template_name = ""
         self.templates_db = TemplatesDB("templates.db")
 
-        self.current_template = None
-        for params in self.templates_db:
-            QtWidgets.QListWidgetItem(params.name, self.ui.templates_list)
+        self.current_template = TemplateParams()
+        for name in self.templates_db:
+            QtWidgets.QListWidgetItem(name, self.ui.templates_list)
+
+        self.points_table = PointsDataTable(clb.signal_type_to_units[self.ui.signal_type_combobox.currentIndex()],
+                                            self.ui.points_table)
+        self.ui.signal_type_combobox.currentIndexChanged.connect(self.points_table.set_units)
+        self.ui.add_point_button.clicked.connect(self.points_table.append_point)
+        self.ui.remove_point_button.clicked.connect(self.points_table.delete_selected_points)
 
         self.ui.choose_template_button.clicked.connect(self.choose_template)
         self.ui.templates_list.itemDoubleClicked.connect(self.choose_template)
@@ -35,7 +44,6 @@ class TemplateListWindow(QtWidgets.QDialog):
         self.ui.templates_list.itemClicked.connect(self.template_changed)
 
         self.ui.template_name_edit.textChanged.connect(self.template_name_changed)
-
         self.ui.show_template_details_button.clicked.connect(self.ui.template_params_widget.hide)
 
     @pyqtSlot(QtCore.QPoint)
@@ -90,9 +98,7 @@ class TemplateListWindow(QtWidgets.QDialog):
         self.ui.signal_type_combobox.setCurrentIndex(a_template_params.signal_type)
         self.ui.class_spinbox.setValue(a_template_params.device_class)
 
-        qt_utils.qtablewidget_clear(self.ui.points_table)
-        for point in a_template_params.points:
-            qt_utils.qtablewidget_append_row(self.ui.points_table, point)
+        self.points_table.reset(a_template_params.points)
 
     def fill_template_info_to_db(self):
         self.current_template.organisation = self.ui.organisation_edit.text()
@@ -184,3 +190,59 @@ class TemplateListWindow(QtWidgets.QDialog):
                 print(params.serial_num, params.date)
                 # Здесь начинаем измерение
 
+
+class PointsDataTable:
+    class PointCols(IntEnum):
+        AMPLITUDE = 0
+        FREQUENCY = 1
+
+    def __init__(self, a_units, a_table_widget: QtWidgets.QTableWidget):
+        self.table: QtWidgets.QTableWidget = a_table_widget
+        self.units = a_units
+        self.value_to_user = utils.value_to_user_with_units(a_units)
+
+        self.prev_value = self.value_to_user(0)
+        self.table.itemChanged.connect(self.set_value_to_user)
+        self.table.itemDoubleClicked.connect(self.save_prev_value)
+
+    def append_point(self, _: bool, a_amplitude: float = 0, a_frequency: float = 0):
+        row = self.table.rowCount()
+        self.table.insertRow(row)
+        self.table.setItem(row, self.PointCols.AMPLITUDE, QtWidgets.QTableWidgetItem(str(a_amplitude)))
+        self.table.setItem(row, self.PointCols.FREQUENCY, QtWidgets.QTableWidgetItem(str(a_frequency)))
+
+    def delete_selected_points(self):
+        rows = self.table.selectionModel().selectedRows()
+        if rows:
+            for idx_model in reversed(rows):
+                self.table.removeRow(idx_model.row())
+
+    def reset(self, a_points: list):
+        qt_utils.qtablewidget_clear(self.table)
+        for point in a_points:
+            qt_utils.qtablewidget_append_row(self.table, point)
+
+    def set_units(self, a_index: clb.SignalType):
+        prev_units = self.units
+        self.units = clb.signal_type_to_units[a_index]
+        self.value_to_user = utils.value_to_user_with_units(self.units)
+
+        if prev_units != self.units:
+            for row in range(self.table.rowCount()):
+                item = self.table.item(row, self.PointCols.AMPLITUDE)
+                item.setText(item.text().replace(prev_units, self.units))
+                print(item.text(), prev_units, self.units)
+
+    def save_prev_value(self, a_item: QtWidgets.QTableWidgetItem):
+        if a_item.column() == self.PointCols.AMPLITUDE:
+            self.prev_value = a_item.text()
+
+    def set_value_to_user(self, a_item: QtWidgets.QTableWidgetItem):
+        if a_item.column() == self.PointCols.AMPLITUDE:
+            self.table.blockSignals(True)
+            try:
+                a_item.setText(self.value_to_user(utils.parse_input(a_item.text())))
+            except ValueError:
+                a_item.setText(self.prev_value)
+            finally:
+                self.table.blockSignals(False)

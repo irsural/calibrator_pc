@@ -338,6 +338,9 @@
              <layout class="QGridLayout" name="gridLayout_3">
               <item row="1" column="0" colspan="3">
                <widget class="QTableWidget" name="points_table">
+                <property name="selectionBehavior">
+                 <enum>QAbstractItemView::SelectRows</enum>
+                </property>
                 <column>
                  <property name="text">
                   <string>Амплитуда</string>

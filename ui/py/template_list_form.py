@@ -168,6 +168,7 @@ class Ui_Dialog(object):
         self.gridLayout_3 = QtWidgets.QGridLayout()
         self.gridLayout_3.setObjectName("gridLayout_3")
         self.points_table = QtWidgets.QTableWidget(self.verticalWidget)
+        self.points_table.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
         self.points_table.setObjectName("points_table")
         self.points_table.setColumnCount(2)
         self.points_table.setRowCount(0)

@@ -56,6 +56,10 @@ class TemplatesDB:
                     (a_params.name, a_params.organisation, a_params.etalon_device, a_params.device_name,
                      a_params.device_creator, a_params.device_system, a_params.signal_type, a_params.device_class)
                 )
+                template_id = self.cursor.lastrowid
+                points = ((a, f) for (a, f) in a_params.points)
+                self.cursor.executemany(f"insert into {self.points_tab} (id, amplitude, frequency) "
+                                        f"values ({template_id},?,?)", points)
             return True
 
     def get(self, a_name: str):
@@ -67,7 +71,7 @@ class TemplatesDB:
             print(err)
 
     @staticmethod
-    def __row_to_template_params(self, a_row: list):
+    def __row_to_template_params(a_row: list):
         return TemplateParams(a_name=a_row[1], a_organisation=a_row[2], a_etalon_device=a_row[3],
                               a_device_name=a_row[4], a_device_creator=a_row[5], a_device_system=a_row[6],
                               a_signal_type=a_row[7], a_device_class=a_row[8])
@@ -93,7 +97,8 @@ class TemplatesDB:
         return res[0]
 
     def __iter__(self):
-        self.cursor.execute(f"select * from {self.templates_tab}")
+        # Итерация по именам БД
+        self.cursor.execute(f"select name from {self.templates_tab}")
         return self
 
     def __next__(self) -> TemplateParams:
@@ -101,4 +106,4 @@ class TemplatesDB:
         if res is None:
             raise StopIteration
         else:
-            return self.__row_to_template_params(res)
+            return res[0]
