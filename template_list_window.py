@@ -26,7 +26,7 @@ class TemplateListWindow(QtWidgets.QDialog):
 
         self.current_template = TemplateParams()
         for name in self.templates_db:
-            QtWidgets.QListWidgetItem(name, self.ui.templates_list)
+            self.ui.templates_list.addItem(name)
 
         self.points_table = PointsDataTable(clb.signal_type_to_units[self.ui.signal_type_combobox.currentIndex()],
                                             self.ui.points_table)
@@ -148,6 +148,8 @@ class TemplateListWindow(QtWidgets.QDialog):
         self.prev_template_name = self.current_template.name
         self.activate_edit_template()
 
+        self.points_table.clear_points_edited_state()
+
     @pyqtSlot()
     def save_template(self):
         try:
@@ -155,7 +157,8 @@ class TemplateListWindow(QtWidgets.QDialog):
             if self.db_operation == OperationDB.ADD:
                 result = self.templates_db.add(self.current_template)
             else:
-                result = self.templates_db.edit(self.prev_template_name, self.current_template)
+                result = self.templates_db.edit(self.prev_template_name, self.current_template,
+                                                self.points_table.were_points_edited())
 
             if result:
                 self.activate_choose_template()
@@ -202,22 +205,23 @@ class PointsDataTable:
         self.units = a_units
         self.value_to_user = utils.value_to_user_with_units(a_units)
 
-        self.prev_amplitude = self.value_to_user(0)
-        self.prev_frequency = "0"
         self.table.itemChanged.connect(self.set_value_to_user)
-        self.table.itemDoubleClicked.connect(self.save_prev_value)
+        # Нужен, чтобы лишний раз не писать в БД точек, если они не менялись при изменении шаблона
+        self.points_were_edited = False
 
     def append_point(self, _: bool, a_amplitude: float = 0, a_frequency: float = 0):
         row = self.table.rowCount()
         self.table.insertRow(row)
         self.table.setItem(row, self.PointCols.AMPLITUDE, QtWidgets.QTableWidgetItem(str(a_amplitude)))
         self.table.setItem(row, self.PointCols.FREQUENCY, QtWidgets.QTableWidgetItem(str(a_frequency)))
+        self.points_were_edited = True
 
     def delete_selected_points(self):
         rows = self.table.selectionModel().selectedRows()
         if rows:
             for idx_model in reversed(rows):
                 self.table.removeRow(idx_model.row())
+            self.points_were_edited = True
 
     def get_points(self):
         points = []
@@ -244,25 +248,25 @@ class PointsDataTable:
             for row in range(self.table.rowCount()):
                 item = self.table.item(row, self.PointCols.AMPLITUDE)
                 item.setText(item.text().replace(prev_units, self.units))
-                print(item.text(), prev_units, self.units)
-
-    def save_prev_value(self, a_item: QtWidgets.QTableWidgetItem):
-        if a_item.column() == self.PointCols.AMPLITUDE:
-            self.prev_amplitude = a_item.text()
-        if a_item.column() == self.PointCols.FREQUENCY:
-            self.prev_frequency = a_item.text()
 
     def set_value_to_user(self, a_item: QtWidgets.QTableWidgetItem):
         self.table.blockSignals(True)
-        if a_item.column() == self.PointCols.AMPLITUDE:
-            try:
-                a_item.setText(self.value_to_user(utils.parse_input(a_item.text())))
-            except ValueError:
-                a_item.setText(self.prev_amplitude)
-        else:
-            try:
-                a_item.setText(utils.float_to_string(float(a_item.text())))
-            except ValueError:
-                a_item.setText(self.prev_frequency)
+        try:
+            if a_item.column() == self.PointCols.AMPLITUDE:
+                value = self.value_to_user(utils.parse_input(a_item.text()))
+            else:
+                value = utils.float_to_string(float(a_item.text()))
+
+            a_item.setText(value)
+            a_item.setData(QtCore.Qt.UserRole, value)
+            self.points_were_edited = True
+
+        except ValueError:
+            a_item.setText(a_item.data(QtCore.Qt.UserRole))
         self.table.blockSignals(False)
 
+    def clear_points_edited_state(self):
+        self.points_were_edited = False
+
+    def were_points_edited(self):
+        return self.points_were_edited

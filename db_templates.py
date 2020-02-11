@@ -31,7 +31,7 @@ class TemplatesDB:
 
         self.cursor.execute(
                 f"CREATE TABLE IF NOT EXISTS {self.templates_tab} "
-                f"(id integer primary key autoincrement, name text unique, organisation text, etalon_device text," 
+                f"(id integer primary key autoincrement, name text, organisation text, etalon_device text," 
                 f"device_name text, device_creator text, device_system integer, signal_type integer,"
                 f"device_class real)"
             )
@@ -57,9 +57,7 @@ class TemplatesDB:
                      a_params.device_creator, a_params.device_system, a_params.signal_type, a_params.device_class)
                 )
                 template_id = self.cursor.lastrowid
-                points = ((a, f) for (a, f) in a_params.points)
-                self.cursor.executemany(f"insert into {self.points_tab} (amplitude, frequency, template_id) "
-                                        f"values (?,?,{template_id})", points)
+                self.__add_points(a_params.points, template_id)
             return True
 
     def get(self, a_name: str):
@@ -82,14 +80,31 @@ class TemplatesDB:
                               a_signal_type=a_row[7], a_device_class=a_row[8],
                               a_points=[Point(amplitude=a, frequency=f) for a, f in a_points])
 
-    def edit(self, a_name: str, a_params: TemplateParams):
+    def __add_points(self, a_points: list, a_template_id):
+        points = ((a, f) for (a, f) in a_points)
+        self.cursor.executemany(f"insert into {self.points_tab} (amplitude, frequency, template_id) "
+                                f"values (?,?,{a_template_id})", points)
+
+    def edit(self, a_name: str, a_params: TemplateParams, a_rewrite_points: bool):
         if self.is_name_exist(a_params.name) and (a_name != a_params.name):
             # Если имя изменилось и оно уже существует
             return False
         else:
-            self.names.append(a_params.name)
-            if a_name in self.names:
-                self.names.remove(a_name)
+            with self.connection:
+                self.cursor.execute(
+                    f"update {self.templates_tab} set name = ?, organisation = ?, etalon_device = ?, device_name = ?, "
+                    f"device_creator = ?, device_system = ?, signal_type = ?, device_class = ? "
+                    f"where name = '{a_name}'",
+                    (a_params.name, a_params.organisation, a_params.etalon_device, a_params.device_name,
+                     a_params.device_creator, a_params.device_system, a_params.signal_type, a_params.device_class)
+                )
+
+                if a_rewrite_points:
+                    self.cursor.execute(f"select id from {self.templates_tab} where name = '{a_params.name}'")
+                    template_id = self.cursor.fetchone()[0]
+
+                    self.cursor.execute(f"delete from {self.points_tab} where template_id={template_id}")
+                    self.__add_points(a_params.points, template_id)
             return True
 
     def delete(self, a_name: str):
@@ -104,7 +119,7 @@ class TemplatesDB:
 
     def __iter__(self):
         # Итерация по именам БД
-        self.cursor.execute(f"select name from {self.templates_tab}")
+        self.cursor.execute(f"select name from {self.templates_tab} order by id")
         return self
 
     def __next__(self) -> TemplateParams:
