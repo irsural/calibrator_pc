@@ -31,7 +31,7 @@ class TemplatesDB:
 
         self.cursor.execute(
                 f"CREATE TABLE IF NOT EXISTS {self.templates_tab} "
-                f"(id integer primary key autoincrement, name text, organisation text, etalon_device text," 
+                f"(id integer primary key autoincrement, name text unique, organisation text, etalon_device text," 
                 f"device_name text, device_creator text, device_system integer, signal_type integer,"
                 f"device_class real)"
             )
@@ -58,23 +58,29 @@ class TemplatesDB:
                 )
                 template_id = self.cursor.lastrowid
                 points = ((a, f) for (a, f) in a_params.points)
-                self.cursor.executemany(f"insert into {self.points_tab} (id, amplitude, frequency) "
-                                        f"values ({template_id},?,?)", points)
+                self.cursor.executemany(f"insert into {self.points_tab} (amplitude, frequency, template_id) "
+                                        f"values (?,?,{template_id})", points)
             return True
 
     def get(self, a_name: str):
         try:
             self.cursor.execute(f"select * from {self.templates_tab} WHERE name='{a_name}'")
-            record = self.cursor.fetchall()[0]
-            return self.__row_to_template_params(record)
+            record = self.cursor.fetchone()
+
+            template_id = record[0]
+            self.cursor.execute(f"select amplitude, frequency from {self.points_tab} where template_id={template_id}")
+            points = self.cursor.fetchall()
+
+            return self.__row_to_template_params(record, points)
         except Exception as err:
             print(err)
 
     @staticmethod
-    def __row_to_template_params(a_row: list):
+    def __row_to_template_params(a_row: list, a_points: tuple):
         return TemplateParams(a_name=a_row[1], a_organisation=a_row[2], a_etalon_device=a_row[3],
                               a_device_name=a_row[4], a_device_creator=a_row[5], a_device_system=a_row[6],
-                              a_signal_type=a_row[7], a_device_class=a_row[8])
+                              a_signal_type=a_row[7], a_device_class=a_row[8],
+                              a_points=[Point(amplitude=a, frequency=f) for a, f in a_points])
 
     def edit(self, a_name: str, a_params: TemplateParams):
         if self.is_name_exist(a_params.name) and (a_name != a_params.name):

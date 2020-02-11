@@ -7,7 +7,7 @@ from ui.py.template_list_form import Ui_Dialog as TemplateListForm
 from variable_template_fields_dialog import VariableTemplateFieldsDialog, VariableTemplateParams
 from db_templates import TemplateParams, TemplatesDB
 import calibrator_constants as clb
-from constants import OperationDB
+from constants import OperationDB, Point
 import qt_utils
 import utils
 
@@ -41,7 +41,7 @@ class TemplateListWindow(QtWidgets.QDialog):
         self.ui.cancel_edit_template_button.clicked.connect(self.cancel_template_edit)
 
         self.ui.templates_list.customContextMenuRequested.connect(self.show_context_menu)
-        self.ui.templates_list.itemClicked.connect(self.template_changed)
+        self.ui.templates_list.currentItemChanged.connect(self.template_changed)
 
         self.ui.template_name_edit.textChanged.connect(self.template_name_changed)
         self.ui.show_template_details_button.clicked.connect(self.ui.template_params_widget.hide)
@@ -98,7 +98,6 @@ class TemplateListWindow(QtWidgets.QDialog):
         self.ui.signal_type_combobox.setCurrentIndex(a_template_params.signal_type)
         self.ui.class_spinbox.setValue(a_template_params.device_class)
 
-        print(a_template_params.points)
         self.points_table.reset(a_template_params.points)
 
     def fill_template_info_to_db(self):
@@ -110,10 +109,13 @@ class TemplateListWindow(QtWidgets.QDialog):
         self.current_template.signal_type = self.ui.signal_type_combobox.currentIndex()
         self.current_template.device_class = self.ui.class_spinbox.value()
 
+        self.current_template.points = self.points_table.get_points()
+
     @pyqtSlot()
     def create_new_template(self, a_template_params=None):
+        self.ui.templates_list.blockSignals(True)
         if a_template_params is None:
-            a_template_params = TemplateParams(a_name="Новый шаблон", a_device_name="Калибратор N4-25")
+            a_template_params = TemplateParams(a_name="Новый шаблон", a_etalon_device="Калибратор N4-25")
         self.current_template = a_template_params
 
         copy_number = 0
@@ -127,6 +129,7 @@ class TemplateListWindow(QtWidgets.QDialog):
         self.fill_template_info_to_ui(self.current_template)
         self.db_operation = OperationDB.ADD
         self.activate_edit_template()
+        self.ui.templates_list.blockSignals(False)
 
     @pyqtSlot()
     def duplicate_template(self):
@@ -199,7 +202,8 @@ class PointsDataTable:
         self.units = a_units
         self.value_to_user = utils.value_to_user_with_units(a_units)
 
-        self.prev_value = self.value_to_user(0)
+        self.prev_amplitude = self.value_to_user(0)
+        self.prev_frequency = "0"
         self.table.itemChanged.connect(self.set_value_to_user)
         self.table.itemDoubleClicked.connect(self.save_prev_value)
 
@@ -214,6 +218,17 @@ class PointsDataTable:
         if rows:
             for idx_model in reversed(rows):
                 self.table.removeRow(idx_model.row())
+
+    def get_points(self):
+        points = []
+        try:
+            for row in range(self.table.rowCount()):
+                points.append(Point(amplitude=utils.parse_input(self.table.item(row, self.PointCols.AMPLITUDE).text()),
+                                    frequency=float(self.table.item(row, self.PointCols.FREQUENCY).text())))
+        except ValueError as err:
+            points.clear()
+            print("get_points ValueError! ", err)
+        return points
 
     def reset(self, a_points: list):
         qt_utils.qtablewidget_clear(self.table)
@@ -233,14 +248,21 @@ class PointsDataTable:
 
     def save_prev_value(self, a_item: QtWidgets.QTableWidgetItem):
         if a_item.column() == self.PointCols.AMPLITUDE:
-            self.prev_value = a_item.text()
+            self.prev_amplitude = a_item.text()
+        if a_item.column() == self.PointCols.FREQUENCY:
+            self.prev_frequency = a_item.text()
 
     def set_value_to_user(self, a_item: QtWidgets.QTableWidgetItem):
+        self.table.blockSignals(True)
         if a_item.column() == self.PointCols.AMPLITUDE:
-            self.table.blockSignals(True)
             try:
                 a_item.setText(self.value_to_user(utils.parse_input(a_item.text())))
             except ValueError:
-                a_item.setText(self.prev_value)
-            finally:
-                self.table.blockSignals(False)
+                a_item.setText(self.prev_amplitude)
+        else:
+            try:
+                a_item.setText(utils.float_to_string(float(a_item.text())))
+            except ValueError:
+                a_item.setText(self.prev_frequency)
+        self.table.blockSignals(False)
+
