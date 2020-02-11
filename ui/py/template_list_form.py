@@ -218,6 +218,7 @@ class Ui_Dialog(object):
         Dialog.setWindowTitle(_translate("Dialog", "Выбор шаблона"))
         self.filter_template_window.setPlaceholderText(_translate("Dialog", "Поиск..."))
         self.show_template_details_button.setText(_translate("Dialog", ">"))
+        self.templates_list.setSortingEnabled(False)
         self.choose_template_button.setText(_translate("Dialog", "Выбрать"))
         self.label_7.setText(_translate("Dialog", "Средство поверки"))
         self.label.setText(_translate("Dialog", "Класс"))

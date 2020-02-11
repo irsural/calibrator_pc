@@ -98,6 +98,7 @@ class TemplateListWindow(QtWidgets.QDialog):
         self.ui.signal_type_combobox.setCurrentIndex(a_template_params.signal_type)
         self.ui.class_spinbox.setValue(a_template_params.device_class)
 
+        print(a_template_params.points)
         self.points_table.reset(a_template_params.points)
 
     def fill_template_info_to_db(self):
@@ -166,10 +167,7 @@ class TemplateListWindow(QtWidgets.QDialog):
         self.activate_choose_template()
         if self.db_operation == OperationDB.ADD:
             self.ui.templates_list.takeItem(self.ui.templates_list.currentRow())
-        else:
-            # Восстанавливаем значения в полях
-            self.current_template.name = self.prev_template_name
-            self.fill_template_info_to_ui(self.current_template)
+        self.template_changed(self.ui.templates_list.currentItem())
 
     @pyqtSlot()
     def delete_current_template(self):

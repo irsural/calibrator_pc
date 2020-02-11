@@ -32,6 +32,7 @@ def qtablewidget_append_row(a_table: QtWidgets.QTableWidget, a_row_data: tuple):
     for col, data in enumerate(a_row_data):
         a_table.setItem(row_num, col, QtWidgets.QTableWidgetItem(str(data)))
 
+
 def qtablewidget_clear(a_table: QtWidgets.QTableWidget):
     """
     В отличии от QTableWidget.clear не удаляет заголовки таблицы и
@@ -39,5 +40,5 @@ def qtablewidget_clear(a_table: QtWidgets.QTableWidget):
     :param a_table: QTableWidget
     :return:
     """
-    for row in range(a_table.rowCount()):
+    for row in reversed(range(a_table.rowCount())):
         a_table.removeRow(row)
