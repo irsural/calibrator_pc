@@ -1,3 +1,4 @@
+import sqlite3
 import configparser
 import os
 
@@ -10,6 +11,7 @@ from ui.py.mainwindow import Ui_MainWindow as MainForm
 from measure_window import MeasureWindow
 from template_list_window import TemplateListWindow
 from source_mode_window import SourceModeWindow
+from settings_dialog import SettingsDialog
 from startwindow import StartWindow
 import calibrator_constants as clb
 import constants as cfg
@@ -46,9 +48,20 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.no_template_config: FastMeasureParams = None
 
+        self.marks_table = "marks"
+        self.mark_values_table = "mark_values"
+        self.measures_table = "measures"
+        self.results_table = "results"
+        self.db_connection = self.create_db("measures.db")
+
         self.clb_signal_off_timer = QtCore.QTimer()
         self.clb_signal_off_timer.timeout.connect(self.close)
         self.SIGNAL_OFF_TIME_MS = 200
+
+        self.ui.enter_settings_action.triggered.connect(self.open_settings)
+
+    def __del__(self):
+        self.db_connection.close()
 
     @staticmethod
     def restore_settings(a_path: str):
@@ -67,6 +80,30 @@ class MainWindow(QtWidgets.QMainWindow):
         #         print(f"{subkey} = {settings[key][subkey]}")
 
         return settings
+
+    def create_db(self, a_db_name: str):
+        connection = sqlite3.connect(a_db_name)
+        cursor = connection.cursor()
+        with connection:
+            cursor.execute(f"CREATE TABLE IF NOT EXISTS {self.marks_table} "
+                           f"(id integer primary key autoincrement, name text unique, tag text unique)")
+
+            cursor.execute(f"CREATE TABLE IF NOT EXISTS {self.measures_table} "
+                           f"(id integer primary key autoincrement, organisation text, etalon_device text,"
+                           f"device_name text, device_creator text, device_system integer, signal_type integer,"
+                           f"device_class real, serial_number text, owner text, user text, date text)")
+
+            cursor.execute(f"CREATE TABLE IF NOT EXISTS {self.mark_values_table} "
+                           f"(id integer primary key autoincrement, value text, mark_id int,  measure_id int,"
+                           f"foreign key (mark_id) references {self.marks_table}(id),"
+                           f"foreign key (measure_id) references {self.measures_table}(id))")
+
+            cursor.execute(f"CREATE TABLE IF NOT EXISTS {self.results_table} "
+                           f"(id integer primary key autoincrement, point real, frequency real, up_value real,"
+                           f"up_deviation real, up_deviation_percent real, down_value real, down_deviation real,"
+                           f"down_deviation_percent real, variation real, measure_id int,"
+                           f"foreign key (measure_id) references {self.measures_table}(id))")
+        return connection
 
     def show_start_window(self):
         try:
@@ -185,6 +222,13 @@ class MainWindow(QtWidgets.QMainWindow):
     def close_child_widget(self):
         # self.active_window.close()
         self.show_start_window()
+
+    def open_settings(self):
+        try:
+            settings_dialog = SettingsDialog(self.db_connection, self.marks_table, self)
+            settings_dialog.exec()
+        except Exception as err:
+            print(err)
 
     def closeEvent(self, a_event: QtGui.QCloseEvent):
         try:

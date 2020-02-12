@@ -32,11 +32,23 @@
     </property>
     <addaction name="change_fixed_range_action"/>
    </widget>
+   <widget class="QMenu" name="settings_menu">
+    <property name="title">
+     <string>Настройки</string>
+    </property>
+    <addaction name="enter_settings_action"/>
+   </widget>
    <addaction name="options_menu"/>
+   <addaction name="settings_menu"/>
   </widget>
   <action name="change_fixed_range_action">
    <property name="text">
     <string>Изменить фиксированный шаг</string>
+   </property>
+  </action>
+  <action name="enter_settings_action">
+   <property name="text">
+    <string>Настройки...</string>
    </property>
   </action>
  </widget>
