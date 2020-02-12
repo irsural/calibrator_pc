@@ -86,7 +86,7 @@ class MainWindow(QtWidgets.QMainWindow):
         cursor = connection.cursor()
         with connection:
             cursor.execute(f"CREATE TABLE IF NOT EXISTS {self.marks_table} "
-                           f"(id integer primary key autoincrement, name text unique, tag text unique)")
+                           f"(name text primary key, tag text unique, default_value text)")
 
             cursor.execute(f"CREATE TABLE IF NOT EXISTS {self.measures_table} "
                            f"(id integer primary key autoincrement, organisation text, etalon_device text,"
@@ -94,8 +94,8 @@ class MainWindow(QtWidgets.QMainWindow):
                            f"device_class real, serial_number text, owner text, user text, date text)")
 
             cursor.execute(f"CREATE TABLE IF NOT EXISTS {self.mark_values_table} "
-                           f"(id integer primary key autoincrement, value text, mark_id int,  measure_id int,"
-                           f"foreign key (mark_id) references {self.marks_table}(id),"
+                           f"(id integer primary key autoincrement, value text, mark_name text,  measure_id int,"
+                           f"foreign key (mark_name) references {self.marks_table}(name),"
                            f"foreign key (measure_id) references {self.measures_table}(id))")
 
             cursor.execute(f"CREATE TABLE IF NOT EXISTS {self.results_table} "

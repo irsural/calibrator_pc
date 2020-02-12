@@ -29,15 +29,19 @@ class SettingsDialog(QtWidgets.QDialog):
         self.ui = SettingsForm()
         self.ui.setupUi(self)
 
-        self.window_existing_timer = QtCore.QTimer()
-        self.window_existing_timer.timeout.connect(self.window_existing_chech)
-        self.window_existing_timer.start(3000)
+        self.ui.save_and_exit_button.clicked.connect(self.save_and_exit)
+        self.ui.save_button.clicked.connect(self.save)
+        self.ui.cancel_button.clicked.connect(self.close)
 
         self.marks_widget = MarksWidget(a_db_connection, a_marks_table_name, a_default_mode=True, a_parent=self)
         marks_layout = QtWidgets.QGridLayout(self)
         marks_layout.addWidget(self.marks_widget)
         marks_layout.setContentsMargins(0, 0, 0, 0)
         self.ui.marks_page.setLayout(marks_layout)
+
+        self.window_existing_timer = QtCore.QTimer()
+        self.window_existing_timer.timeout.connect(self.window_existing_chech)
+        self.window_existing_timer.start(3000)
 
     def window_existing_chech(self):
         print("Settings Dialog")
@@ -46,9 +50,12 @@ class SettingsDialog(QtWidgets.QDialog):
     #     current_widget
 
     def save(self):
-        pass
+        try:
+            return self.marks_widget.save()
+        except Exception as err:
+            print(err)
 
     def save_and_exit(self):
-        self.save()
-        self.close()
+        if self.save():
+            self.close()
 

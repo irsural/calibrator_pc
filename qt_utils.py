@@ -42,3 +42,10 @@ def qtablewidget_clear(a_table: QtWidgets.QTableWidget):
     """
     for row in reversed(range(a_table.rowCount())):
         a_table.removeRow(row)
+
+
+def qtablewidget_delete_selected(a_table: QtWidgets.QTableWidget):
+    rows = a_table.selectionModel().selectedRows()
+    if rows:
+        for idx_model in reversed(rows):
+            a_table.removeRow(idx_model.row())

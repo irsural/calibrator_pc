@@ -20,6 +20,7 @@ class Ui_marks_widget(object):
         self.horizontalLayout = QtWidgets.QHBoxLayout(marks_widget)
         self.horizontalLayout.setObjectName("horizontalLayout")
         self.marks_table = QtWidgets.QTableWidget(marks_widget)
+        self.marks_table.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
         self.marks_table.setObjectName("marks_table")
         self.marks_table.setColumnCount(3)
         self.marks_table.setRowCount(0)
