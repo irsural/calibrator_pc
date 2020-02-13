@@ -1,14 +1,12 @@
 import sqlite3
 from enum import IntEnum
 
-from PyQt5 import QtCore, QtWidgets, QtGui
-from PyQt5.QtCore import pyqtSignal, pyqtSlot
+from PyQt5 import QtCore, QtWidgets
+from PyQt5.QtCore import pyqtSignal
 
 
 from ui.py.marks_widget import Ui_marks_widget as MarksWidgetForm
-import calibrator_constants as clb
 import qt_utils
-import clb_dll
 
 
 class Mark:

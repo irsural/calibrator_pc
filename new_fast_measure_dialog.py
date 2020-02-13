@@ -5,7 +5,7 @@ from PyQt5.QtWidgets import QDialog, QMessageBox
 from PyQt5.QtCore import pyqtSignal, pyqtSlot
 from PyQt5 import QtWidgets, QtCore
 
-from ui.py.new_fast_measure_form import Ui_Dialog as NewMeasureForm
+from ui.py.new_fast_measure_form import Ui_Dialog as NewFastMeasureForm
 from custom_widgets.EditListDialog import EditedListOnlyNumbers
 import calibrator_constants as clb
 import clb_dll
@@ -31,6 +31,7 @@ class FastMeasureParams:
         self.lower_bound = 0.
         self.points_step = 2.
         self.start_point_side = self.StartPoint.LOWER
+        self.amplitudes = []
         self.frequency = []
 
     def __str__(self):
@@ -80,7 +81,7 @@ class NewFastMeasureDialog(QDialog):
     def __init__(self, a_calibrator: clb_dll.ClbDrv, a_fast_params=None, a_parent=None):
         super().__init__(a_parent)
 
-        self.ui = NewMeasureForm()
+        self.ui = NewFastMeasureForm()
         self.ui.setupUi(self)
         self.ui.invisible_default_button.hide()
         self.setFixedSize(self.width(), self.height())
@@ -250,6 +251,8 @@ class NewFastMeasureDialog(QDialog):
             input_status = self.check_input(self.fast_params)
 
         if input_status == self.InputStatus.ok:
+            self.fast_params.amplitudes = [] if not self.fast_params.auto_calc_points else self.calc_points()
+
             self.config_ready.emit(self.fast_params)
             self.done(QDialog.Accepted)
         else:
@@ -295,3 +298,10 @@ class NewFastMeasureDialog(QDialog):
         self.normalize_edit_value(self.ui.upper_bound_edit)
         self.normalize_edit_value(self.ui.lower_bound_edit)
         self.normalize_edit_value(self.ui.step_edit)
+
+    def calc_points(self):
+        lower_point, upper_point = (self.fast_params.lower_bound, self.fast_params.upper_bound) if \
+            self.fast_params.StartPoint == FastMeasureParams.StartPoint.LOWER else \
+            (self.fast_params.upper_bound, self.fast_params.lower_bound)
+
+        return utils.auto_calc_points(lower_point, upper_point, self.fast_params.points_step)

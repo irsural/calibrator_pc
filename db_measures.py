@@ -1,19 +1,18 @@
 from typing import List
 
-from QNoTemplateMeasureModel import PointData
-from new_no_template_measure_dialog import FastMeasureParams
-from db_templates import TemplateParams
 from variable_template_fields_dialog import VariableTemplateParams
+from new_fast_measure_dialog import FastMeasureParams
+from QNoTemplateMeasureModel import PointData
 from constants import DeviceSystem, Mark
+from db_templates import TemplateParams
 import calibrator_constants as clb
-import utils
 
 
 class MeasureParams:
     def __init__(self, a_organisation="", a_etalon_device="", a_device_name="",
                  a_device_creator="", a_device_system=DeviceSystem.MAGNETOELECTRIC, a_signal_type=clb.SignalType.ACI,
-                 a_device_class=0.05, a_owner="", a_user="", a_date="", a_serial_num="", a_points: List[PointData] = None,
-                 a_marks: List[Mark] = None):
+                 a_device_class=0.05, a_owner="", a_user="", a_date="", a_serial_num="",
+                 a_points: List[PointData] = None):
 
         self.organisation = a_organisation
         self.etalon_device = a_etalon_device
@@ -29,7 +28,6 @@ class MeasureParams:
         self.serial_num = a_serial_num
 
         self.points: List[PointData] = a_points if a_points is not None else []
-        self.marks: List[Mark] = a_marks if a_marks is not None else []
 
     @classmethod
     def fromFastParams(cls, a_params: FastMeasureParams):

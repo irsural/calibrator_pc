@@ -2,8 +2,7 @@ from typing import List
 import sqlite3
 
 import calibrator_constants as clb
-from constants import DeviceSystem, Point, Mark
-import utils
+from constants import DeviceSystem, Point
 
 
 class TemplateParams:

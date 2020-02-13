@@ -8,7 +8,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 
 from QNoTemplateMeasureModel import PointData, QNoTemplateMeasureModel
 from ui.py.measure_form import Ui_main_widget as MeasureForm
-from new_no_template_measure_dialog import FastMeasureParams
+from new_fast_measure_dialog import FastMeasureParams
 from custom_widgets.EditListDialog import EditedListWithUnits
 from custom_widgets.NonOverlappingPainter import NonOverlappingPainter
 import calibrator_constants as clb
@@ -130,18 +130,8 @@ class MeasureWindow(QtWidgets.QWidget):
                             f"{clb.enum_to_signal_type[self.measure_config.signal_type]}. "
                             f"{self.measure_config.upper_bound} {self.units_text}.")
 
-        if self.measure_config.auto_calc_points:
-            if self.measure_config.start_point_side == FastMeasureParams.StartPoint.LOWER:
-                calculated_points = utils.auto_calc_points(self.measure_config.lower_bound,
-                                                           self.measure_config.upper_bound,
-                                                           self.measure_config.points_step)
-            else:
-                calculated_points = utils.auto_calc_points(self.measure_config.upper_bound,
-                                                           self.measure_config.lower_bound,
-                                                           self.measure_config.points_step)
-
-            for point in calculated_points:
-                self.measure_model.appendPoint(PointData(a_point=point))
+        for point in self.measure_config.amplitudes:
+            self.measure_model.appendPoint(PointData(a_point=point))
 
     @pyqtSlot(list)
     def fill_fixed_step_combobox(self, a_values: List[float], a_save=True):

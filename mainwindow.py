@@ -6,7 +6,7 @@ from PyQt5.QtCore import pyqtSlot, pyqtSignal
 from PyQt5.QtWidgets import QMessageBox
 from PyQt5 import QtWidgets, QtCore, QtGui
 
-from new_no_template_measure_dialog import NewFastMeasureDialog, FastMeasureParams
+from new_fast_measure_dialog import NewFastMeasureDialog, FastMeasureParams
 from ui.py.mainwindow import Ui_MainWindow as MainForm
 from measure_window import MeasureWindow
 from template_list_window import TemplateListWindow
