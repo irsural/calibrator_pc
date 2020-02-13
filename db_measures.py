@@ -12,10 +12,8 @@ import utils
 class MeasureParams:
     def __init__(self, a_organisation="", a_etalon_device="", a_device_name="",
                  a_device_creator="", a_device_system=DeviceSystem.MAGNETOELECTRIC, a_signal_type=clb.SignalType.ACI,
-                 a_device_class=0.05, a_owner="", a_user="", a_date="", a_temperature="", a_wet="", a_pressure="",
-                 a_warming_time="", a_points: List[PointData] = None, a_marks: List[Mark] = None):
-
-        # self.id = a_id
+                 a_device_class=0.05, a_owner="", a_user="", a_date="", a_serial_num="", a_points: List[PointData] = None,
+                 a_marks: List[Mark] = None):
 
         self.organisation = a_organisation
         self.etalon_device = a_etalon_device
@@ -28,10 +26,7 @@ class MeasureParams:
         self.owner = a_owner
         self.user = a_user
         self.date = a_date
-        self.temperature = a_temperature
-        self.wet = a_wet
-        self.pressure = a_pressure
-        self.warming_time = a_warming_time
+        self.serial_num = a_serial_num
 
         self.points: List[PointData] = a_points if a_points is not None else []
         self.marks: List[Mark] = a_marks if a_marks is not None else []
@@ -48,8 +43,7 @@ class MeasureParams:
                    a_device_name=a_params.device_name, a_device_creator=a_params.device_creator,
                    a_device_system=a_params.device_system, a_signal_type=a_params.signal_type,
                    a_device_class=a_params.device_class, a_points=points, a_owner=a_var_params.owner, 
-                   a_user=a_var_params.user_name, a_date=a_var_params.date, a_temperature=a_var_params.temperature, 
-                   a_wet=a_var_params.wet, a_pressure=a_var_params.pressure, a_warming_time=a_var_params.warming_time)
+                   a_user=a_var_params.user_name, a_date=a_var_params.date, a_serial_num=a_var_params.serial_num)
 
 
 class MeasuresDB:

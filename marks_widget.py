@@ -11,6 +11,14 @@ import qt_utils
 import clb_dll
 
 
+class Mark:
+    # Сделать namedtuple?
+    def __init__(self, a_name="", a_tag="", a_value=""):
+        self.name = a_name
+        self.tag = a_tag
+        self.value = a_value
+
+
 class MarksWidget(QtWidgets.QWidget):
     close_confirmed = pyqtSignal()
 
@@ -28,6 +36,7 @@ class MarksWidget(QtWidgets.QWidget):
         :param a_db_table_name: Название таблицы, в которой содержатся имена и тэги
         :param a_default_mode: В режиме a_default_mode последняя колонка таблицы является значением по умолчанию, в
                             противном случае, последняя колонка является значением параметра для конкретного измерения
+                            и при изменении этой колонки в a_db_table_name:value всегда записывается пустая строка
         :param a_parent: родитель виджета
         """
         super().__init__(a_parent)
@@ -87,22 +96,19 @@ class MarksWidget(QtWidgets.QWidget):
             self.ui.marks_table.setItem(row, column, QtWidgets.QTableWidgetItem(""))
 
     def delete_row(self):
-        try:
-            rows = self.ui.marks_table.selectionModel().selectedRows()
-            if rows:
-                res = QtWidgets.QMessageBox.question(self, "Подтвердите действие", "Вы уверены, что хотите удалить "
-                                                     "выбранные параметры?\nВыбранные параметры также будут удалены из "
-                                                     "всех УЖЕ ПРОВЕДЕННЫХ измерений.", QtWidgets.QMessageBox.Yes |
-                                                     QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)
-                if res == QtWidgets.QMessageBox.Yes:
-                    for idx_model in reversed(rows):
-                        row = idx_model.row()
-                        if self.is_row_in_db(row):
-                            self.deleted_names.append((self.ui.marks_table.item(row, self.MarkColumns.NAME).text(),))
-                        self.ui.marks_table.removeRow(row)
-                    self.mark_items_as_changed()
-        except Exception as err:
-            print(err)
+        rows = self.ui.marks_table.selectionModel().selectedRows()
+        if rows:
+            res = QtWidgets.QMessageBox.question(self, "Подтвердите действие", "Вы уверены, что хотите удалить "
+                                                 "выбранные параметры?\nВыбранные параметры также будут удалены из "
+                                                 "всех УЖЕ ПРОВЕДЕННЫХ измерений.", QtWidgets.QMessageBox.Yes |
+                                                 QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)
+            if res == QtWidgets.QMessageBox.Yes:
+                for idx_model in reversed(rows):
+                    row = idx_model.row()
+                    if self.is_row_in_db(row):
+                        self.deleted_names.append((self.ui.marks_table.item(row, self.MarkColumns.NAME).text(),))
+                    self.ui.marks_table.removeRow(row)
+                self.mark_items_as_changed()
 
     def mark_items_as_changed(self):
         self.items_changed = True
@@ -115,8 +121,8 @@ class MarksWidget(QtWidgets.QWidget):
         items = []
         for row in range(self.ui.marks_table.rowCount()):
             row_data = (self.ui.marks_table.item(row, self.MarkColumns.NAME).text(),
-                         self.ui.marks_table.item(row, self.MarkColumns.TAG).text(),
-                         self.ui.marks_table.item(row, self.MarkColumns.VALUE).text())
+                        self.ui.marks_table.item(row, self.MarkColumns.TAG).text(),
+                        self.ui.marks_table.item(row, self.MarkColumns.VALUE).text())
 
             if row_data[self.MarkColumns.NAME] and row_data[self.MarkColumns.TAG]:
                 items.append((row, row_data))
@@ -135,9 +141,15 @@ class MarksWidget(QtWidgets.QWidget):
                                             self.deleted_names)
                     for row, data in items:
                         if self.is_row_in_db(row):
-                            self.cursor.execute(f"update {self.marks_table} set default_value = ? where name = ?",
-                                                (data[self.MarkColumns.VALUE], data[self.MarkColumns.NAME]))
+                            if self.default_mode:
+                                # Значания по умолчанию обновляем только в режиме "по умолчанию"
+                                self.cursor.execute(f"update {self.marks_table} set default_value = ? where name = ?",
+                                                    (data[self.MarkColumns.VALUE], data[self.MarkColumns.NAME]))
                         else:
+                            if self.default_mode:
+                                # В режиме не "по умолчанию" значания по умолчанию оставляем пустыми
+                                data[self.MarkColumns.VALUE] = ""
+
                             self.cursor.execute(f"insert into {self.marks_table} (name, tag, default_value) "
                                                 f"values (?,?,?)", data)
 

@@ -197,7 +197,7 @@ class TemplateListWindow(QtWidgets.QDialog):
     def filter_templates(self, a_text):
         for row in range(self.ui.templates_list.count()):
             item = self.ui.templates_list.item(row)
-            item.setHidden(a_text not in item.text())
+            item.setHidden(a_text.lower() not in item.text().lower())
 
 
 class PointsDataTable:
