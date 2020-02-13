@@ -155,9 +155,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.usb_status_changed.connect(a_window.update_clb_status)
         self.usb_status_changed.emit(self.clb_state)
 
-        # assert self.receivers(self.clb_list_changed) == 1, "clb_list_changed must be connected to only one slot"
-        # assert self.receivers(self.usb_status_changed) == 1, "usb_status_changed must be connected to only one slot"
-
     @staticmethod
     def sync_centers(a_old_widget, a_new_widget):
         new_center: QtCore.QPoint = a_old_widget.geometry().center() - a_new_widget.rect().center()
@@ -189,8 +186,7 @@ class MainWindow(QtWidgets.QMainWindow):
     @pyqtSlot()
     def open_config_no_template_mode(self):
         try:
-            new_no_template_window = NewFastMeasureDialog(self.calibrator, self.no_template_config, self)
-            self.attach_calibrator_to_window(new_no_template_window)
+            new_no_template_window = NewFastMeasureDialog(self.no_template_config, self)
             new_no_template_window.config_ready.connect(self.save_no_template_config)
 
             if new_no_template_window.exec() == QtWidgets.QDialog.Accepted:

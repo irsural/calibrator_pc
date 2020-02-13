@@ -27,21 +27,10 @@ class MeasureWindow(QtWidgets.QWidget):
         super().__init__(a_parent)
 
         self.ui = MeasureForm()
-
         self.ui.setupUi(self)
 
-        pause_icon = QtGui.QIcon()
-        pause_icon.addPixmap(QtGui.QPixmap(cfg.PAUSE_ICON_PATH), QtGui.QIcon.Normal, QtGui.QIcon.On)
-        pause_icon.addPixmap(QtGui.QPixmap(cfg.PLAY_ICON_PATH), QtGui.QIcon.Normal, QtGui.QIcon.Off)
-        self.ui.pause_button.setIcon(pause_icon)
-        self.ui.pause_button.setIconSize(QtCore.QSize(21, 21))
-
-        self.ui.status_warning_label.hide()
-        self.warning_animation = QtGui.QMovie(cfg.WARNING_GIF_PATH)
-        self.ui.status_warning_label.setMovie(self.warning_animation)
-        self.warning_animation.setScaledSize(QtCore.QSize(28, 28))
-        self.warning_animation.setSpeed(500)
-        self.warning_animation.finished.connect(self.ui.status_warning_label.hide)
+        self.warning_animation = None
+        self.set_up_icons()
 
         self.show()
 
@@ -64,12 +53,19 @@ class MeasureWindow(QtWidgets.QWidget):
         self.clb_state = clb.State.DISCONNECTED
         self.calibrator.signal_type = self.measure_config.signal_type
 
-        self.highest_amplitude = utils.increase_by_percent(self.measure_config.upper_bound,
-                                                           self.measure_config.start_deviation)
+
+
+
+        self.start_deviation = 10 # ##########################################Прочитать из ini
+
+        self.highest_amplitude = utils.increase_by_percent(self.measure_config.upper_bound, self.start_deviation)
         self.lowest_amplitude = -self.highest_amplitude if clb.is_dc_signal[self.measure_config.signal_type] else 0
 
         self.highest_amplitude = self.calibrator.limit_amplitude(self.highest_amplitude, self.lowest_amplitude,
                                                                  self.highest_amplitude)
+
+
+
 
         self.measure_model = QNoTemplateMeasureModel(self.current_point.normalize_value,
                                                      a_error_limit=self.measure_config.accuracy_class,
@@ -100,6 +96,20 @@ class MeasureWindow(QtWidgets.QWidget):
     def window_existing_check(self):
         print("No template window")
 
+    def set_up_icons(self):
+        pause_icon = QtGui.QIcon()
+        pause_icon.addPixmap(QtGui.QPixmap(cfg.PAUSE_ICON_PATH), QtGui.QIcon.Normal, QtGui.QIcon.On)
+        pause_icon.addPixmap(QtGui.QPixmap(cfg.PLAY_ICON_PATH), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.ui.pause_button.setIcon(pause_icon)
+        self.ui.pause_button.setIconSize(QtCore.QSize(21, 21))
+
+        self.ui.status_warning_label.hide()
+        self.warning_animation = QtGui.QMovie(cfg.WARNING_GIF_PATH)
+        self.ui.status_warning_label.setMovie(self.warning_animation)
+        self.warning_animation.setScaledSize(QtCore.QSize(28, 28))
+        self.warning_animation.setSpeed(500)
+        self.warning_animation.finished.connect(self.ui.status_warning_label.hide)
+
     def create_table_header_context_menu(self, a_table: QTableView):
         table_header = a_table.horizontalHeader()
         table_header.setContextMenuPolicy(Qt.CustomContextMenu)
@@ -126,8 +136,7 @@ class MeasureWindow(QtWidgets.QWidget):
             self.ui.frequency_edit.setDisabled(True)
             self.ui.measure_table.hideColumn(QNoTemplateMeasureModel.Column.FREQUENCY)
 
-        self.setWindowTitle(f"{self.measure_config.clb_name}. "
-                            f"{clb.enum_to_signal_type[self.measure_config.signal_type]}. "
+        self.setWindowTitle(f"{clb.enum_to_signal_type[self.measure_config.signal_type]}. "
                             f"{self.measure_config.upper_bound} {self.units_text}.")
 
         for point in self.measure_config.amplitudes:
@@ -163,6 +172,8 @@ class MeasureWindow(QtWidgets.QWidget):
         edit_ranges_dialog.list_ready.connect(self.fill_fixed_step_combobox)
 
     def connect_signals(self):
+        self.ui.clb_list_combobox.currentTextChanged.connect(self.connect_to_clb)
+
         self.ui.start_stop_button.clicked.connect(self.start_stop_measure)
         self.ui.save_point_button.clicked.connect(self.save_point)
         self.ui.go_to_point_button.clicked.connect(self.go_to_point)
@@ -196,12 +207,17 @@ class MeasureWindow(QtWidgets.QWidget):
 
     @pyqtSlot(list)
     def update_clb_list(self, a_clb_list: list):
-        pass
+        self.ui.clb_list_combobox.clear()
+        for clb_name in a_clb_list:
+            self.ui.clb_list_combobox.addItem(clb_name)
 
     @pyqtSlot(clb.State)
     def update_clb_status(self, a_status: clb.State):
         self.clb_state = a_status
         self.ui.clb_state_label.setText(clb.enum_to_state[a_status])
+
+    def connect_to_clb(self, a_clb_name):
+        self.calibrator.connect(a_clb_name)
 
     def sync_clb_parameters(self):
         if self.calibrator.amplitude_changed():
@@ -364,17 +380,17 @@ class MeasureWindow(QtWidgets.QWidget):
             if measured_down == measured_up:
                 # Точка измерена полностью либо совсем не измерена, подходим с ближайшей стороны
                 if self.calibrator.amplitude > target_amplitude:
-                    target_amplitude = utils.increase_by_percent(target_amplitude, self.measure_config.start_deviation,
+                    target_amplitude = utils.increase_by_percent(target_amplitude, self.start_deviation,
                                                                  a_normalize_value=self.measure_config.upper_bound)
                 else:
-                    target_amplitude = utils.decrease_by_percent(target_amplitude, self.measure_config.start_deviation,
+                    target_amplitude = utils.decrease_by_percent(target_amplitude, self.start_deviation,
                                                                  a_normalize_value=self.measure_config.upper_bound)
             else:
                 if measured_up:
-                    target_amplitude = utils.decrease_by_percent(target_amplitude, self.measure_config.start_deviation,
+                    target_amplitude = utils.decrease_by_percent(target_amplitude, self.start_deviation,
                                                                  a_normalize_value=self.measure_config.upper_bound)
                 else:
-                    target_amplitude = utils.increase_by_percent(target_amplitude, self.measure_config.start_deviation,
+                    target_amplitude = utils.increase_by_percent(target_amplitude, self.start_deviation,
                                                                  a_normalize_value=self.measure_config.upper_bound)
 
             target_amplitude = self.calibrator.limit_amplitude(target_amplitude, self.lowest_amplitude,

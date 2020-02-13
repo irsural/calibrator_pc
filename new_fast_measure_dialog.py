@@ -8,7 +8,6 @@ from PyQt5 import QtWidgets, QtCore
 from ui.py.new_fast_measure_form import Ui_Dialog as NewFastMeasureForm
 from custom_widgets.EditListDialog import EditedListOnlyNumbers
 import calibrator_constants as clb
-import clb_dll
 import utils
 import qt_utils
 
@@ -20,12 +19,13 @@ class FastMeasureParams:
 
     def __init__(self):
         self.signal_type = clb.SignalType.DCI
-        self.clb_name = ""
         self.accuracy_class = 2.5
         self.upper_bound = 10.
         self.minimal_discrete = 2.
-        self.start_deviation = 5.
         self.comment = ""
+
+        self.date = QtCore.QDate.currentDate().toString("dd.MM.yyyy")
+        self.time = QtCore.QTime.currentTime().toString("H:mm")
 
         self.auto_calc_points = True
         self.lower_bound = 0.
@@ -36,15 +36,13 @@ class FastMeasureParams:
 
     def __str__(self):
         return f"Signal type: {self.signal_type.name}\n" \
-            f"Clb name: {self.clb_name}\n" \
             f"Lower: {self.lower_bound}\n" \
             f"Upper: {self.upper_bound}\n" \
             f"Discrete: {self.minimal_discrete}\n" \
             f"Class: {self.accuracy_class}\n" \
-            f"Accuracy: {self.start_deviation}\n" \
             f"Auto calc: {self.auto_calc_points}\n" \
             f"Step: {self.points_step}\n" \
-            f"Side: {self.start_point_side.name}\n"            \
+            f"Side: {self.start_point_side.name}\n" \
             f"Frequency: {self.frequency}\n"
 
 
@@ -53,20 +51,18 @@ class NewFastMeasureDialog(QDialog):
 
     class InputStatus(enum.IntEnum):
         ok = 0
-        no_calibrator = 1
-        upper_less_than_lower = 2
-        upper_less_than_zero = 3
-        step_is_zero = 4
-        empty_fields = 5
-        current_too_big = 6
-        voltage_too_big = 7
-        bad_input = 8
-        zero_minimal_discrete = 9
-        no_frequency = 10
+        upper_less_than_lower = 1
+        upper_less_than_zero = 2
+        step_is_zero = 3
+        empty_fields = 4
+        current_too_big = 5
+        voltage_too_big = 6
+        bad_input = 7
+        zero_minimal_discrete = 8
+        no_frequency = 9
 
     input_status_to_msg = {
         InputStatus.ok: "Ввод корректен",
-        InputStatus.no_calibrator: "Калибратор не выбран",
         InputStatus.upper_less_than_lower: "Значение верхней точки должно быть больше значения нижней точки",
         InputStatus.upper_less_than_zero: "В режиме переменного тока напряжение/сила тока должны быть положительными",
         InputStatus.step_is_zero: "Шаг поверки не должен быть равен нулю",
@@ -78,7 +74,7 @@ class NewFastMeasureDialog(QDialog):
         InputStatus.no_frequency: "Значения частоты не заданы"
     }
 
-    def __init__(self, a_calibrator: clb_dll.ClbDrv, a_fast_params=None, a_parent=None):
+    def __init__(self, a_fast_params=None, a_parent=None):
         super().__init__(a_parent)
 
         self.ui = NewFastMeasureForm()
@@ -96,8 +92,6 @@ class NewFastMeasureDialog(QDialog):
         self.normalize_edit_value(self.ui.lower_bound_edit)
         self.normalize_edit_value(self.ui.step_edit)
 
-        self.calibrator = a_calibrator
-
         self.window_existing_timer = QtCore.QTimer()
         self.window_existing_timer.timeout.connect(self.window_existing_chech)
         self.window_existing_timer.start(3000)
@@ -112,7 +106,6 @@ class NewFastMeasureDialog(QDialog):
         self.ui.dcv_radio.clicked.connect(self.set_mode_dcv)
 
         self.ui.edit_frequency_button.clicked.connect(self.show_frequency_list)
-        self.ui.clb_list_combobox.currentTextChanged.connect(self.connect_to_clb)
 
         self.ui.lower_bound_edit.textEdited.connect(self.edit_text_edited)
         self.ui.lower_bound_edit.editingFinished.connect(self.editinig_finished)
@@ -132,20 +125,6 @@ class NewFastMeasureDialog(QDialog):
 
         self.ui.accept_button.clicked.connect(self.accept)
         self.ui.cancel_button.clicked.connect(self.reject)
-
-    @pyqtSlot(list)
-    def update_clb_list(self, a_clb_list: list):
-        self.ui.clb_list_combobox.clear()
-        for clb_name in a_clb_list:
-            self.ui.clb_list_combobox.addItem(clb_name)
-
-    @pyqtSlot(clb.State)
-    def update_clb_status(self, a_status: clb.State):
-        # self.ui.usb_state_label.setText(a_status)
-        pass
-
-    def connect_to_clb(self, a_clb_name):
-        self.calibrator.connect(a_clb_name)
 
     def edit_text_edited(self):
         try:
@@ -193,7 +172,6 @@ class NewFastMeasureDialog(QDialog):
         self.ui.upper_bound_edit.setText(self.value_to_user(self.fast_params.upper_bound))
         self.ui.accuracy_class_spinbox.setValue(self.fast_params.accuracy_class)
         self.ui.minimal_discrete.setText(self.value_to_user(self.fast_params.minimal_discrete))
-        self.ui.start_deviation_spinbox.setValue(self.fast_params.start_deviation)
         self.ui.comment_edit.setText(self.fast_params.comment)
 
         self.ui.auto_calc_points_checkbox.setChecked(self.fast_params.auto_calc_points)
@@ -205,11 +183,9 @@ class NewFastMeasureDialog(QDialog):
 
     def save_config(self):
         try:
-            self.fast_params.clb_name = self.ui.clb_list_combobox.currentText()
             self.fast_params.upper_bound = utils.parse_input(self.ui.upper_bound_edit.text())
             self.fast_params.accuracy_class = self.ui.accuracy_class_spinbox.value()
             self.fast_params.minimal_discrete = utils.parse_input(self.ui.minimal_discrete.text())
-            self.fast_params.start_deviation = self.ui.start_deviation_spinbox.value()
             self.fast_params.comment = self.ui.comment_edit.text()
 
             self.fast_params.auto_calc_points = bool(self.ui.auto_calc_points_checkbox.isChecked())
@@ -252,6 +228,8 @@ class NewFastMeasureDialog(QDialog):
 
         if input_status == self.InputStatus.ok:
             self.fast_params.amplitudes = [] if not self.fast_params.auto_calc_points else self.calc_points()
+            if not self.fast_params.frequency:
+                self.fast_params.frequency = ["0"]
 
             self.config_ready.emit(self.fast_params)
             self.done(QDialog.Accepted)
@@ -259,9 +237,7 @@ class NewFastMeasureDialog(QDialog):
             QMessageBox.critical(self, "Ошибка ввода", self.input_status_to_msg[input_status], QMessageBox.Ok)
 
     def check_input(self, a_config: FastMeasureParams):
-        if a_config.clb_name == "":
-            return self.InputStatus.no_calibrator
-        elif a_config.minimal_discrete == 0:
+        if a_config.minimal_discrete == 0:
             return self.InputStatus.zero_minimal_discrete
         elif a_config.upper_bound <= a_config.lower_bound:
             return self.InputStatus.upper_less_than_lower

@@ -144,7 +144,7 @@ class MarksWidget(QtWidgets.QWidget):
                                 self.cursor.execute(f"update {self.marks_table} set default_value = ? where name = ?",
                                                     (data[self.MarkColumns.VALUE], data[self.MarkColumns.NAME]))
                         else:
-                            if self.default_mode:
+                            if not self.default_mode:
                                 # В режиме не "по умолчанию" значания по умолчанию оставляем пустыми
                                 data[self.MarkColumns.VALUE] = ""
 

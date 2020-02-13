@@ -1,6 +1,8 @@
 from collections import namedtuple
 import enum
 
+from utils import bound
+
 
 MAX_CURRENT = 11
 MIN_CURRENT = -11
@@ -97,3 +99,15 @@ FREQUENCY_MIN_STEP = 1
 
 Step = namedtuple("Step", "ROUGH COMMON EXACT")
 AmplitudeStep = Step(0.005, 0.0005, 0.00002)
+
+
+def bound_amplitude(a_amplitude: float, a_signal_type: SignalType):
+    min_value = MIN_VOLTAGE
+    max_value = MAX_VOLTAGE
+    if not is_voltage_signal[a_signal_type]:
+        min_value = MIN_CURRENT
+        max_value = MAX_CURRENT
+    if not is_dc_signal[a_signal_type]:
+        min_value = MIN_ALTERNATIVE
+
+    return bound(a_amplitude, min_value, max_value)

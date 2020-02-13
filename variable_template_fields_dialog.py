@@ -11,6 +11,7 @@ class VariableTemplateParams:
         self.owner = a_owner
         self.user_name = a_user_name
         self.date = a_date
+        self.time = QtCore.QTime.currentTime().toString("H:mm")
 
 
 class VariableTemplateFieldsDialog(QtWidgets.QDialog):

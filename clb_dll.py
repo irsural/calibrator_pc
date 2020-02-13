@@ -121,21 +121,22 @@ class ClbDrv:
         self.__signal_ready = False
 
     def connect(self, a_clb_name: str):
+        self.__amplitude = 0
+        self.__frequency = 0
+        self.__signal_type = clb.SignalType.ACI
+        self.__dc_polarity = clb.Polatiry.POS
+        self.__signal_on = False
+        self.__mode = clb.Mode.SOURCE
+        self.__signal_ready = False
+
         if a_clb_name:
             self.__clb_dll.connect_usb(a_clb_name)
         else:
-            self.__amplitude = 0
-            self.__frequency = 0
-            self.__signal_type = clb.SignalType.ACI
-            self.__dc_polarity = clb.Polatiry.POS
-            self.__signal_on = False
-            self.__mode = clb.Mode.SOURCE
-            self.__signal_ready = False
             
             self.__clb_dll.disconnect_usb()
 
     def amplitude_changed(self):
-        actual_amplitude = self.__bound_amplitude(self.__clb_dll.get_amplitude())
+        actual_amplitude = clb.bound_amplitude(self.__clb_dll.get_amplitude(), self.__signal_type)
         signed_amplitude = actual_amplitude if self.__clb_dll.get_polarity() == clb.Polatiry.POS else -actual_amplitude
 
         if self.__amplitude != signed_amplitude:
@@ -150,20 +151,9 @@ class ClbDrv:
 
     @amplitude.setter
     def amplitude(self, a_amplitude: float):
-        self.__amplitude = self.__bound_amplitude(a_amplitude)
+        self.__amplitude = clb.bound_amplitude(a_amplitude, self.__signal_type)
         self.__clb_dll.set_amplitude(abs(self.__amplitude))
         self.__set_polarity_by_amplitude_sign(self.__amplitude)
-
-    def __bound_amplitude(self, a_amplitude):
-        min_value = clb.MIN_VOLTAGE
-        max_value = clb.MAX_VOLTAGE
-        if not clb.is_voltage_signal[self.__signal_type]:
-            min_value = clb.MIN_CURRENT
-            max_value = clb.MAX_CURRENT
-        if not clb.is_dc_signal[self.__signal_type]:
-            min_value = clb.MIN_ALTERNATIVE
-
-        return utils.bound(a_amplitude, min_value, max_value)
 
     def limit_amplitude(self, a_amplitude, a_lower, a_upper):
         """
@@ -172,7 +162,7 @@ class ClbDrv:
         :param a_lower: Нижняя граница
         :param a_upper: Верхняя граница
         """
-        return utils.bound(self.__bound_amplitude(a_amplitude), a_lower, a_upper)
+        return utils.bound(clb.bound_amplitude(a_amplitude, self.__signal_type), a_lower, a_upper)
 
     def __set_polarity_by_amplitude_sign(self, a_amplitude):
         if a_amplitude < 0 and self.__clb_dll.get_polarity() != clb.Polatiry.NEG:
