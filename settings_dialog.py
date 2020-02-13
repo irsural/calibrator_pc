@@ -23,7 +23,8 @@ class SettingsDialog(QtWidgets.QDialog):
 
     fixed_range_changed = pyqtSignal()
 
-    def __init__(self, a_db_connection: Connection, a_marks_table_name: str, a_parent=None):
+    def __init__(self, a_db_connection: Connection, a_marks_table_name: str, a_mark_values_table_name: str,
+                 a_parent=None):
         super().__init__(a_parent)
 
         self.ui = SettingsForm()
@@ -33,7 +34,8 @@ class SettingsDialog(QtWidgets.QDialog):
         self.ui.save_button.clicked.connect(self.save)
         self.ui.cancel_button.clicked.connect(self.close)
 
-        self.marks_widget = MarksWidget(a_db_connection, a_marks_table_name, a_default_mode=True, a_parent=self)
+        self.marks_widget = MarksWidget(a_db_connection, a_marks_table_name, a_mark_values_table_name,
+                                        a_default_mode=True, a_parent=self)
         marks_layout = QtWidgets.QGridLayout(self)
         marks_layout.addWidget(self.marks_widget)
         marks_layout.setContentsMargins(0, 0, 0, 0)
@@ -45,9 +47,6 @@ class SettingsDialog(QtWidgets.QDialog):
 
     def window_existing_chech(self):
         print("Settings Dialog")
-
-    # def change_settings_widget(self):
-    #     current_widget
 
     def save(self):
         try:

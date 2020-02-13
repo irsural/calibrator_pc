@@ -20,7 +20,8 @@ class MarksWidget(QtWidgets.QWidget):
         VALUE = 2
         COUNT = 3
 
-    def __init__(self, a_db_connection: sqlite3.Connection, a_db_table_name: str, a_default_mode: bool, a_parent=None):
+    def __init__(self, a_db_connection: sqlite3.Connection, a_db_marks_table: str, a_db_mark_values_table: str,
+                 a_default_mode: bool, a_parent=None):
         """
         Виджет, который управляет дополнительными параметрами измерений
         :param a_db_connection: Соединение с базой данных, в которой содержится таблица a_db_table_name
@@ -37,10 +38,12 @@ class MarksWidget(QtWidgets.QWidget):
         self.connection = a_db_connection
         self.cursor = self.connection.cursor()
 
-        self.marks_table = a_db_table_name
+        self.marks_table = a_db_marks_table
+        self.mark_values_table = a_db_mark_values_table
         self.default_mode = a_default_mode
 
         self.items_changed = False
+        self.deleted_names = []
 
         value_column_name = "Значение\nпо умолчанию" if self.default_mode else "Значение"
         self.ui.marks_table.setHorizontalHeaderLabels(["Параметр", "Тэг", value_column_name])
@@ -74,6 +77,7 @@ class MarksWidget(QtWidgets.QWidget):
                 self.ui.marks_table.setItem(row, column, item)
 
         self.items_changed = False
+        self.deleted_names.clear()
 
     def add_new_row(self):
         row = self.ui.marks_table.rowCount()
@@ -83,45 +87,61 @@ class MarksWidget(QtWidgets.QWidget):
             self.ui.marks_table.setItem(row, column, QtWidgets.QTableWidgetItem(""))
 
     def delete_row(self):
-        if self.ui.marks_table.selectionModel().selectedRows():
-            res = QtWidgets.QMessageBox.question(self, "Подтвердите действие", "Вы уверены, что хотите удалить "
-                                                 "выбранные параметры?\nВыбранные параметры также будут удалены из "
-                                                 "всех УЖЕ ПРОВЕДЕННЫХ измерений.", QtWidgets.QMessageBox.Yes |
-                                                 QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)
-            if res == QtWidgets.QMessageBox.Yes:
-                qt_utils.qtablewidget_delete_selected(self.ui.marks_table)
-                self.mark_items_as_changed()
+        try:
+            rows = self.ui.marks_table.selectionModel().selectedRows()
+            if rows:
+                res = QtWidgets.QMessageBox.question(self, "Подтвердите действие", "Вы уверены, что хотите удалить "
+                                                     "выбранные параметры?\nВыбранные параметры также будут удалены из "
+                                                     "всех УЖЕ ПРОВЕДЕННЫХ измерений.", QtWidgets.QMessageBox.Yes |
+                                                     QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)
+                if res == QtWidgets.QMessageBox.Yes:
+                    for idx_model in reversed(rows):
+                        row = idx_model.row()
+                        if self.is_row_in_db(row):
+                            self.deleted_names.append((self.ui.marks_table.item(row, self.MarkColumns.NAME).text(),))
+                        self.ui.marks_table.removeRow(row)
+                    self.mark_items_as_changed()
+        except Exception as err:
+            print(err)
 
     def mark_items_as_changed(self):
         self.items_changed = True
 
+    def is_row_in_db(self, a_row: int) -> bool:
+        item_flags = self.ui.marks_table.item(a_row, self.MarkColumns.NAME).flags()
+        return not (item_flags & QtCore.Qt.ItemIsEditable)
+
     def table_to_list(self):
         items = []
         for row in range(self.ui.marks_table.rowCount()):
-            table_row = (self.ui.marks_table.item(row, self.MarkColumns.NAME).text(),
+            row_data = (self.ui.marks_table.item(row, self.MarkColumns.NAME).text(),
                          self.ui.marks_table.item(row, self.MarkColumns.TAG).text(),
                          self.ui.marks_table.item(row, self.MarkColumns.VALUE).text())
 
-            if table_row[self.MarkColumns.NAME] and table_row[self.MarkColumns.TAG]:
-                items.append(table_row)
+            if row_data[self.MarkColumns.NAME] and row_data[self.MarkColumns.TAG]:
+                items.append((row, row_data))
             else:
                 raise ValueError
 
         return items
 
     def save(self):
-        if not self.items_changed:
-            return True
-
         try:
-            items = self.table_to_list()
+            if self.items_changed:
+                items = self.table_to_list()
+                with self.connection:
+                    self.cursor.executemany(f"delete from {self.marks_table} where name = ?", self.deleted_names)
+                    self.cursor.executemany(f"delete from {self.mark_values_table} where mark_name = ?",
+                                            self.deleted_names)
+                    for row, data in items:
+                        if self.is_row_in_db(row):
+                            self.cursor.execute(f"update {self.marks_table} set default_value = ? where name = ?",
+                                                (data[self.MarkColumns.VALUE], data[self.MarkColumns.NAME]))
+                        else:
+                            self.cursor.execute(f"insert into {self.marks_table} (name, tag, default_value) "
+                                                f"values (?,?,?)", data)
 
-            with self.connection:
-                self.cursor.execute(f"delete from {self.marks_table}")
-
-                self.cursor.executemany(f"insert into {self.marks_table} (name, tag, default_value) "
-                                        f"values (?,?,?)", items)
-            self.fill_table_from_db()
+                self.fill_table_from_db()
 
             return True
         except ValueError:

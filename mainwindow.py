@@ -225,7 +225,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def open_settings(self):
         try:
-            settings_dialog = SettingsDialog(self.db_connection, self.marks_table, self)
+            settings_dialog = SettingsDialog(self.db_connection, self.marks_table, self.mark_values_table, self)
             settings_dialog.exec()
         except Exception as err:
             print(err)
