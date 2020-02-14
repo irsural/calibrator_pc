@@ -5,7 +5,7 @@ import calibrator_constants as clb
 import utils
 
 
-path = "C:\\Users\\503\\Desktop\\Qt Projects\\clb_driver_dll\\" \
+path = "C:\\Users\\503.IRS\\Desktop\\Qt Projects\\clb_driver_dll\\" \
        "build-clb_driver_dll-Desktop_Qt_5_12_2_MSVC2017_32bit-Release\\release\\clb_driver_dll.dll"
 
 
