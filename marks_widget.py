@@ -8,7 +8,7 @@ from PyQt5.QtCore import pyqtSignal
 from ui.py.marks_widget import Ui_marks_widget as MarksWidgetForm
 from db_measures import MeasureTables
 import qt_utils
-
+import utils
 
 class Mark:
     # Сделать namedtuple?
@@ -63,13 +63,6 @@ class MarksWidget(QtWidgets.QWidget):
 
         self.fill_table_from_db()
 
-        self.window_existing_timer = QtCore.QTimer()
-        self.window_existing_timer.timeout.connect(self.window_existing_chech)
-        self.window_existing_timer.start(3000)
-
-    def window_existing_chech(self):
-        print("Marks Widget")
-
     def fill_table_from_db(self):
         qt_utils.qtablewidget_clear(self.ui.marks_table)
 
@@ -95,22 +88,28 @@ class MarksWidget(QtWidgets.QWidget):
             self.ui.marks_table.setItem(row, column, QtWidgets.QTableWidgetItem(""))
 
     def delete_row(self):
-        rows = self.ui.marks_table.selectionModel().selectedRows()
-        if rows:
-            res = QtWidgets.QMessageBox.question(self, "Подтвердите действие", "Вы уверены, что хотите удалить "
-                                                 "выбранные параметры?\nВыбранные параметры также будут удалены из "
-                                                 "всех УЖЕ ПРОВЕДЕННЫХ измерений.", QtWidgets.QMessageBox.Yes |
-                                                 QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)
-            if res == QtWidgets.QMessageBox.Yes:
-                for idx_model in reversed(rows):
-                    row = idx_model.row()
-                    if self.is_row_in_db(row):
-                        self.deleted_names.append((self.ui.marks_table.item(row, self.MarkColumns.NAME).text(),))
-                    self.ui.marks_table.removeRow(row)
-                self.mark_items_as_changed()
+        try:
+            rows = self.ui.marks_table.selectionModel().selectedRows()
+            if rows:
+                res = QtWidgets.QMessageBox.question(self, "Подтвердите действие", "Вы уверены, что хотите удалить "
+                                                     "выбранные параметры?\nВыбранные параметры также будут удалены из "
+                                                     "всех УЖЕ ПРОВЕДЕННЫХ измерений.", QtWidgets.QMessageBox.Yes |
+                                                     QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)
+                if res == QtWidgets.QMessageBox.Yes:
+                    for idx_model in reversed(rows):
+                        row = idx_model.row()
+                        if self.is_row_in_db(row):
+                            self.deleted_names.append((self.ui.marks_table.item(row, self.MarkColumns.NAME).text(),))
+                        self.ui.marks_table.removeRow(row)
+                    self.items_changed = True
+        except Exception as err:
+            utils.exception_handler(err)
 
-    def mark_items_as_changed(self):
-        self.items_changed = True
+    def mark_items_as_changed(self, a_item: QtWidgets.QTableWidgetItem):
+        if self.default_mode:
+            self.items_changed = True
+        elif a_item.column() != self.MarkColumns.VALUE:
+            self.items_changed = True
 
     def is_row_in_db(self, a_row: int) -> bool:
         item_flags = self.ui.marks_table.item(a_row, self.MarkColumns.NAME).flags()
@@ -119,9 +118,9 @@ class MarksWidget(QtWidgets.QWidget):
     def table_to_list(self):
         items = []
         for row in range(self.ui.marks_table.rowCount()):
-            row_data = (self.ui.marks_table.item(row, self.MarkColumns.NAME).text(),
+            row_data = [self.ui.marks_table.item(row, self.MarkColumns.NAME).text(),
                         self.ui.marks_table.item(row, self.MarkColumns.TAG).text(),
-                        self.ui.marks_table.item(row, self.MarkColumns.VALUE).text())
+                        self.ui.marks_table.item(row, self.MarkColumns.VALUE).text()]
 
             if row_data[self.MarkColumns.NAME] and row_data[self.MarkColumns.TAG]:
                 items.append((row, row_data))

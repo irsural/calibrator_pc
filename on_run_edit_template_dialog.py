@@ -25,6 +25,9 @@ class OnRunEditConfigDialog(QtWidgets.QDialog):
 
         self.set_up_params_to_ui()
 
+        self.ui.accept_button.clicked.connect(self.save_pressed)
+        self.ui.reject_button.clicked.connect(self.reject)
+
     def set_up_params_to_ui(self):
         self.ui.user_name_edit.setText(self.measure_config.user)
         self.ui.device_name_edit.setText(self.measure_config.device_name)
@@ -36,4 +39,23 @@ class OnRunEditConfigDialog(QtWidgets.QDialog):
         self.ui.organisation_edit.setText(self.measure_config.organisation)
         self.ui.system_combobox.setCurrentIndex(self.measure_config.device_system)
         self.ui.comment_edit.setText(self.measure_config.comment)
+
+    def save_pressed(self):
+        try:
+            if self.marks_widget.save():
+                self.save()
+                self.close()
+        except Exception as err:
+            utils.exception_handler(err)
+
+    def save(self):
+        self.measure_config.user = self.ui.user_name_edit.text()
+        self.measure_config.device_name = self.ui.device_name_edit.text()
+        self.measure_config.serial_num = self.ui.serial_number_edit.text()
+        self.measure_config.owner = self.ui.owner_edit.text()
+        self.measure_config.device_creator = self.ui.device_creator_edit.text()
+        self.measure_config.date = self.ui.date_edit.text()
+        self.measure_config.organisation = self.ui.organisation_edit.text()
+        self.measure_config.device_system = self.ui.system_combobox.currentIndex()
+        self.measure_config.comment = self.ui.comment_edit.text()
 

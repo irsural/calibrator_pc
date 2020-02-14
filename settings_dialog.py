@@ -37,13 +37,6 @@ class SettingsDialog(QtWidgets.QDialog):
         self.marks_widget = MarksWidget(a_db_connection, a_db_tables, a_default_mode=True, a_parent=self)
         self.ui.marks_layout.addWidget(self.marks_widget)
 
-        self.window_existing_timer = QtCore.QTimer()
-        self.window_existing_timer.timeout.connect(self.window_existing_chech)
-        self.window_existing_timer.start(3000)
-
-    def window_existing_chech(self):
-        print("Settings Dialog")
-
     def save(self):
         try:
             return self.marks_widget.save()
