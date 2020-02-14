@@ -113,6 +113,18 @@
        </spacer>
       </item>
       <item>
+       <widget class="QPushButton" name="edit_parameters_button">
+        <property name="font">
+         <font>
+          <pointsize>13</pointsize>
+         </font>
+        </property>
+        <property name="text">
+         <string>Изменить параметры измерения</string>
+        </property>
+       </widget>
+      </item>
+      <item>
        <widget class="QPushButton" name="pause_button">
         <property name="enabled">
          <bool>false</bool>

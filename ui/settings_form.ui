@@ -122,9 +122,27 @@
         <item>
          <widget class="QStackedWidget" name="settings_stackedwidget">
           <property name="currentIndex">
-           <number>0</number>
+           <number>1</number>
           </property>
-          <widget class="QWidget" name="marks_page"/>
+          <widget class="QWidget" name="marks_page">
+           <layout class="QGridLayout" name="gridLayout">
+            <property name="leftMargin">
+             <number>0</number>
+            </property>
+            <property name="topMargin">
+             <number>0</number>
+            </property>
+            <property name="rightMargin">
+             <number>0</number>
+            </property>
+            <property name="bottomMargin">
+             <number>0</number>
+            </property>
+            <item row="0" column="0">
+             <layout class="QVBoxLayout" name="marks_layout"/>
+            </item>
+           </layout>
+          </widget>
           <widget class="QWidget" name="page_2"/>
          </widget>
         </item>

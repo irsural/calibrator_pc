@@ -64,6 +64,12 @@ class Ui_Dialog(object):
         self.settings_stackedwidget.setObjectName("settings_stackedwidget")
         self.marks_page = QtWidgets.QWidget()
         self.marks_page.setObjectName("marks_page")
+        self.gridLayout = QtWidgets.QGridLayout(self.marks_page)
+        self.gridLayout.setContentsMargins(0, 0, 0, 0)
+        self.gridLayout.setObjectName("gridLayout")
+        self.marks_layout = QtWidgets.QVBoxLayout()
+        self.marks_layout.setObjectName("marks_layout")
+        self.gridLayout.addLayout(self.marks_layout, 0, 0, 1, 1)
         self.settings_stackedwidget.addWidget(self.marks_page)
         self.page_2 = QtWidgets.QWidget()
         self.page_2.setObjectName("page_2")
@@ -87,7 +93,7 @@ class Ui_Dialog(object):
         self.horizontalLayout.addLayout(self.verticalLayout_3)
 
         self.retranslateUi(Dialog)
-        self.settings_stackedwidget.setCurrentIndex(0)
+        self.settings_stackedwidget.setCurrentIndex(1)
         self.settings_menu_list.currentRowChanged['int'].connect(self.settings_stackedwidget.setCurrentIndex)
         QtCore.QMetaObject.connectSlotsByName(Dialog)
 

@@ -1,3 +1,4 @@
+from collections import namedtuple
 from typing import List
 
 from variable_template_fields_dialog import VariableTemplateParams
@@ -8,11 +9,14 @@ from db_templates import TemplateParams
 import calibrator_constants as clb
 
 
+MeasureTables = namedtuple("MeasureDB", ["marks_table", "mark_values_table", "measures_table", "results_table"])
+
+
 class MeasureParams:
     def __init__(self, a_organisation="", a_etalon_device="", a_device_name="",
                  a_device_creator="", a_device_system=DeviceSystem.MAGNETOELECTRIC, a_signal_type=clb.SignalType.ACI,
-                 a_device_class=0.05, a_owner="", a_user="", a_serial_num="", a_date="", a_time="", a_upper_bound=None,
-                 a_lower_bound=None, a_points: List[PointData] = None):
+                 a_device_class=0.05, a_owner="", a_user="", a_serial_num="", a_date="", a_time="", a_comment="",
+                 a_minimal_discrete=0., a_upper_bound=None, a_lower_bound=None, a_points: List[PointData] = None):
 
         self.organisation = a_organisation
         self.etalon_device = a_etalon_device
@@ -30,10 +34,13 @@ class MeasureParams:
 
         self.points: List[PointData] = a_points if a_points is not None else []
 
+        self.comment = a_comment
+        self.minimal_discrete = a_minimal_discrete
+
         if a_upper_bound is not None:
             self.upper_bound = a_upper_bound
         elif a_points:
-            self.upper_bound = max(a_points).point
+            self.upper_bound = max(a_points, key=lambda p: p.point).point
         else:
             self.a_upper_bound = 0
 
@@ -45,10 +52,10 @@ class MeasureParams:
     def fromFastParams(cls, a_params: FastMeasureParams):
         points = [PointData(a_point=float(p), a_frequency=float(f)) for f in a_params.frequency
                                                                     for p in a_params.amplitudes]
-        print(points)
 
         return cls(a_etalon_device="Калибратор N4-25", a_signal_type=a_params.signal_type,
-                   a_device_class=a_params.accuracy_class, a_date=a_params.date, a_time=a_params.time,
+                   a_minimal_discrete=a_params.minimal_discrete, a_device_class=a_params.accuracy_class,
+                   a_date=a_params.date, a_time=a_params.time, a_comment=a_params.comment,
                    a_upper_bound=a_params.upper_bound, a_points=points)
 
     @classmethod

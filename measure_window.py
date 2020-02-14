@@ -1,3 +1,4 @@
+from sqlite3 import Connection
 from typing import List
 import configparser
 
@@ -7,10 +8,11 @@ from PyQt5.QtGui import QWheelEvent
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 from QNoTemplateMeasureModel import PointData, QNoTemplateMeasureModel
-from ui.py.measure_form import Ui_main_widget as MeasureForm
-from new_fast_measure_dialog import FastMeasureParams
-from custom_widgets.EditListDialog import EditedListWithUnits
 from custom_widgets.NonOverlappingPainter import NonOverlappingPainter
+from on_run_edit_template_dialog import OnRunEditConfigDialog
+from custom_widgets.EditListDialog import EditedListWithUnits
+from ui.py.measure_form import Ui_main_widget as MeasureForm
+from db_measures import MeasureParams, MeasureTables
 import calibrator_constants as clb
 import constants as cfg
 import clb_dll
@@ -22,8 +24,8 @@ class MeasureWindow(QtWidgets.QWidget):
     remove_points = pyqtSignal(list)
     close_confirmed = pyqtSignal()
 
-    def __init__(self, a_calibrator: clb_dll.ClbDrv, a_measure_config: FastMeasureParams,
-                 a_settings: configparser.ConfigParser, a_parent=None):
+    def __init__(self, a_calibrator: clb_dll.ClbDrv, a_measure_config: MeasureParams, a_db_connection: Connection,
+                 a_db_tables: MeasureTables, a_settings: configparser.ConfigParser, a_parent=None):
         super().__init__(a_parent)
 
         self.ui = MeasureForm()
@@ -34,8 +36,10 @@ class MeasureWindow(QtWidgets.QWidget):
 
         self.show()
 
-        self.measure_config: FastMeasureParams = a_measure_config
+        self.measure_config: MeasureParams = a_measure_config
         self.settings = a_settings
+        self.db_connection = a_db_connection
+        self.db_tables = a_db_tables
 
         self.units_text = clb.signal_type_to_units[self.measure_config.signal_type]
         self.value_to_user = utils.value_to_user_with_units(self.units_text)
@@ -53,22 +57,15 @@ class MeasureWindow(QtWidgets.QWidget):
         self.clb_state = clb.State.DISCONNECTED
         self.calibrator.signal_type = self.measure_config.signal_type
 
-
-
-
-        self.start_deviation = 10 # ##########################################Прочитать из ini
+        self.start_deviation = 10 # ####################################################################Прочитать из ini
 
         self.highest_amplitude = utils.increase_by_percent(self.measure_config.upper_bound, self.start_deviation)
         self.lowest_amplitude = -self.highest_amplitude if clb.is_dc_signal[self.measure_config.signal_type] else 0
-
         self.highest_amplitude = self.calibrator.limit_amplitude(self.highest_amplitude, self.lowest_amplitude,
                                                                  self.highest_amplitude)
 
-
-
-
         self.measure_model = QNoTemplateMeasureModel(self.current_point.normalize_value,
-                                                     a_error_limit=self.measure_config.accuracy_class,
+                                                     a_error_limit=self.measure_config.device_class,
                                                      a_value_units=self.units_text,
                                                      a_parent=self)
         self.ui.measure_table.setModel(self.measure_model)
@@ -139,8 +136,8 @@ class MeasureWindow(QtWidgets.QWidget):
         self.setWindowTitle(f"{clb.enum_to_signal_type[self.measure_config.signal_type]}. "
                             f"{self.measure_config.upper_bound} {self.units_text}.")
 
-        for point in self.measure_config.amplitudes:
-            self.measure_model.appendPoint(PointData(a_point=point))
+        for point in self.measure_config.points:
+            self.measure_model.appendPoint(point)
 
     @pyqtSlot(list)
     def fill_fixed_step_combobox(self, a_values: List[float], a_save=True):
@@ -204,6 +201,8 @@ class MeasureWindow(QtWidgets.QWidget):
         self.start_measure_timer.timeout.connect(self.check_fixed_range)
 
         self.soft_approach_timer.timeout.connect(self.set_amplitude_soft)
+
+        self.ui.edit_parameters_button.clicked.connect(self.update_config)
 
     @pyqtSlot(list)
     def update_clb_list(self, a_clb_list: list):
@@ -403,13 +402,15 @@ class MeasureWindow(QtWidgets.QWidget):
                                                                        a_count=points_count,
                                                                        a_dt=self.next_soft_point_time_ms,
                                                                        sigma=0.001)
-                print(self.soft_approach_points)
                 self.soft_approach_timer.start(self.next_soft_point_time_ms)
             else:
                 self.set_amplitude(target_amplitude)
 
     def guess_point(self, a_point_value: float):
-        return round(a_point_value / self.measure_config.minimal_discrete) * self.measure_config.minimal_discrete
+        if self.measure_config.minimal_discrete == 0:
+            return a_point_value
+        else:
+            return round(a_point_value / self.measure_config.minimal_discrete) * self.measure_config.minimal_discrete
 
     def delete_point(self):
         rows = self.get_selected_rows()
@@ -533,6 +534,13 @@ class MeasureWindow(QtWidgets.QWidget):
         if self.calibrator.mode == clb.Mode.FIXED_RANGE and self.calibrator.amplitude == self.highest_amplitude:
             self.calibrator.signal_enable = True
             self.start_measure_timer.stop()
+
+    def update_config(self):
+        try:
+            on_run_params_edit_dialog = OnRunEditConfigDialog(self.measure_config, self.db_connection, self.db_tables, self)
+            on_run_params_edit_dialog.exec()
+        except Exception as err:
+            utils.exception_handler(err)
 
     def ask_for_close(self):
         reply = QMessageBox.question(self, "Подтвердите действие", "Завершить поверку?", QMessageBox.Yes |

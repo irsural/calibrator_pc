@@ -15,13 +15,13 @@ class VariableTemplateParams:
 
 
 class VariableTemplateFieldsDialog(QtWidgets.QDialog):
-    def __init__(self, a_parent=None, a_variable_params=VariableTemplateParams()):
+    def __init__(self, a_parent=None, a_variable_params=None):
         super().__init__(a_parent)
 
         self.ui = VariableTemplateFieldsForm()
         self.ui.setupUi(self)
 
-        self.variable_params = a_variable_params
+        self.variable_params = a_variable_params if a_variable_params is not None else VariableTemplateParams()
         self.recover_params(self.variable_params)
 
         self.ui.accept_button.clicked.connect(self.accept)

@@ -6,6 +6,7 @@ from PyQt5.QtCore import pyqtSignal
 
 
 from ui.py.marks_widget import Ui_marks_widget as MarksWidgetForm
+from db_measures import MeasureTables
 import qt_utils
 
 
@@ -26,8 +27,8 @@ class MarksWidget(QtWidgets.QWidget):
         VALUE = 2
         COUNT = 3
 
-    def __init__(self, a_db_connection: sqlite3.Connection, a_db_marks_table: str, a_db_mark_values_table: str,
-                 a_default_mode: bool, a_parent=None):
+    def __init__(self, a_db_connection: sqlite3.Connection, a_db_tables: MeasureTables, a_default_mode: bool,
+                 a_parent=None):
         """
         Виджет, который управляет дополнительными параметрами измерений
         :param a_db_connection: Соединение с базой данных, в которой содержится таблица a_db_table_name
@@ -45,8 +46,8 @@ class MarksWidget(QtWidgets.QWidget):
         self.connection = a_db_connection
         self.cursor = self.connection.cursor()
 
-        self.marks_table = a_db_marks_table
-        self.mark_values_table = a_db_mark_values_table
+        self.marks_table = a_db_tables.marks_table
+        self.mark_values_table = a_db_tables.mark_values_table
         self.default_mode = a_default_mode
 
         self.items_changed = False

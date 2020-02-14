@@ -13,6 +13,8 @@ import utils
 
 
 class TemplateListWindow(QtWidgets.QDialog):
+    config_ready = pyqtSignal(TemplateParams, VariableTemplateParams)
+
     def __init__(self, a_parent=None):
         super().__init__(a_parent)
 
@@ -45,6 +47,13 @@ class TemplateListWindow(QtWidgets.QDialog):
 
         self.ui.template_name_edit.textChanged.connect(self.template_name_changed)
         self.ui.filter_edit.textChanged.connect(self.filter_templates)
+
+        self.window_existing_timer = QtCore.QTimer()
+        self.window_existing_timer.timeout.connect(self.window_existing_chech)
+        self.window_existing_timer.start(3000)
+
+    def window_existing_chech(self):
+        print("Template list dialog")
 
     @pyqtSlot(QtCore.QPoint)
     def show_context_menu(self, a_pos: QtCore.QPoint):
@@ -188,11 +197,11 @@ class TemplateListWindow(QtWidgets.QDialog):
     def choose_template(self):
         item = self.ui.templates_list.currentItem()
         if item is not None:
-            variable_params_dialog = VariableTemplateFieldsDialog()
+            variable_params_dialog = VariableTemplateFieldsDialog(self)
             params: VariableTemplateParams = variable_params_dialog.exec_and_get_params()
             if params is not None:
-                print(params.serial_num, params.date)
-                # Здесь начинаем измерение
+                self.config_ready.emit(self.current_template, params)
+                self.reject()
 
     def filter_templates(self, a_text):
         for row in range(self.ui.templates_list.count()):

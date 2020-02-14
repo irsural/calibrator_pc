@@ -228,7 +228,7 @@ class NewFastMeasureDialog(QDialog):
 
         if input_status == self.InputStatus.ok:
             self.fast_params.amplitudes = [] if not self.fast_params.auto_calc_points else self.calc_points()
-            if not self.fast_params.frequency:
+            if self.fast_params.frequency[0] == "":
                 self.fast_params.frequency = ["0"]
 
             self.config_ready.emit(self.fast_params)

@@ -2,6 +2,8 @@ import enum
 import math
 import re
 import configparser
+from linecache import checkcache, getline
+from sys import exc_info
 
 import numpy as np
 
@@ -216,3 +218,15 @@ def calc_smooth_approach(a_from, a_to, a_count, a_dt, sigma=0.01):
         points.append(round(point, 9))
 
     return points
+
+
+def exception_handler(a_exception):
+    e_type, e_obj, e_tb = exc_info()
+    frame = e_tb.tb_frame
+    lineno = e_tb.tb_lineno
+    filename = frame.f_code.co_filename
+    checkcache(filename)
+    line = getline(filename, lineno, frame.f_globals)
+    print(f"Exception{type(a_exception)} in {filename}\n"
+          f"Line {lineno}: '{line.strip()}'\n"
+          f"Message: {a_exception}")
