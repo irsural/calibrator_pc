@@ -43,12 +43,9 @@ class OnRunEditConfigDialog(QtWidgets.QDialog):
         self.ui.comment_edit.setText(self.measure_config.comment)
 
     def save_pressed(self):
-        try:
-            if self.marks_widget.save():
-                self.save()
-                self.close()
-        except Exception as err:
-            utils.exception_handler(err)
+        if self.marks_widget.save():
+            self.save()
+            self.close()
 
     def save(self):
         self.measure_config.user = self.ui.user_name_edit.text()

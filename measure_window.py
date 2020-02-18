@@ -543,7 +543,7 @@ class MeasureWindow(QtWidgets.QWidget):
             on_run_params_edit_dialog = OnRunEditConfigDialog(self.measure_config, self.db_connection, self.db_tables,
                                                               self)
             on_run_params_edit_dialog.exec()
-        except Exception as err:
+        except AssertionError as err:
             utils.exception_handler(err)
 
     def ask_for_close(self):
@@ -551,6 +551,9 @@ class MeasureWindow(QtWidgets.QWidget):
                                      QMessageBox.No, QMessageBox.No)
         if reply == QMessageBox.Yes:
             self.calibrator.signal_enable = False
+
+            self.measures_db.save(self.measure_config, self.measure_model.exportPoints())
+            print()
 
             # Без этого диалог не уничтожится
             for sender, connection in self.manual_connections:

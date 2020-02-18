@@ -109,6 +109,9 @@ class QNoTemplateMeasureModel(QAbstractTableModel):
         else:
             return self.__points[a_row_idx][self.Column.POINT]
 
+    def exportPoints(self):
+        return tuple(self.__points)
+
     def isPointGood(self, a_point: float, a_approach_side: PointData.ApproachSide) -> bool:
         """
         Проверяет, есть ли точка в массиве, если точка есть, то проверяет ее состояние (входит в погрешность или нет)

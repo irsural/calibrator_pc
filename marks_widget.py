@@ -163,7 +163,6 @@ class MarksWidget(QtWidgets.QWidget):
                                 self.cursor.execute(f"insert into {self.marks_table} (name, tag, default_value) "
                                                     f"values (?,?,?)",
                                                     (data[self.MarkColumns.NAME], data[self.MarkColumns.TAG], ""))
-                            print(data)
                             if data[self.MarkColumns.VALUE]:
                                 # Если значение не пусто, добавляем его в таблицу значений
                                 self.cursor.execute(f"insert into {self.mark_values_table} "
@@ -174,7 +173,6 @@ class MarksWidget(QtWidgets.QWidget):
                                                      self.measure_id,
                                                      data[self.MarkColumns.VALUE]))
                             else:
-                                print("delete")
                                 self.cursor.execute(f"delete from {self.mark_values_table} "
                                                     f"where mark_name = ? and measure_id = ?",
                                                     (data[self.MarkColumns.NAME], self.measure_id))

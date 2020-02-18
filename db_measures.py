@@ -1,5 +1,5 @@
 from collections import namedtuple
-from typing import List
+from typing import List, Tuple
 import sqlite3
 
 from variable_template_fields_dialog import VariableTemplateParams
@@ -8,7 +8,7 @@ from QNoTemplateMeasureModel import PointData
 from constants import DeviceSystem
 from db_templates import TemplateParams
 import calibrator_constants as clb
-
+from utils import exception_handler
 
 MeasureTables = namedtuple("MeasureDB", ["marks_table", "mark_values_table", "measures_table", "results_table"])
 
@@ -79,6 +79,7 @@ class MeasuresDB:
         self.measure_table = a_db_tables.measures_table
         self.marks_table = a_db_tables.marks_table
         self.mark_values_table = a_db_tables.mark_values_table
+        self.results_table = a_db_tables.results_table
 
     def create(self):
         with self.connection:
@@ -96,16 +97,22 @@ class MeasuresDB:
         else:
             return None
 
-    def edit(self, a_id: str, a_params: MeasureParams):
-        pass
-        # if self.is_measure_exist(a_params.id) and (a_id != a_params.id):
-        #     Если имя изменилось и оно уже существует
-        #     return False
-        # else:
-        #     self.ids.append(a_params.id)
-        #     if a_id in self.ids:
-        #         self.ids.remove(a_id)
-        #     return True
+    def save(self, a_params: MeasureParams, points_data: Tuple[List]):
+        assert self.is_measure_exist(a_params.id), "Row for saved measure must exist!"
+        with self.connection:
+            self.cursor.execute(f"update {self.measure_table} set organisation = ?, etalon_device = ?,"
+                                f"device_name = ?, device_creator = ?, device_system = ?, signal_type = ?,"
+                                f"device_class = ?, serial_number = ?, owner = ?, user = ?, date = ? "
+                                f"where id = {a_params.id}",
+                                (a_params.organisation, a_params.etalon_device, a_params.device_name,
+                                 a_params.device_creator, a_params.device_system, a_params.signal_type,
+                                 a_params.device_class, a_params.serial_num, a_params.owner, a_params.user,
+                                 a_params.date))
+
+            self.cursor.executemany(f"insert into {self.results_table} (point, frequency, up_value, up_deviation, "
+                                    f"up_deviation_percent, down_value, down_deviation, down_deviation_percent, "
+                                    f"variation, measure_id) values (?, ?, ?, ?, ?, ?, ?, ?, ?, {a_params.id})",
+                                    points_data)
 
     def delete(self, a_id: str):
         if a_id in self.ids:
@@ -114,6 +121,8 @@ class MeasuresDB:
         else:
             return False
 
-    def is_measure_exist(self, a_id: str):
-        return a_id in self.ids
+    def is_measure_exist(self, a_id: int):
+        self.cursor.execute(f"SELECT EXISTS(SELECT 1 FROM {self.measure_table} WHERE id='{a_id}')")
+        res = self.cursor.fetchone()
+        return res[0]
 
