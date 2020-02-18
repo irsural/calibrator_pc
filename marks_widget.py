@@ -71,9 +71,11 @@ class MarksWidget(QtWidgets.QWidget):
         if self.default_mode:
             self.cursor.execute(f"select name, tag, default_value from {self.marks_table}")
         else:
-            self.cursor.execute(f"select name, tag, value from {self.mark_values_table} inner join {self.marks_table} "
-                                f"on {self.mark_values_table}.mark_name = {self.marks_table}.name "
-                                f"where {self.mark_values_table}.measure_id = {self.measure_id}")
+            # Вероятно, это дерьмовый запрос
+            self.cursor.execute(f"select m.name, m.tag, v.value from marks m "
+                                f"left outer join "
+                                f"(select mark_name, value, measure_id from mark_values v where v.measure_id = "
+                                f"{self.measure_id}) v on m.name = v.mark_name")
 
         for row_data in self.cursor.fetchall():
             row = self.ui.marks_table.rowCount()
@@ -114,10 +116,10 @@ class MarksWidget(QtWidgets.QWidget):
             utils.exception_handler(err)
 
     def mark_items_as_changed(self, a_item: QtWidgets.QTableWidgetItem):
-        if self.default_mode:
-            self.items_changed = True
-        elif a_item.column() != self.MarkColumns.VALUE:
-            self.items_changed = True
+        self.items_changed = True
+        # if self.default_mode:
+        # elif a_item.column() != self.MarkColumns.VALUE:
+        #     self.items_changed = True
 
     def is_row_in_db(self, a_row: int) -> bool:
         item_flags = self.ui.marks_table.item(a_row, self.MarkColumns.NAME).flags()
@@ -126,9 +128,9 @@ class MarksWidget(QtWidgets.QWidget):
     def table_to_list(self):
         items = []
         for row in range(self.ui.marks_table.rowCount()):
-            row_data = [self.ui.marks_table.item(row, self.MarkColumns.NAME).text(),
+            row_data = (self.ui.marks_table.item(row, self.MarkColumns.NAME).text(),
                         self.ui.marks_table.item(row, self.MarkColumns.TAG).text(),
-                        self.ui.marks_table.item(row, self.MarkColumns.VALUE).text()]
+                        self.ui.marks_table.item(row, self.MarkColumns.VALUE).text())
 
             if row_data[self.MarkColumns.NAME] and row_data[self.MarkColumns.TAG]:
                 items.append((row, row_data))
@@ -146,18 +148,36 @@ class MarksWidget(QtWidgets.QWidget):
                     self.cursor.executemany(f"delete from {self.mark_values_table} where mark_name = ?",
                                             self.deleted_names)
                     for row, data in items:
-                        if self.is_row_in_db(row):
-                            if self.default_mode:
+                        row_exist = self.is_row_in_db(row)
+                        if self.default_mode:
+                            if row_exist:
                                 # Значания по умолчанию обновляем только в режиме "по умолчанию"
                                 self.cursor.execute(f"update {self.marks_table} set default_value = ? where name = ?",
                                                     (data[self.MarkColumns.VALUE], data[self.MarkColumns.NAME]))
+                            else:
+                                self.cursor.execute(f"insert into {self.marks_table} (name, tag, default_value) "
+                                                    f"values (?,?,?)", data)
                         else:
-                            if not self.default_mode:
+                            if not row_exist:
                                 # В режиме не "по умолчанию" значания по умолчанию оставляем пустыми
-                                data[self.MarkColumns.VALUE] = ""
-
-                            self.cursor.execute(f"insert into {self.marks_table} (name, tag, default_value) "
-                                                f"values (?,?,?)", data)
+                                self.cursor.execute(f"insert into {self.marks_table} (name, tag, default_value) "
+                                                    f"values (?,?,?)",
+                                                    (data[self.MarkColumns.NAME], data[self.MarkColumns.TAG], ""))
+                            print(data)
+                            if data[self.MarkColumns.VALUE]:
+                                # Если значение не пусто, добавляем его в таблицу значений
+                                self.cursor.execute(f"insert into {self.mark_values_table} "
+                                                    f"(value, mark_name, measure_id) values(?,?,?)"
+                                                    f"on conflict (mark_name, measure_id) do update set value = ?",
+                                                    (data[self.MarkColumns.VALUE],
+                                                     data[self.MarkColumns.NAME],
+                                                     self.measure_id,
+                                                     data[self.MarkColumns.VALUE]))
+                            else:
+                                print("delete")
+                                self.cursor.execute(f"delete from {self.mark_values_table} "
+                                                    f"where mark_name = ? and measure_id = ?",
+                                                    (data[self.MarkColumns.NAME], self.measure_id))
 
                 self.fill_table_from_db()
 

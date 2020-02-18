@@ -97,7 +97,8 @@ class MainWindow(QtWidgets.QMainWindow):
                            f"device_class real, serial_number text, owner text, user text, date text)")
 
             cursor.execute(f"CREATE TABLE IF NOT EXISTS {self.measure_db_tables.mark_values_table} "
-                           f"(id integer primary key autoincrement, value text, mark_name text,  measure_id int,"
+                           f"(id integer primary key autoincrement, value text, mark_name text,  measure_id int, "
+                           f"unique (mark_name, measure_id), "
                            f"foreign key (mark_name) references {self.measure_db_tables.marks_table}(name),"
                            f"foreign key (measure_id) references {self.measure_db_tables.measures_table}(id))")
 

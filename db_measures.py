@@ -85,7 +85,7 @@ class MeasuresDB:
             self.cursor.execute(f"insert into {self.measure_table} default values")
             measure_id = self.cursor.lastrowid
             # Копируем все дефолтные значения в измерение, если дефолтное значение заполнено
-            self.cursor.execute(f"insert into {self.mark_values_table} (value, mark_name, measure_id) "
+            self.cursor.execute(f"insert into {self.mark_values_table} (mark_name, value, measure_id) "
                                 f"select name, default_value, {measure_id} from {self.marks_table}  "
                                 f"where default_value != ''")
         return measure_id
