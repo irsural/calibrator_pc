@@ -1,5 +1,6 @@
 from collections import namedtuple
 from typing import List
+import sqlite3
 
 from variable_template_fields_dialog import VariableTemplateParams
 from new_fast_measure_dialog import FastMeasureParams
@@ -13,11 +14,11 @@ MeasureTables = namedtuple("MeasureDB", ["marks_table", "mark_values_table", "me
 
 
 class MeasureParams:
-    def __init__(self, a_organisation="", a_etalon_device="", a_device_name="",
+    def __init__(self, a_id=0, a_organisation="", a_etalon_device="", a_device_name="",
                  a_device_creator="", a_device_system=DeviceSystem.MAGNETOELECTRIC, a_signal_type=clb.SignalType.ACI,
                  a_device_class=0.05, a_owner="", a_user="", a_serial_num="", a_date="", a_time="", a_comment="",
                  a_minimal_discrete=0., a_upper_bound=None, a_lower_bound=None, a_points: List[PointData] = None):
-
+        self.id = a_id
         self.organisation = a_organisation
         self.etalon_device = a_etalon_device
         self.device_name = a_device_name
@@ -71,12 +72,23 @@ class MeasureParams:
 
 
 class MeasuresDB:
-    def __init__(self, a_db_name="measures"):
-        self.ids = []
+    def __init__(self, a_db_connection: sqlite3.Connection, a_db_tables: MeasureTables):
+        self.connection = a_db_connection
+        self.cursor = self.connection.cursor()
 
-    def add(self, a_params: MeasureParams):
-        # self.ids.append(a_params.id)
-        pass
+        self.measure_table = a_db_tables.measures_table
+        self.marks_table = a_db_tables.marks_table
+        self.mark_values_table = a_db_tables.mark_values_table
+
+    def create(self):
+        with self.connection:
+            self.cursor.execute(f"insert into {self.measure_table} default values")
+            measure_id = self.cursor.lastrowid
+            # Копируем все дефолтные значения в измерение, если дефолтное значение заполнено
+            self.cursor.execute(f"insert into {self.mark_values_table} (value, mark_name, measure_id) "
+                                f"select name, default_value, {measure_id} from {self.marks_table}  "
+                                f"where default_value != ''")
+        return measure_id
 
     def get(self, a_id: str):
         if a_id in self.ids:

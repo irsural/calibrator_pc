@@ -10,6 +10,7 @@ from db_measures import MeasureTables
 import qt_utils
 import utils
 
+
 class Mark:
     # Сделать namedtuple?
     def __init__(self, a_name="", a_tag="", a_value=""):
@@ -27,13 +28,14 @@ class MarksWidget(QtWidgets.QWidget):
         VALUE = 2
         COUNT = 3
 
-    def __init__(self, a_db_connection: sqlite3.Connection, a_db_tables: MeasureTables, a_default_mode: bool,
+    def __init__(self, a_db_connection: sqlite3.Connection, a_db_tables: MeasureTables, a_measure_id=None,
                  a_parent=None):
         """
         Виджет, который управляет дополнительными параметрами измерений
         :param a_db_connection: Соединение с базой данных, в которой содержится таблица a_db_table_name
         :param a_db_table_name: Название таблицы, в которой содержатся имена и тэги
-        :param a_default_mode: В режиме a_default_mode последняя колонка таблицы является значением по умолчанию, в
+        :param a_measure_id: Если не задано, то виджет используется в режиме default_mode
+                            В режиме default_mode последняя колонка таблицы является значением по умолчанию, в
                             противном случае, последняя колонка является значением параметра для конкретного измерения
                             и при изменении этой колонки в a_db_table_name:value всегда записывается пустая строка
         :param a_parent: родитель виджета
@@ -48,7 +50,8 @@ class MarksWidget(QtWidgets.QWidget):
 
         self.marks_table = a_db_tables.marks_table
         self.mark_values_table = a_db_tables.mark_values_table
-        self.default_mode = a_default_mode
+        self.default_mode = True if a_measure_id is None else False
+        self.measure_id = a_measure_id
 
         self.items_changed = False
         self.deleted_names = []
@@ -65,8 +68,13 @@ class MarksWidget(QtWidgets.QWidget):
 
     def fill_table_from_db(self):
         qt_utils.qtablewidget_clear(self.ui.marks_table)
+        if self.default_mode:
+            self.cursor.execute(f"select name, tag, default_value from {self.marks_table}")
+        else:
+            self.cursor.execute(f"select name, tag, value from {self.mark_values_table} inner join {self.marks_table} "
+                                f"on {self.mark_values_table}.mark_name = {self.marks_table}.name "
+                                f"where {self.mark_values_table}.measure_id = {self.measure_id}")
 
-        self.cursor.execute(f"select name, tag, default_value from {self.marks_table}")
         for row_data in self.cursor.fetchall():
             row = self.ui.marks_table.rowCount()
             self.ui.marks_table.insertRow(row)
@@ -161,4 +169,3 @@ class MarksWidget(QtWidgets.QWidget):
             QtWidgets.QMessageBox.critical(self, "Ошибка", "Имена параметров и тэги должны быть уникальны!",
                                            QtWidgets.QMessageBox.Ok)
             return False
-

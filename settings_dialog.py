@@ -34,7 +34,7 @@ class SettingsDialog(QtWidgets.QDialog):
         self.ui.save_button.clicked.connect(self.save)
         self.ui.cancel_button.clicked.connect(self.close)
 
-        self.marks_widget = MarksWidget(a_db_connection, a_db_tables, a_default_mode=True, a_parent=self)
+        self.marks_widget = MarksWidget(a_db_connection, a_db_tables, a_parent=self)
         self.ui.marks_layout.addWidget(self.marks_widget)
 
     def save(self):

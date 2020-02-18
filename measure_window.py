@@ -12,7 +12,7 @@ from custom_widgets.NonOverlappingPainter import NonOverlappingPainter
 from on_run_edit_template_dialog import OnRunEditConfigDialog
 from custom_widgets.EditListDialog import EditedListWithUnits
 from ui.py.measure_form import Ui_main_widget as MeasureForm
-from db_measures import MeasureParams, MeasureTables
+from db_measures import MeasureParams, MeasureTables, MeasuresDB
 import calibrator_constants as clb
 import constants as cfg
 import clb_dll
@@ -36,10 +36,13 @@ class MeasureWindow(QtWidgets.QWidget):
 
         self.show()
 
-        self.measure_config: MeasureParams = a_measure_config
         self.settings = a_settings
         self.db_connection = a_db_connection
         self.db_tables = a_db_tables
+
+        self.measures_db = MeasuresDB(self.db_connection, self.db_tables)
+        self.measure_config: MeasureParams = a_measure_config
+        self.measure_config.id = self.measures_db.create()
 
         self.units_text = clb.signal_type_to_units[self.measure_config.signal_type]
         self.value_to_user = utils.value_to_user_with_units(self.units_text)
@@ -537,7 +540,8 @@ class MeasureWindow(QtWidgets.QWidget):
 
     def update_config(self):
         try:
-            on_run_params_edit_dialog = OnRunEditConfigDialog(self.measure_config, self.db_connection, self.db_tables, self)
+            on_run_params_edit_dialog = OnRunEditConfigDialog(self.measure_config, self.db_connection, self.db_tables,
+                                                              self)
             on_run_params_edit_dialog.exec()
         except Exception as err:
             utils.exception_handler(err)

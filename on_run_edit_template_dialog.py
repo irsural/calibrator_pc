@@ -20,7 +20,9 @@ class OnRunEditConfigDialog(QtWidgets.QDialog):
 
         self.measure_config = a_measure_config
 
-        self.marks_widget = MarksWidget(a_db_connection, a_db_tables, a_default_mode=False, a_parent=self)
+        assert a_measure_config.id != 0, "Measure id must not be zero!"
+        self.marks_widget = MarksWidget(a_db_connection, a_db_tables, a_measure_id=self.measure_config.id,
+                                        a_parent=self)
         self.ui.marks_widget_layout.addWidget(self.marks_widget)
 
         self.set_up_params_to_ui()
