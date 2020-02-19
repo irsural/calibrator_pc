@@ -45,6 +45,9 @@ class SettingsDialog(QtWidgets.QDialog):
         self.edit_fixed_range_widget = EditedListWithUnits(self, "В", (), a_list_name="Шаг")
         self.ui.fixed_range_groupbox.layout().addWidget(self.edit_fixed_range_widget)
 
+        self.ui.settings_menu_list.setCurrentRow(0)
+        self.ui.settings_stackedwidget.setCurrentIndex(0)
+
     def save(self):
         try:
             return self.marks_widget.save()

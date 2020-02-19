@@ -152,7 +152,7 @@ QListWidget::item {
         <item>
          <widget class="QStackedWidget" name="settings_stackedwidget">
           <property name="currentIndex">
-           <number>0</number>
+           <number>1</number>
           </property>
           <widget class="QWidget" name="marks_page">
            <layout class="QGridLayout" name="gridLayout">
@@ -208,7 +208,7 @@ QListWidget::item {
                   </widget>
                  </item>
                  <item>
-                  <widget class="QDoubleSpinBox" name="doubleSpinBox">
+                  <widget class="QDoubleSpinBox" name="exact_step_spinbox">
                    <property name="decimals">
                     <number>3</number>
                    </property>
@@ -228,7 +228,7 @@ QListWidget::item {
                   </widget>
                  </item>
                  <item>
-                  <widget class="QDoubleSpinBox" name="doubleSpinBox_2">
+                  <widget class="QDoubleSpinBox" name="common_step_spinbox">
                    <property name="decimals">
                     <number>3</number>
                    </property>
@@ -248,7 +248,7 @@ QListWidget::item {
                   </widget>
                  </item>
                  <item>
-                  <widget class="QDoubleSpinBox" name="doubleSpinBox_3">
+                  <widget class="QDoubleSpinBox" name="rough_step_spinbox">
                    <property name="decimals">
                     <number>3</number>
                    </property>
@@ -301,7 +301,7 @@ QListWidget::item {
                  </widget>
                 </item>
                 <item>
-                 <widget class="QSpinBox" name="spinBox">
+                 <widget class="QSpinBox" name="start_deviation_spinbox">
                   <property name="maximum">
                    <number>100</number>
                   </property>
@@ -316,6 +316,7 @@ QListWidget::item {
             </item>
            </layout>
           </widget>
+          <widget class="QWidget" name="other_parameters_page"/>
          </widget>
         </item>
        </layout>

@@ -11,7 +11,7 @@ from ui.py.mainwindow import Ui_MainWindow as MainForm
 from measure_window import MeasureWindow
 from source_mode_window import SourceModeWindow
 from settings_dialog import SettingsDialog
-from settings_ini_parser import Settings
+from settings_ini_parser import Settings, BadIniException
 from startwindow import StartWindow
 import calibrator_constants as clb
 import clb_dll
@@ -32,8 +32,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.active_window = None
         self.previous_start_window_pos = self.pos()
         self.show_start_window()
-
-        self.settings = Settings(self)
 
         self.clb_driver = clb_dll.set_up_driver(clb_dll.path)
         self.usb_driver = clb_dll.UsbDrv(self.clb_driver)
@@ -56,6 +54,13 @@ class MainWindow(QtWidgets.QMainWindow):
         self.SIGNAL_OFF_TIME_MS = 200
 
         self.ui.enter_settings_action.triggered.connect(self.open_settings)
+
+        try:
+            self.settings = Settings(self)
+        except BadIniException:
+            QtWidgets.QMessageBox.critical(self, "Ошибка", 'Файл конфигурации поврежден. Пожалуйста, '
+                                                           'удалите файл "settings.ini" и запустите программу заново')
+            self.close()
 
     def __del__(self):
         if hasattr(self, "db_connection"):

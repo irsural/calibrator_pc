@@ -59,9 +59,8 @@ class MeasureWindow(QtWidgets.QWidget):
         self.clb_state = clb.State.DISCONNECTED
         self.calibrator.signal_type = self.measure_config.signal_type
 
-        self.start_deviation = 10 # ####################################################################Прочитать из ini
-
-        self.highest_amplitude = utils.increase_by_percent(self.measure_config.upper_bound, self.start_deviation)
+        self.highest_amplitude = utils.increase_by_percent(self.measure_config.upper_bound,
+                                                           self.settings.start_deviation)
         self.lowest_amplitude = -self.highest_amplitude if clb.is_dc_signal[self.measure_config.signal_type] else 0
         self.highest_amplitude = self.calibrator.limit_amplitude(self.highest_amplitude, self.lowest_amplitude,
                                                                  self.highest_amplitude)
@@ -235,11 +234,11 @@ class MeasureWindow(QtWidgets.QWidget):
         if (keys & Qt.ControlModifier) and (keys & Qt.ShiftModifier):
             self.set_amplitude(self.calibrator.amplitude + (self.fixed_step * steps))
         elif keys & Qt.ShiftModifier:
-            self.tune_amplitude(clb.AmplitudeStep.EXACT * steps)
+            self.tune_amplitude(self.settings.exact_step * steps)
         elif keys & Qt.ControlModifier:
-            self.tune_amplitude(clb.AmplitudeStep.ROUGH * steps)
+            self.tune_amplitude(self.settings.exact_step * steps)
         else:
-            self.tune_amplitude(clb.AmplitudeStep.COMMON * steps)
+            self.tune_amplitude(self.settings.common_step * steps)
 
         event.accept()
 
@@ -359,17 +358,17 @@ class MeasureWindow(QtWidgets.QWidget):
             if measured_down == measured_up:
                 # Точка измерена полностью либо совсем не измерена, подходим с ближайшей стороны
                 if self.calibrator.amplitude > target_amplitude:
-                    target_amplitude = utils.increase_by_percent(target_amplitude, self.start_deviation,
+                    target_amplitude = utils.increase_by_percent(target_amplitude, self.settings.start_deviation,
                                                                  a_normalize_value=self.measure_config.upper_bound)
                 else:
-                    target_amplitude = utils.decrease_by_percent(target_amplitude, self.start_deviation,
+                    target_amplitude = utils.decrease_by_percent(target_amplitude, self.settings.start_deviation,
                                                                  a_normalize_value=self.measure_config.upper_bound)
             else:
                 if measured_up:
-                    target_amplitude = utils.decrease_by_percent(target_amplitude, self.start_deviation,
+                    target_amplitude = utils.decrease_by_percent(target_amplitude, self.settings.start_deviation,
                                                                  a_normalize_value=self.measure_config.upper_bound)
                 else:
-                    target_amplitude = utils.increase_by_percent(target_amplitude, self.start_deviation,
+                    target_amplitude = utils.increase_by_percent(target_amplitude, self.settings.start_deviation,
                                                                  a_normalize_value=self.measure_config.upper_bound)
 
             target_amplitude = self.calibrator.limit_amplitude(target_amplitude, self.lowest_amplitude,
@@ -449,27 +448,27 @@ class MeasureWindow(QtWidgets.QWidget):
 
     @pyqtSlot()
     def rough_plus_button_clicked(self):
-        self.tune_amplitude(clb.AmplitudeStep.ROUGH)
+        self.tune_amplitude(self.settings.rough_step)
 
     @pyqtSlot()
     def rough_minus_button_clicked(self):
-        self.tune_amplitude(-clb.AmplitudeStep.ROUGH)
+        self.tune_amplitude(-self.settings.rough_step)
 
     @pyqtSlot()
     def common_plus_button_clicked(self):
-        self.tune_amplitude(clb.AmplitudeStep.COMMON)
+        self.tune_amplitude(self.settings.common_step)
 
     @pyqtSlot()
     def common_minus_button_clicked(self):
-        self.tune_amplitude(-clb.AmplitudeStep.COMMON)
+        self.tune_amplitude(-self.settings.common_step)
 
     @pyqtSlot()
     def exact_plus_button_clicked(self):
-        self.tune_amplitude(clb.AmplitudeStep.EXACT)
+        self.tune_amplitude(self.settings.exact_step)
 
     @pyqtSlot()
     def exact_minus_button_clicked(self):
-        self.tune_amplitude(-clb.AmplitudeStep.EXACT)
+        self.tune_amplitude(-self.settings.exact_step)
 
     @pyqtSlot()
     def fixed_plus_button_clicked(self):

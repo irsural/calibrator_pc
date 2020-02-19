@@ -97,9 +97,6 @@ signal_type_to_min_step = {
 
 FREQUENCY_MIN_STEP = 1
 
-Step = namedtuple("Step", "ROUGH COMMON EXACT")
-AmplitudeStep = Step(0.005, 0.0005, 0.00002)
-
 
 def bound_amplitude(a_amplitude: float, a_signal_type: SignalType):
     min_value = MIN_VOLTAGE
