@@ -46,6 +46,9 @@ class Settings(QtCore.QObject):
     START_DEVIATION_KEY = "start_deviation"
     START_DEVIATION_DEFAULT = "5"
 
+    MOUSE_INVERSION_KEY = "mouse_inversion"
+    MOUSE_INVERSION_DEFAULT = "0"
+
     fixed_step_changed = pyqtSignal()
 
     def __init__(self, a_parent=None):
@@ -58,6 +61,7 @@ class Settings(QtCore.QObject):
         self.__common_step = 0
         self.__exact_step = 0
         self.__start_deviation = 0
+        self.__mouse_inversion = 0
 
         self.settings = configparser.ConfigParser()
         try:
@@ -73,7 +77,8 @@ class Settings(QtCore.QObject):
                                                    self.STEP_ROUGH_KEY: self.STEP_ROUGH_DEFAULT,
                                                    self.STEP_COMMON_KEY: self.STEP_COMMON_DEFAULT,
                                                    self.STEP_EXACT_KEY: self.STEP_EXACT_DEFAULT,
-                                                   self.START_DEVIATION_KEY: self.START_DEVIATION_DEFAULT}
+                                                   self.START_DEVIATION_KEY: self.START_DEVIATION_DEFAULT,
+                                                   self.MOUSE_INVERSION_KEY: self.MOUSE_INVERSION_DEFAULT}
             utils.save_settings(self.CONFIG_PATH, self.settings)
         else:
             self.settings.read(self.CONFIG_PATH)
@@ -101,6 +106,10 @@ class Settings(QtCore.QObject):
         self.__start_deviation = self.check_ini_value(self.MEASURE_SECTION, self.START_DEVIATION_KEY,
                                                       self.START_DEVIATION_DEFAULT, self.ValueType.INT)
         self.__start_deviation = utils.bound(self.__start_deviation, 0, 100)
+
+        self.__mouse_inversion = self.check_ini_value(self.MEASURE_SECTION, self.MOUSE_INVERSION_KEY,
+                                                      self.MOUSE_INVERSION_DEFAULT, self.ValueType.INT)
+        self.__mouse_inversion = utils.bound(self.__mouse_inversion, 0, 1)
 
         # Выводит ini файл в консоль
         # for key in settings:
@@ -203,5 +212,17 @@ class Settings(QtCore.QObject):
 
         self.__start_deviation = a_step
         self.__start_deviation = utils.bound(self.__start_deviation, 0, 100)
+
+    @property
+    def mouse_inversion(self):
+        return self.__mouse_inversion
+
+    @mouse_inversion.setter
+    def mouse_inversion(self, a_enable: int):
+        self.settings[self.MEASURE_SECTION][self.MOUSE_INVERSION_KEY] = str(a_enable)
+        self.save()
+
+        self.__mouse_inversion = a_enable
+        self.__mouse_inversion = utils.bound(self.__mouse_inversion, 0, 1)
 
 

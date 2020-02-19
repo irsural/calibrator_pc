@@ -45,6 +45,12 @@ class SettingsDialog(QtWidgets.QDialog):
         self.edit_fixed_range_widget = EditedListWithUnits(self, "В", self.settings.fixed_step_list, a_list_name="Шаг")
         self.ui.fixed_range_groupbox.layout().addWidget(self.edit_fixed_range_widget)
 
+        self.ui.exact_step_spinbox.setValue(self.settings.exact_step)
+        self.ui.rough_step_spinbox.setValue(self.settings.rough_step)
+        self.ui.common_step_spinbox.setValue(self.settings.common_step)
+        self.ui.start_deviation_spinbox.setValue(self.settings.start_deviation)
+        self.ui.mouse_inversion_checkbox.setChecked(self.settings.mouse_inversion)
+
         self.ui.settings_menu_list.setCurrentRow(0)
         self.ui.settings_stackedwidget.setCurrentIndex(0)
 
@@ -65,6 +71,9 @@ class SettingsDialog(QtWidgets.QDialog):
 
             if self.settings.start_deviation != self.ui.start_deviation_spinbox.value():
                 self.settings.start_deviation = self.ui.start_deviation_spinbox.value()
+
+            if self.settings.mouse_inversion != int(self.ui.mouse_inversion_checkbox.isChecked()):
+                self.settings.mouse_inversion = int(self.ui.mouse_inversion_checkbox.isChecked())
 
             return self.marks_widget.save()
         except Exception as err:

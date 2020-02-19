@@ -261,6 +261,14 @@ QListWidget::item {
                   </widget>
                  </item>
                  <item>
+                  <widget class="QCheckBox" name="mouse_inversion_checkbox">
+                   <property name="text">
+                    <string>Инвертировать
+колесо мыши</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
                   <spacer name="verticalSpacer">
                    <property name="orientation">
                     <enum>Qt::Vertical</enum>

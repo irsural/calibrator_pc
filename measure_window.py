@@ -229,6 +229,8 @@ class MeasureWindow(QtWidgets.QWidget):
 
     def wheelEvent(self, event: QWheelEvent):
         steps = qt_utils.get_wheel_steps(event)
+        steps = -steps if self.settings.mouse_inversion else steps
+
         keys = event.modifiers()
         if (keys & Qt.ControlModifier) and (keys & Qt.ShiftModifier):
             self.set_amplitude(self.calibrator.amplitude + (self.fixed_step * steps))
