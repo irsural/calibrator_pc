@@ -71,7 +71,7 @@ class MarksWidget(QtWidgets.QWidget):
         if self.default_mode:
             self.cursor.execute(f"select name, tag, default_value from {self.marks_table}")
         else:
-            # Вероятно, это дерьмовый запрос
+            # Вероятно, это дерьмовый запрос и его можно написать лучше
             self.cursor.execute(f"select m.name, m.tag, v.value from marks m "
                                 f"left outer join "
                                 f"(select mark_name, value, measure_id from mark_values v where v.measure_id = "
@@ -115,11 +115,8 @@ class MarksWidget(QtWidgets.QWidget):
         except Exception as err:
             utils.exception_handler(err)
 
-    def mark_items_as_changed(self, a_item: QtWidgets.QTableWidgetItem):
+    def mark_items_as_changed(self):
         self.items_changed = True
-        # if self.default_mode:
-        # elif a_item.column() != self.MarkColumns.VALUE:
-        #     self.items_changed = True
 
     def is_row_in_db(self, a_row: int) -> bool:
         item_flags = self.ui.marks_table.item(a_row, self.MarkColumns.NAME).flags()
@@ -136,7 +133,6 @@ class MarksWidget(QtWidgets.QWidget):
                 items.append((row, row_data))
             else:
                 raise ValueError
-
         return items
 
     def save(self):
@@ -176,9 +172,7 @@ class MarksWidget(QtWidgets.QWidget):
                                 self.cursor.execute(f"delete from {self.mark_values_table} "
                                                     f"where mark_name = ? and measure_id = ?",
                                                     (data[self.MarkColumns.NAME], self.measure_id))
-
                 self.fill_table_from_db()
-
             return True
         except ValueError:
             QtWidgets.QMessageBox.critical(self, "Ошибка", "Все поля 'Параметр' и 'Тэг' должны быть заполнены!",

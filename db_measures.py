@@ -4,11 +4,10 @@ import sqlite3
 
 from variable_template_fields_dialog import VariableTemplateParams
 from new_fast_measure_dialog import FastMeasureParams
-from QNoTemplateMeasureModel import PointData
-from constants import DeviceSystem
 from db_templates import TemplateParams
+from constants import DeviceSystem
 import calibrator_constants as clb
-from utils import exception_handler
+from constants import Point
 
 MeasureTables = namedtuple("MeasureDB", ["marks_table", "mark_values_table", "measures_table", "results_table"])
 
@@ -17,7 +16,7 @@ class MeasureParams:
     def __init__(self, a_id=0, a_organisation="", a_etalon_device="", a_device_name="",
                  a_device_creator="", a_device_system=DeviceSystem.MAGNETOELECTRIC, a_signal_type=clb.SignalType.ACI,
                  a_device_class=0.05, a_owner="", a_user="", a_serial_num="", a_date="", a_time="", a_comment="",
-                 a_minimal_discrete=0., a_upper_bound=None, a_lower_bound=None, a_points: List[PointData] = None):
+                 a_minimal_discrete=0., a_upper_bound=None, a_lower_bound=None, a_points: List[Point] = None):
         self.id = a_id
         self.organisation = a_organisation
         self.etalon_device = a_etalon_device
@@ -33,7 +32,7 @@ class MeasureParams:
         self.date = a_date
         self.time = a_time
 
-        self.points: List[PointData] = a_points if a_points is not None else []
+        self.points: List[Point] = a_points if a_points is not None else []
 
         self.comment = a_comment
         self.minimal_discrete = a_minimal_discrete
@@ -41,7 +40,7 @@ class MeasureParams:
         if a_upper_bound is not None:
             self.upper_bound = a_upper_bound
         elif a_points:
-            self.upper_bound = max(a_points, key=lambda p: p.point).point
+            self.upper_bound = max(a_points, key=lambda p: p.amplitude).amplitude
         else:
             self.a_upper_bound = 0
 
@@ -51,8 +50,8 @@ class MeasureParams:
 
     @classmethod
     def fromFastParams(cls, a_params: FastMeasureParams):
-        points = [PointData(a_point=float(p), a_frequency=float(f)) for f in a_params.frequency
-                                                                    for p in a_params.amplitudes]
+        points = [Point(amplitude=float(p), frequency=float(f))
+                  for f in a_params.frequency for p in a_params.amplitudes]
 
         return cls(a_etalon_device="Калибратор N4-25", a_signal_type=a_params.signal_type,
                    a_minimal_discrete=a_params.minimal_discrete, a_device_class=a_params.accuracy_class,
@@ -61,7 +60,7 @@ class MeasureParams:
 
     @classmethod
     def fromTemplate(cls, a_params: TemplateParams, a_var_params: VariableTemplateParams):
-        points = [PointData(a_point=float(p), a_frequency=float(f)) for p, f in a_params.points]
+        points = [Point(amplitude=float(p), frequency=float(f)) for p, f in a_params.points]
 
         return cls(a_organisation=a_params.organisation, a_etalon_device=a_params.etalon_device,
                    a_device_name=a_params.device_name, a_device_creator=a_params.device_creator,
@@ -125,4 +124,3 @@ class MeasuresDB:
         self.cursor.execute(f"SELECT EXISTS(SELECT 1 FROM {self.measure_table} WHERE id='{a_id}')")
         res = self.cursor.fetchone()
         return res[0]
-

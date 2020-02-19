@@ -73,7 +73,7 @@ class TemplatesDB:
             print(err)
 
     @staticmethod
-    def __row_to_template_params(a_row: list, a_points: tuple):
+    def __row_to_template_params(a_row: list, a_points: list):
         return TemplateParams(a_name=a_row[1], a_organisation=a_row[2], a_etalon_device=a_row[3],
                               a_device_name=a_row[4], a_device_creator=a_row[5], a_device_system=a_row[6],
                               a_signal_type=a_row[7], a_device_class=a_row[8],

@@ -242,7 +242,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def open_settings(self):
         try:
-            settings_dialog = SettingsDialog(self.db_connection, self.measure_db_tables, self)
+            settings_dialog = SettingsDialog(self.settings, self.db_connection, self.measure_db_tables, self)
             settings_dialog.exec()
         except Exception as err:
             utils.exception_handler(err)

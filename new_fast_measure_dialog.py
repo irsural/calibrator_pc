@@ -3,10 +3,10 @@ import enum
 
 from PyQt5.QtWidgets import QDialog, QMessageBox
 from PyQt5.QtCore import pyqtSignal, pyqtSlot
-from PyQt5 import QtWidgets, QtCore
+from PyQt5 import QtWidgets, QtCore, QtGui
 
 from ui.py.new_fast_measure_form import Ui_Dialog as NewFastMeasureForm
-from custom_widgets.EditListDialog import EditedListOnlyNumbers
+from custom_widgets.EditListDialog import EditedListOnlyNumbers, OkCancelDialog
 import calibrator_constants as clb
 import utils
 import qt_utils
@@ -92,13 +92,9 @@ class NewFastMeasureDialog(QDialog):
         self.normalize_edit_value(self.ui.lower_bound_edit)
         self.normalize_edit_value(self.ui.step_edit)
 
-        self.window_existing_timer = QtCore.QTimer()
-        self.window_existing_timer.timeout.connect(self.window_existing_chech)
-        self.window_existing_timer.start(3000)
+        self.edit_frequency_widget: EditedListOnlyNumbers = None
 
-    def window_existing_chech(self):
-        print("New measure dialog")
-
+    # noinspection DuplicatedCode
     def connect_signals(self):
         self.ui.aci_radio.clicked.connect(self.set_mode_aci)
         self.ui.dci_radio.clicked.connect(self.set_mode_dci)
@@ -128,7 +124,7 @@ class NewFastMeasureDialog(QDialog):
 
     def edit_text_edited(self):
         try:
-            edit: QtWidgets.QLineEdit = self.sender()
+            edit: QtCore.QObject = self.sender()
             assert isinstance(edit, QtWidgets.QLineEdit), "edit_text_edited must be connected to QLineEdit event!"
 
             self.update_edit_color(edit)
@@ -146,7 +142,7 @@ class NewFastMeasureDialog(QDialog):
     @pyqtSlot()
     def editinig_finished(self):
         try:
-            edit: QtWidgets.QLineEdit = self.sender()
+            edit: QtCore.QObject = self.sender()
             assert isinstance(edit, QtWidgets.QLineEdit), "editinig_finished must be connected to QLineEdit event!"
             self.normalize_edit_value(edit)
         except AssertionError as err:
@@ -260,14 +256,19 @@ class NewFastMeasureDialog(QDialog):
     def show_frequency_list(self):
         frequency_text = self.ui.frequency_edit.text()
         current_frequency = frequency_text.split(';') if frequency_text else []
-        edit_frequency_dialog = EditedListOnlyNumbers(self, tuple(current_frequency),
-                                                      "Редактирование частот поверки", "Частота, Гц")
-        edit_frequency_dialog.list_ready.connect(self.frequency_editing_finished)
+        edit_frequency_dialog = OkCancelDialog(self, "Редактирование частот поверки")
+
+        self.edit_frequency_widget = EditedListOnlyNumbers(edit_frequency_dialog, tuple(current_frequency),
+                                                           "Частота, Гц")
+
+        edit_frequency_dialog.ui.main_widget_layout.addWidget(self.edit_frequency_widget)
+        edit_frequency_dialog.accepted.connect(self.frequency_editing_finished)
         edit_frequency_dialog.exec()
 
-    @pyqtSlot(list)
-    def frequency_editing_finished(self, a_frequency_list: List[str]):
-        self.ui.frequency_edit.setText(";".join(a_frequency_list))
+    @pyqtSlot()
+    def frequency_editing_finished(self):
+        frequency_list = self.edit_frequency_widget.get_list()
+        self.ui.frequency_edit.setText(";".join(frequency_list))
 
     def set_units(self, a_units_str: str):
         self.value_to_user = utils.value_to_user_with_units(a_units_str)

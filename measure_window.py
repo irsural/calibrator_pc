@@ -89,13 +89,6 @@ class MeasureWindow(QtWidgets.QWidget):
         self.clb_check_timer.timeout.connect(self.sync_clb_parameters)
         self.clb_check_timer.start(10)
 
-        self.window_existing_timer = QtCore.QTimer(self)
-        self.window_existing_timer.timeout.connect(self.window_existing_check)
-        self.window_existing_timer.start(3000)
-
-    def window_existing_check(self):
-        print("No template window")
-
     def set_up_icons(self):
         pause_icon = QtGui.QIcon()
         pause_icon.addPixmap(QtGui.QPixmap(cfg.PAUSE_ICON_PATH), QtGui.QIcon.Normal, QtGui.QIcon.On)
@@ -140,7 +133,7 @@ class MeasureWindow(QtWidgets.QWidget):
                             f"{self.measure_config.upper_bound} {self.units_text}.")
 
         for point in self.measure_config.points:
-            self.measure_model.appendPoint(point)
+            self.measure_model.appendPoint(PointData(a_point=point.amplitude, a_frequency=point.frequency))
 
     @pyqtSlot(list)
     def fill_fixed_step_combobox(self, a_values: List[float], a_save=True):
@@ -171,6 +164,7 @@ class MeasureWindow(QtWidgets.QWidget):
                                                  "Редактирование фиксированного шага", "Шаг")
         edit_ranges_dialog.list_ready.connect(self.fill_fixed_step_combobox)
 
+    # noinspection DuplicatedCode
     def connect_signals(self):
         self.ui.clb_list_combobox.currentTextChanged.connect(self.connect_to_clb)
 
@@ -348,9 +342,9 @@ class MeasureWindow(QtWidgets.QWidget):
                     side_text = "СНИЗУ" if self.current_point.approach_side == PointData.ApproachSide.DOWN \
                         else "СВЕРХУ"
                     reply = QMessageBox.question(self, "Подтвердите действие", f"Значение {side_text} уже измерено "
-                                                 f"для точки {self.value_to_user(self.current_point.point)} и не превышает "
-                                                 f"допустимую погрешность. Перезаписать значение {side_text} для точки "
-                                                 f"{self.value_to_user(self.current_point.point)} ?",
+                                                 f"для точки {self.value_to_user(self.current_point.point)} и не "
+                                                 f"превышает допустимую погрешность. Перезаписать значение {side_text} "
+                                                 f"для точки {self.value_to_user(self.current_point.point)} ?",
                                                  QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
                     if reply == QMessageBox.Yes:
                         self.update_table(self.current_point)

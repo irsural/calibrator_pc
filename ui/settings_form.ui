@@ -60,6 +60,16 @@
         <property name="contextMenuPolicy">
          <enum>Qt::CustomContextMenu</enum>
         </property>
+        <property name="styleSheet">
+         <string notr="true">QListWidget::item { border-bottom: 1px solid black; }
+QListWidget::item:selected:active {
+    background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+                                stop: 0 #4e55c6, stop: 1 #888dd9);
+}
+QListWidget::item {
+	height: 50;
+}</string>
+        </property>
         <property name="isWrapping" stdset="0">
          <bool>false</bool>
         </property>
@@ -72,11 +82,17 @@
         <property name="uniformItemSizes">
          <bool>false</bool>
         </property>
+        <property name="batchSize">
+         <number>200</number>
+        </property>
         <property name="wordWrap">
          <bool>true</bool>
         </property>
         <property name="selectionRectVisible">
          <bool>false</bool>
+        </property>
+        <property name="currentRow">
+         <number>0</number>
         </property>
         <property name="sortingEnabled">
          <bool>false</bool>
@@ -85,10 +101,24 @@
          <property name="text">
           <string>Дополнительные параметры измерений</string>
          </property>
+         <property name="background">
+          <brush brushstyle="NoBrush">
+           <color alpha="255">
+            <red>0</red>
+            <green>0</green>
+            <blue>0</blue>
+           </color>
+          </brush>
+         </property>
         </item>
         <item>
          <property name="text">
-          <string>Параметры фиксированного шага</string>
+          <string>Параметры шага</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Другие параметры измерения</string>
          </property>
         </item>
        </widget>
@@ -143,7 +173,149 @@
             </item>
            </layout>
           </widget>
-          <widget class="QWidget" name="page_2"/>
+          <widget class="QWidget" name="step_parameters_page">
+           <layout class="QHBoxLayout" name="horizontalLayout_3">
+            <item>
+             <widget class="QGroupBox" name="fixed_range_groupbox">
+              <property name="title">
+               <string>Фиксированный шаг</string>
+              </property>
+              <layout class="QVBoxLayout" name="edit_fixed_step_widget_layout"/>
+             </widget>
+            </item>
+            <item>
+             <layout class="QVBoxLayout" name="verticalLayout_4">
+              <item>
+               <widget class="QGroupBox" name="verticalGroupBox_2">
+                <property name="whatsThis">
+                 <string>Относительный шаг устанавливается в процентах от максимума шкалы поверяемого прибора</string>
+                </property>
+                <property name="title">
+                 <string>Относительный шаг</string>
+                </property>
+                <layout class="QVBoxLayout" name="verticalLayout_5">
+                 <property name="topMargin">
+                  <number>6</number>
+                 </property>
+                 <property name="bottomMargin">
+                  <number>6</number>
+                 </property>
+                 <item>
+                  <widget class="QLabel" name="label">
+                   <property name="text">
+                    <string>Точный, %</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QDoubleSpinBox" name="doubleSpinBox">
+                   <property name="decimals">
+                    <number>3</number>
+                   </property>
+                   <property name="maximum">
+                    <double>100.000000000000000</double>
+                   </property>
+                   <property name="value">
+                    <double>0.002000000000000</double>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="label_2">
+                   <property name="text">
+                    <string>Обычный, %</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QDoubleSpinBox" name="doubleSpinBox_2">
+                   <property name="decimals">
+                    <number>3</number>
+                   </property>
+                   <property name="maximum">
+                    <double>100.000000000000000</double>
+                   </property>
+                   <property name="value">
+                    <double>0.050000000000000</double>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="label_3">
+                   <property name="text">
+                    <string>Грубый, %</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QDoubleSpinBox" name="doubleSpinBox_3">
+                   <property name="decimals">
+                    <number>3</number>
+                   </property>
+                   <property name="maximum">
+                    <double>100.000000000000000</double>
+                   </property>
+                   <property name="value">
+                    <double>0.500000000000000</double>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <spacer name="verticalSpacer">
+                   <property name="orientation">
+                    <enum>Qt::Vertical</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>20</width>
+                     <height>40</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
+                </layout>
+               </widget>
+              </item>
+              <item>
+               <layout class="QVBoxLayout" name="verticalLayout_6">
+                <property name="leftMargin">
+                 <number>9</number>
+                </property>
+                <property name="topMargin">
+                 <number>6</number>
+                </property>
+                <property name="rightMargin">
+                 <number>9</number>
+                </property>
+                <property name="bottomMargin">
+                 <number>6</number>
+                </property>
+                <item>
+                 <widget class="QLabel" name="label_4">
+                  <property name="whatsThis">
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Во время измерения, при нажатии кнопки &amp;quot;Перейти к точке&amp;quot;, на калибраторе будет установлено значение: &lt;/p&gt;&lt;p&gt;&amp;quot;выбранная точка +(-) начальное отклонение&amp;quot;. &lt;/p&gt;&lt;p&gt;Начальное отклонение задается в процентах от максимума шкалы поверяемого прибора.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  </property>
+                  <property name="text">
+                   <string>Начальное отклонение, %</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QSpinBox" name="spinBox">
+                  <property name="maximum">
+                   <number>100</number>
+                  </property>
+                  <property name="value">
+                   <number>5</number>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+             </layout>
+            </item>
+           </layout>
+          </widget>
          </widget>
         </item>
        </layout>
