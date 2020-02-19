@@ -42,7 +42,7 @@ class SettingsDialog(QtWidgets.QDialog):
         self.marks_widget = MarksWidget(a_db_connection, a_db_tables, a_parent=self)
         self.ui.marks_layout.addWidget(self.marks_widget)
 
-        self.edit_fixed_range_widget = EditedListWithUnits(self, "В", (), a_list_name="Шаг")
+        self.edit_fixed_range_widget = EditedListWithUnits(self, "В", self.settings.fixed_step_list, a_list_name="Шаг")
         self.ui.fixed_range_groupbox.layout().addWidget(self.edit_fixed_range_widget)
 
         self.ui.settings_menu_list.setCurrentRow(0)
@@ -50,6 +50,22 @@ class SettingsDialog(QtWidgets.QDialog):
 
     def save(self):
         try:
+            fixed_step_list = self.edit_fixed_range_widget.get_list()
+            if self.settings.fixed_step_list != fixed_step_list:
+                self.settings.fixed_step_list = fixed_step_list
+
+            if self.settings.rough_step != self.ui.rough_step_spinbox.value():
+                self.settings.rough_step = self.ui.rough_step_spinbox.value()
+
+            if self.settings.common_step != self.ui.common_step_spinbox.value():
+                self.settings.common_step = self.ui.common_step_spinbox.value()
+
+            if self.settings.exact_step != self.ui.exact_step_spinbox.value():
+                self.settings.exact_step = self.ui.exact_step_spinbox.value()
+
+            if self.settings.start_deviation != self.ui.start_deviation_spinbox.value():
+                self.settings.start_deviation = self.ui.start_deviation_spinbox.value()
+
             return self.marks_widget.save()
         except Exception as err:
             print(err)

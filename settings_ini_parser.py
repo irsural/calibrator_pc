@@ -24,7 +24,7 @@ class Settings(QtCore.QObject):
     ValueTypeConvertFoo = {
         ValueType.INT: int,
         ValueType.FLOAT: float,
-        ValueType.LIST: lambda s: s.split(',')
+        ValueType.LIST: lambda s: [float(val) for val in s.split(',')]
     }
 
     MEASURE_SECTION = "Measure"
@@ -134,13 +134,13 @@ class Settings(QtCore.QObject):
         final_list = list(dict.fromkeys(a_list))
         final_list.sort()
 
-        saved_string = ','.join(utils.float_to_string(val) for val in final_list)
+        saved_string = ','.join(str(val) for val in final_list)
         saved_string = saved_string.strip(',')
 
         self.settings[self.MEASURE_SECTION][self.FIXED_STEP_KEY] = saved_string
         self.save()
 
-        self.__fixed_step_list = final_list
+        self.__fixed_step_list = [float(val) for val in final_list]
         self.__fixed_step_idx = utils.bound(self.__fixed_step_idx, 0, len(self.__fixed_step_list) - 1)
         self.fixed_step_changed.emit()
 

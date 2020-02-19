@@ -140,11 +140,10 @@ class MeasureWindow(QtWidgets.QWidget):
         self.ui.fixed_step_combobox.clear()
         for val in values:
             try:
-                value_str = self.value_to_user(float(val))
+                value_str = self.value_to_user(val)
                 self.ui.fixed_step_combobox.addItem(value_str)
             except ValueError:
                 pass
-        self.ui.fixed_step_combobox.setCurrentIndex(self.settings.fixed_step_idx)
 
     # noinspection DuplicatedCode
     def connect_signals(self):

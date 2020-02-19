@@ -40,11 +40,11 @@ class EditedListWidget(QtWidgets.QWidget):
         edit = self.ui.list_widget.itemFromIndex(a_index)
         edit.setText(self.process_input(edit.text()))
 
-    def process_input(self, a_input):
+    def process_input(self, a_input: str):
         return a_input
 
     def add_item(self, a_init_value="0", a_edit_item=True):
-        list_item = QtWidgets.QListWidgetItem(a_init_value, self.ui.list_widget)
+        list_item = QtWidgets.QListWidgetItem(self.process_input(a_init_value), self.ui.list_widget)
         list_item.setFlags(int(list_item.flags()) | QtCore.Qt.ItemIsEditable)
         self.ui.list_widget.addItem(list_item)
         self.ui.list_widget.setCurrentItem(list_item)
@@ -57,17 +57,13 @@ class EditedListWidget(QtWidgets.QWidget):
     def add_list_item_button_clicked(self):
         self.add_item()
 
-    def __prepare_list(self):
+    def get_list(self):
         out_list = []
         for idx in range(self.ui.list_widget.count()):
             item = self.ui.list_widget.item(idx).text()
             if item not in out_list:
                 out_list.append(item)
         return out_list
-
-    @pyqtSlot()
-    def get_list(self):
-        return self.__prepare_list()
 
 
 class QRegExpDelegator(QtWidgets.QItemDelegate):
@@ -104,22 +100,22 @@ class EditedListOnlyNumbers(EditedListWidget):
 
 class EditedListWithUnits(EditedListWidget):
     def __init__(self, parent=None, units: str = "В", a_init_items=(), a_list_name="List name"):
-        super().__init__(parent, a_init_items, a_list_name)
+        self.value_to_user = utils.value_to_user_with_units(units)
+        items_with_units = (self.value_to_user(item) for item in a_init_items)
+        super().__init__(parent, items_with_units, a_list_name)
 
         delegator = QRegExpDelegator(self, utils.check_input_no_python_re.pattern)
         delegator.editing_finished.connect(self.item_editing_finished)
         self.ui.list_widget.setItemDelegate(delegator)
-
-        self.units = units
 
     def process_input(self, a_input: str):
         try:
             processed_value = utils.parse_input(a_input)
         except ValueError:
             processed_value = 0
-        return utils.value_to_user_with_units(self.units)(processed_value)
+        return self.value_to_user(processed_value)
 
-    def prepare_list(self) -> List[float]:
+    def get_list(self) -> List[float]:
         out_list = []
         try:
             for idx in range(self.ui.list_widget.count()):
