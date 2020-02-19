@@ -1,11 +1,6 @@
-import configparser
-import linecache
 import sqlite3
-import sys
-import os
 
 from PyQt5.QtCore import pyqtSlot, pyqtSignal
-from PyQt5.QtWidgets import QMessageBox
 from PyQt5 import QtWidgets, QtCore, QtGui
 
 from new_fast_measure_dialog import NewFastMeasureDialog, FastMeasureParams
@@ -16,9 +11,9 @@ from ui.py.mainwindow import Ui_MainWindow as MainForm
 from measure_window import MeasureWindow
 from source_mode_window import SourceModeWindow
 from settings_dialog import SettingsDialog
+from settings_ini_parser import Settings
 from startwindow import StartWindow
 import calibrator_constants as clb
-import constants as cfg
 import clb_dll
 import utils
 
@@ -38,7 +33,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.previous_start_window_pos = self.pos()
         self.show_start_window()
 
-        self.settings = self.restore_settings(cfg.CONFIG_PATH)
+        self.settings = Settings(self)
 
         self.clb_driver = clb_dll.set_up_driver(clb_dll.path)
         self.usb_driver = clb_dll.UsbDrv(self.clb_driver)
@@ -65,24 +60,6 @@ class MainWindow(QtWidgets.QMainWindow):
     def __del__(self):
         if hasattr(self, "db_connection"):
             self.db_connection.close()
-
-    @staticmethod
-    def restore_settings(a_path: str):
-        settings = configparser.ConfigParser()
-
-        if not os.path.exists(a_path):
-            settings[cfg.NO_TEMPLATE_SECTION] = {cfg.FIXED_RANGES_KEY: "0.0001,0.01,0.1,1,10,20,100"}
-            utils.save_settings(a_path, settings)
-        else:
-            settings.read(a_path)
-
-        # Выводит ini файл в консоль
-        # for key in settings:
-        #     print(f"[{key}]")
-        #     for subkey in settings[key]:
-        #         print(f"{subkey} = {settings[key][subkey]}")
-
-        return settings
 
     def create_db(self, a_db_name: str):
         connection = sqlite3.connect(a_db_name)
@@ -212,7 +189,6 @@ class MainWindow(QtWidgets.QMainWindow):
                                              a_db_tables=self.measure_db_tables,
                                              a_settings=self.settings,
                                              a_parent=self))
-            # self.ui.change_fixed_range_action.triggered.connect(self.active_window.edit_fixed_step)
         except Exception as err:
             utils.exception_handler(err)
 

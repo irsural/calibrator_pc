@@ -8,6 +8,7 @@ from PyQt5.QtWidgets import QApplication
 from PyQt5 import QtCore
 
 from mainwindow import MainWindow
+from utils import exception_handler
 
 
 if __name__ == "__main__":
@@ -23,4 +24,5 @@ if __name__ == "__main__":
         w = MainWindow()
         sys.exit(app.exec())
     except Exception as err:
-        print("MAIN: ", err)
+        print("MAIN:")
+        exception_handler(err)

@@ -152,7 +152,7 @@ QListWidget::item {
         <item>
          <widget class="QStackedWidget" name="settings_stackedwidget">
           <property name="currentIndex">
-           <number>1</number>
+           <number>0</number>
           </property>
           <widget class="QWidget" name="marks_page">
            <layout class="QGridLayout" name="gridLayout">

@@ -1,12 +1,12 @@
 from enum import IntEnum
 from sqlite3 import Connection
-import configparser
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import pyqtSignal, pyqtSlot
 
+from custom_widgets.EditListDialog import EditedListWithUnits
 from ui.py.settings_form import Ui_Dialog as SettingsForm
-from custom_widgets.EditListDialog import EditedListWidget
+from settings_ini_parser import Settings
 from db_measures import MeasureTables
 from marks_widget import MarksWidget
 import calibrator_constants as clb
@@ -26,7 +26,7 @@ class SettingsDialog(QtWidgets.QDialog):
 
     fixed_range_changed = pyqtSignal()
 
-    def __init__(self, a_settings: configparser.ConfigParser, a_db_connection: Connection, a_db_tables: MeasureTables,
+    def __init__(self, a_settings: Settings, a_db_connection: Connection, a_db_tables: MeasureTables,
                  a_parent=None):
         super().__init__(a_parent)
 
@@ -42,7 +42,7 @@ class SettingsDialog(QtWidgets.QDialog):
         self.marks_widget = MarksWidget(a_db_connection, a_db_tables, a_parent=self)
         self.ui.marks_layout.addWidget(self.marks_widget)
 
-        self.edit_fixed_range_widget = EditedListWidget(self, (), a_list_name="")
+        self.edit_fixed_range_widget = EditedListWithUnits(self, "В", (), a_list_name="Шаг")
         self.ui.fixed_range_groupbox.layout().addWidget(self.edit_fixed_range_widget)
 
     def save(self):

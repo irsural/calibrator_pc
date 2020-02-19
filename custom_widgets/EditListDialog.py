@@ -103,7 +103,7 @@ class EditedListOnlyNumbers(EditedListWidget):
 
 
 class EditedListWithUnits(EditedListWidget):
-    def __init__(self, units, parent=None, a_init_items=(), a_list_name="List name"):
+    def __init__(self, parent=None, units: str = "В", a_init_items=(), a_list_name="List name"):
         super().__init__(parent, a_init_items, a_list_name)
 
         delegator = QRegExpDelegator(self, utils.check_input_no_python_re.pattern)

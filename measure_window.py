@@ -1,6 +1,5 @@
 from sqlite3 import Connection
 from typing import List
-import configparser
 
 from PyQt5.QtWidgets import QMessageBox, QMenu, QAction, QTableView
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QTimer, QPoint, QModelIndex, Qt
@@ -10,9 +9,9 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from QNoTemplateMeasureModel import PointData, QNoTemplateMeasureModel
 from custom_widgets.NonOverlappingPainter import NonOverlappingPainter
 from on_run_edit_template_dialog import OnRunEditConfigDialog
-from custom_widgets.EditListDialog import EditedListWithUnits
 from ui.py.measure_form import Ui_main_widget as MeasureForm
 from db_measures import MeasureParams, MeasureTables, MeasuresDB
+from settings_ini_parser import Settings
 import calibrator_constants as clb
 import constants as cfg
 import clb_dll
@@ -25,7 +24,7 @@ class MeasureWindow(QtWidgets.QWidget):
     close_confirmed = pyqtSignal()
 
     def __init__(self, a_calibrator: clb_dll.ClbDrv, a_measure_config: MeasureParams, a_db_connection: Connection,
-                 a_db_tables: MeasureTables, a_settings: configparser.ConfigParser, a_parent=None):
+                 a_db_tables: MeasureTables, a_settings: Settings, a_parent=None):
         super().__init__(a_parent)
 
         self.ui = MeasureForm()
@@ -79,8 +78,9 @@ class MeasureWindow(QtWidgets.QWidget):
         self.header_menu, self.manual_connections = self.create_table_header_context_menu(self.ui.measure_table)
 
         self.fixed_step = 0
-        self.fixed_range_amplitudes_list = self.settings[cfg.NO_TEMPLATE_SECTION][cfg.FIXED_RANGES_KEY].split(',')
-        self.fill_fixed_step_combobox(self.fixed_range_amplitudes_list, a_save=False)
+        self.fixed_step_list = self.settings.fixed_step_list
+        self.fill_fixed_step_combobox()
+        self.settings.fixed_step_changed.connect(self.fill_fixed_step_combobox)
 
         # Вызывать после создания self.measure_model и после self.fill_fixed_step_combobox
         self.connect_signals()
@@ -135,34 +135,17 @@ class MeasureWindow(QtWidgets.QWidget):
         for point in self.measure_config.points:
             self.measure_model.appendPoint(PointData(a_point=point.amplitude, a_frequency=point.frequency))
 
-    @pyqtSlot(list)
-    def fill_fixed_step_combobox(self, a_values: List[float], a_save=True):
-        save_string = ""
-        self.ui.fixed_step_combobox.clear()
-        a_values.sort()
+    def fill_fixed_step_combobox(self):
+        values: List[float] = self.settings.fixed_step_list
 
-        for val in a_values:
+        self.ui.fixed_step_combobox.clear()
+        for val in values:
             try:
                 value_str = self.value_to_user(float(val))
-            except ValueError:
-                value_str = self.value_to_user(0)
-
-            if self.ui.fixed_step_combobox.findText(value_str) == -1:
                 self.ui.fixed_step_combobox.addItem(value_str)
-                save_string += f"{val},"
-
-        if a_save:
-            save_string = save_string.strip(',')
-            self.settings[cfg.NO_TEMPLATE_SECTION][cfg.FIXED_RANGES_KEY] = save_string
-            utils.save_settings(cfg.CONFIG_PATH, self.settings)
-
-    @pyqtSlot()
-    def edit_fixed_step(self):
-        current_ranges = \
-            tuple(self.ui.fixed_step_combobox.itemText(ind) for ind in range(self.ui.fixed_step_combobox.count()))
-        edit_ranges_dialog = EditedListWithUnits(self.units_text, self, current_ranges,
-                                                 "Редактирование фиксированного шага", "Шаг")
-        edit_ranges_dialog.list_ready.connect(self.fill_fixed_step_combobox)
+            except ValueError:
+                pass
+        self.ui.fixed_step_combobox.setCurrentIndex(self.settings.fixed_step_idx)
 
     # noinspection DuplicatedCode
     def connect_signals(self):
@@ -547,7 +530,7 @@ class MeasureWindow(QtWidgets.QWidget):
             self.calibrator.signal_enable = False
 
             self.measures_db.save(self.measure_config, self.measure_model.exportPoints())
-            print()
+            self.settings.fixed_step_idx = self.ui.fixed_step_combobox.currentIndex()
 
             # Без этого диалог не уничтожится
             for sender, connection in self.manual_connections:

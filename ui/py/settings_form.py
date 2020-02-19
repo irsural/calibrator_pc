@@ -165,7 +165,7 @@ class Ui_Dialog(object):
 
         self.retranslateUi(Dialog)
         self.settings_menu_list.setCurrentRow(0)
-        self.settings_stackedwidget.setCurrentIndex(1)
+        self.settings_stackedwidget.setCurrentIndex(0)
         self.settings_menu_list.currentRowChanged['int'].connect(self.settings_stackedwidget.setCurrentIndex)
         QtCore.QMetaObject.connectSlotsByName(Dialog)
 
