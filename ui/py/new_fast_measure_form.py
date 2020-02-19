@@ -256,6 +256,23 @@ class Ui_Dialog(object):
 
         self.retranslateUi(Dialog)
         QtCore.QMetaObject.connectSlotsByName(Dialog)
+        Dialog.setTabOrder(self.aci_radio, self.acv_radio)
+        Dialog.setTabOrder(self.acv_radio, self.dci_radio)
+        Dialog.setTabOrder(self.dci_radio, self.dcv_radio)
+        Dialog.setTabOrder(self.dcv_radio, self.upper_bound_edit)
+        Dialog.setTabOrder(self.upper_bound_edit, self.minimal_discrete)
+        Dialog.setTabOrder(self.minimal_discrete, self.accuracy_class_spinbox)
+        Dialog.setTabOrder(self.accuracy_class_spinbox, self.comment_edit)
+        Dialog.setTabOrder(self.comment_edit, self.auto_calc_points_checkbox)
+        Dialog.setTabOrder(self.auto_calc_points_checkbox, self.lower_bound_edit)
+        Dialog.setTabOrder(self.lower_bound_edit, self.step_edit)
+        Dialog.setTabOrder(self.step_edit, self.invisible_default_button)
+        Dialog.setTabOrder(self.invisible_default_button, self.start_point_down_radio)
+        Dialog.setTabOrder(self.start_point_down_radio, self.start_point_up_radio)
+        Dialog.setTabOrder(self.start_point_up_radio, self.frequency_edit)
+        Dialog.setTabOrder(self.frequency_edit, self.edit_frequency_button)
+        Dialog.setTabOrder(self.edit_frequency_button, self.accept_button)
+        Dialog.setTabOrder(self.accept_button, self.cancel_button)
 
     def retranslateUi(self, Dialog):
         _translate = QtCore.QCoreApplication.translate

@@ -70,6 +70,8 @@ class Ui_Form(object):
 
         self.retranslateUi(Form)
         QtCore.QMetaObject.connectSlotsByName(Form)
+        Form.setTabOrder(self.add_list_item_button, self.delete_list_item_button)
+        Form.setTabOrder(self.delete_list_item_button, self.list_widget)
 
     def retranslateUi(self, Form):
         _translate = QtCore.QCoreApplication.translate

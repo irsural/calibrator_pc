@@ -1166,6 +1166,30 @@ selection-background-color: rgb(170, 170, 255);</string>
    <header>custom_widgets.CustomLineEdit</header>
   </customwidget>
  </customwidgets>
+ <tabstops>
+  <tabstop>clb_list_combobox</tabstop>
+  <tabstop>edit_parameters_button</tabstop>
+  <tabstop>pause_button</tabstop>
+  <tabstop>fixed_step_combobox</tabstop>
+  <tabstop>rough_plus_button</tabstop>
+  <tabstop>rough_minus_button</tabstop>
+  <tabstop>common_plus_button</tabstop>
+  <tabstop>common_minus_button</tabstop>
+  <tabstop>exact_plus_button</tabstop>
+  <tabstop>exact_minus_button</tabstop>
+  <tabstop>fixed_plus_button</tabstop>
+  <tabstop>fixed_minus_button</tabstop>
+  <tabstop>amplitude_edit</tabstop>
+  <tabstop>apply_amplitude_button</tabstop>
+  <tabstop>frequency_edit</tabstop>
+  <tabstop>apply_frequency_button</tabstop>
+  <tabstop>measure_table</tabstop>
+  <tabstop>save_point_button</tabstop>
+  <tabstop>go_to_point_button</tabstop>
+  <tabstop>delete_point_button</tabstop>
+  <tabstop>start_stop_button</tabstop>
+  <tabstop>zero_deviation_edit</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

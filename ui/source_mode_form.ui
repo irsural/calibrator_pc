@@ -264,10 +264,24 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>clb_list_combobox</tabstop>
+  <tabstop>amplitude_edit</tabstop>
+  <tabstop>frequency_spinbox</tabstop>
+  <tabstop>aci_radio</tabstop>
+  <tabstop>acv_radio</tabstop>
+  <tabstop>dcv_radio</tabstop>
+  <tabstop>dci_radio</tabstop>
+  <tabstop>polarity_button</tabstop>
+  <tabstop>source_mode_radio</tabstop>
+  <tabstop>fixed_mode_radio</tabstop>
+  <tabstop>detuning_radio</tabstop>
+  <tabstop>enable_button</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
  <buttongroups>
-  <buttongroup name="signal_group"/>
   <buttongroup name="mode_group"/>
+  <buttongroup name="signal_group"/>
  </buttongroups>
 </ui>

@@ -150,6 +150,11 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>add_list_item_button</tabstop>
+  <tabstop>delete_list_item_button</tabstop>
+  <tabstop>list_widget</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

@@ -561,6 +561,26 @@
    <header>custom_widgets.CustomLineEdit</header>
   </customwidget>
  </customwidgets>
+ <tabstops>
+  <tabstop>aci_radio</tabstop>
+  <tabstop>acv_radio</tabstop>
+  <tabstop>dci_radio</tabstop>
+  <tabstop>dcv_radio</tabstop>
+  <tabstop>upper_bound_edit</tabstop>
+  <tabstop>minimal_discrete</tabstop>
+  <tabstop>accuracy_class_spinbox</tabstop>
+  <tabstop>comment_edit</tabstop>
+  <tabstop>auto_calc_points_checkbox</tabstop>
+  <tabstop>lower_bound_edit</tabstop>
+  <tabstop>step_edit</tabstop>
+  <tabstop>invisible_default_button</tabstop>
+  <tabstop>start_point_down_radio</tabstop>
+  <tabstop>start_point_up_radio</tabstop>
+  <tabstop>frequency_edit</tabstop>
+  <tabstop>edit_frequency_button</tabstop>
+  <tabstop>accept_button</tabstop>
+  <tabstop>cancel_button</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
  <buttongroups>

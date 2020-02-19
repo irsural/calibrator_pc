@@ -115,6 +115,14 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>user_name_edit</tabstop>
+  <tabstop>date_edit</tabstop>
+  <tabstop>serial_number_edit</tabstop>
+  <tabstop>owner_edit</tabstop>
+  <tabstop>accept_button</tabstop>
+  <tabstop>reject_button</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

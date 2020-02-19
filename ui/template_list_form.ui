@@ -419,6 +419,24 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>filter_edit</tabstop>
+  <tabstop>templates_list</tabstop>
+  <tabstop>template_name_edit</tabstop>
+  <tabstop>organisation_edit</tabstop>
+  <tabstop>etalon_device_edit</tabstop>
+  <tabstop>device_name_edit</tabstop>
+  <tabstop>device_creator_edit</tabstop>
+  <tabstop>device_system_combobox</tabstop>
+  <tabstop>signal_type_combobox</tabstop>
+  <tabstop>class_spinbox</tabstop>
+  <tabstop>add_point_button</tabstop>
+  <tabstop>remove_point_button</tabstop>
+  <tabstop>points_table</tabstop>
+  <tabstop>choose_template_button</tabstop>
+  <tabstop>save_template_button</tabstop>
+  <tabstop>cancel_edit_template_button</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>
