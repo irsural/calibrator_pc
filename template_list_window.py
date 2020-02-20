@@ -40,6 +40,11 @@ class TemplateListWindow(QtWidgets.QDialog):
         self.ui.add_point_button.clicked.connect(self.points_table.append_point)
         self.ui.remove_point_button.clicked.connect(self.points_table.delete_selected_points)
 
+        self.ui.add_template_button.clicked.connect(self.create_new_template)
+        self.ui.edit_template_button.clicked.connect(self.edit_template)
+        self.ui.duplicate_template_button.clicked.connect(self.duplicate_template)
+        self.ui.delete_template_button.clicked.connect(self.delete_current_template)
+
         self.ui.choose_template_button.clicked.connect(self.choose_template)
         self.ui.templates_list.itemDoubleClicked.connect(self.choose_template)
 
@@ -184,9 +189,14 @@ class TemplateListWindow(QtWidgets.QDialog):
     @pyqtSlot()
     def delete_current_template(self):
         try:
-            deleted_item = self.ui.templates_list.takeItem(self.ui.templates_list.currentRow())
-            result = self.templates_db.delete(deleted_item.text())
-            assert result, "database operation 'delete' has failed!"
+            deleted_item = self.ui.templates_list.currentItem()
+            reply = QtWidgets.QMessageBox.question(self, "Подтвердите действие", f"Вы действительно хотите удалить "
+                                                   f"шаблон '{deleted_item.text()}'?", QtWidgets.QMessageBox.Yes |
+                                                   QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)
+            if reply == QtWidgets.QMessageBox.Yes:
+                self.ui.templates_list.takeItem(self.ui.templates_list.currentRow())
+                result = self.templates_db.delete(deleted_item.text())
+                assert result, "database operation 'delete' has failed!"
         except AssertionError as err:
             print(err)
 
