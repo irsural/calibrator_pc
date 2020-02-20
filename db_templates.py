@@ -108,11 +108,11 @@ class TemplatesDB:
 
     def delete(self, a_name: str):
         with self.connection:
-            self.cursor.execute(f"delete from {self.templates_tab} WHERE name = '{a_name}'")
+            self.cursor.execute(f"delete from {self.templates_tab} where name = '{a_name}'")
             return True
 
     def is_name_exist(self, a_name: str):
-        c = self.cursor.execute(f"SELECT EXISTS(SELECT 1 FROM {self.templates_tab} WHERE name='{a_name}')")
+        c = self.cursor.execute(f"SELECT EXISTS(SELECT 1 FROM {self.templates_tab} where name='{a_name}')")
         res = c.fetchone()
         return res[0]
 

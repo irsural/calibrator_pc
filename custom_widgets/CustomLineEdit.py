@@ -12,6 +12,8 @@ class QEditDoubleClick(QtWidgets.QLineEdit):
         super().__init__(a_parent)
         self.select_span = None
 
+        self.editingFinished.connect(self.clearFocus)
+
     def mouseDoubleClickEvent(self, a_event: QtGui.QMouseEvent):
         super().mouseDoubleClickEvent(a_event)
         result = utils.find_number_re.finditer(self.text())

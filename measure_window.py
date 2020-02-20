@@ -57,6 +57,7 @@ class MeasureWindow(QtWidgets.QWidget):
         self.soft_approach_time_s = 4
         # Нужен, чтобы убедиться, что фиксированный диапазон выставлен, после чего включить сигнал
         self.start_measure_timer = QTimer(self)
+        self.started = False
 
         self.calibrator = a_calibrator
         self.clb_state = clb.State.DISCONNECTED
@@ -321,6 +322,7 @@ class MeasureWindow(QtWidgets.QWidget):
         self.set_amplitude(self.highest_amplitude)
         self.calibrator.mode = clb.Mode.FIXED_RANGE
         self.calibrator.signal_type = self.measure_config.signal_type
+        self.started = True
 
         self.start_measure_timer.start(1100)
 
@@ -531,18 +533,25 @@ class MeasureWindow(QtWidgets.QWidget):
             utils.exception_handler(err)
 
     def ask_for_close(self):
-        reply = QMessageBox.question(self, "Подтвердите действие", "Завершить поверку?", QMessageBox.Yes |
-                                     QMessageBox.No, QMessageBox.No)
-        if reply == QMessageBox.Yes:
-            self.calibrator.signal_enable = False
-            self.measures_db.save(self.measure_config, self.measure_model.exportPoints())
-            self.save_settings()
+        try:
+            reply = QMessageBox.question(self, "Подтвердите действие", "Завершить поверку?", QMessageBox.Yes |
+                                         QMessageBox.No, QMessageBox.No)
+            if reply == QMessageBox.Yes:
+                self.calibrator.signal_enable = False
+                if self.started:
+                    self.measures_db.save(self.measure_config, self.measure_model.exportPoints())
+                else:
+                    self.measures_db.delete(self.measure_config)
 
-            # Без этого диалог не уничтожится
-            for sender, connection in self.manual_connections:
-                sender.triggered.disconnect(connection)
+                self.save_settings()
 
-            self.close_confirmed.emit()
+                # Без этого диалог не уничтожится
+                for sender, connection in self.manual_connections:
+                    sender.triggered.disconnect(connection)
+
+                self.close_confirmed.emit()
+        except AssertionError as err:
+            utils.exception_handler(err)
 
     def save_settings(self):
         self.settings.fixed_step_idx = self.ui.fixed_step_combobox.currentIndex()

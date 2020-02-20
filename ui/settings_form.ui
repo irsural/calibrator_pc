@@ -350,6 +350,9 @@ QListWidget::item {
          <property name="text">
           <string>Ок</string>
          </property>
+         <property name="autoDefault">
+          <bool>true</bool>
+         </property>
         </widget>
        </item>
        <item>
@@ -357,12 +360,21 @@ QListWidget::item {
          <property name="text">
           <string>Отмена</string>
          </property>
+         <property name="autoDefault">
+          <bool>false</bool>
+         </property>
         </widget>
        </item>
        <item>
         <widget class="QPushButton" name="save_button">
          <property name="text">
           <string>Принять</string>
+         </property>
+         <property name="autoDefault">
+          <bool>false</bool>
+         </property>
+         <property name="default">
+          <bool>false</bool>
          </property>
         </widget>
        </item>

@@ -105,19 +105,17 @@ class NewFastMeasureDialog(QDialog):
 
         self.ui.lower_bound_edit.textEdited.connect(self.edit_text_edited)
         self.ui.lower_bound_edit.editingFinished.connect(self.editinig_finished)
-        self.ui.lower_bound_edit.editingFinished.connect(self.ui.lower_bound_edit.clearFocus)
 
         self.ui.upper_bound_edit.textEdited.connect(self.edit_text_edited)
         self.ui.upper_bound_edit.editingFinished.connect(self.editinig_finished)
-        self.ui.upper_bound_edit.editingFinished.connect(self.ui.upper_bound_edit.clearFocus)
 
         self.ui.step_edit.textEdited.connect(self.edit_text_edited)
         self.ui.step_edit.editingFinished.connect(self.editinig_finished)
-        self.ui.step_edit.editingFinished.connect(self.ui.step_edit.clearFocus)
 
         self.ui.minimal_discrete.textEdited.connect(self.edit_text_edited)
         self.ui.minimal_discrete.editingFinished.connect(self.editinig_finished)
-        self.ui.minimal_discrete.editingFinished.connect(self.ui.minimal_discrete.clearFocus)
+
+        self.ui.comment_edit.editingFinished.connect(self.ui.comment_edit.clearFocus)
 
         self.ui.accept_button.clicked.connect(self.accept)
         self.ui.cancel_button.clicked.connect(self.reject)
