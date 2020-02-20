@@ -184,9 +184,7 @@ class MeasureWindow(QtWidgets.QWidget):
         self.ui.fixed_step_combobox.currentTextChanged.connect(self.set_fixed_step)
         self.ui.pause_button.toggled.connect(self.pause_start_signal)
 
-        self.ui.zero_deviation_edit.editingFinished.connect(self.ui.zero_deviation_edit.clearFocus)
         self.start_measure_timer.timeout.connect(self.check_fixed_range)
-
         self.soft_approach_timer.timeout.connect(self.set_amplitude_soft)
 
         self.ui.edit_parameters_button.clicked.connect(self.update_config)
@@ -564,4 +562,3 @@ class MeasureWindow(QtWidgets.QWidget):
                                         range(self.measure_model.columnCount())]
 
         self.settings.save_geometry(self.__class__.__name__, self.parent.saveGeometry())
-

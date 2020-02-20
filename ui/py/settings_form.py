@@ -13,7 +13,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_Dialog(object):
     def setupUi(self, Dialog):
         Dialog.setObjectName("Dialog")
-        Dialog.resize(558, 382)
+        Dialog.resize(563, 416)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -128,6 +128,9 @@ class Ui_Dialog(object):
         self.rough_step_spinbox.setProperty("value", 0.5)
         self.rough_step_spinbox.setObjectName("rough_step_spinbox")
         self.verticalLayout_5.addWidget(self.rough_step_spinbox)
+        self.checkBox = QtWidgets.QCheckBox(self.verticalGroupBox_2)
+        self.checkBox.setObjectName("checkBox")
+        self.verticalLayout_5.addWidget(self.checkBox)
         self.mouse_inversion_checkbox = QtWidgets.QCheckBox(self.verticalGroupBox_2)
         self.mouse_inversion_checkbox.setObjectName("mouse_inversion_checkbox")
         self.verticalLayout_5.addWidget(self.mouse_inversion_checkbox)
@@ -198,6 +201,9 @@ class Ui_Dialog(object):
         self.label.setText(_translate("Dialog", "Точный, %"))
         self.label_2.setText(_translate("Dialog", "Обычный, %"))
         self.label_3.setText(_translate("Dialog", "Грубый, %"))
+        self.checkBox.setText(_translate("Dialog", "Отключить прокрутку шага,\n"
+"если курсор мыши находится\n"
+"на таблице измерения"))
         self.mouse_inversion_checkbox.setText(_translate("Dialog", "Инвертировать\n"
 "колесо мыши"))
         self.label_4.setWhatsThis(_translate("Dialog", "<html><head/><body><p>Во время измерения, при нажатии кнопки &quot;Перейти к точке&quot;, на калибраторе будет установлено значение: </p><p>&quot;выбранная точка +(-) начальное отклонение&quot;. </p><p>Начальное отклонение задается в процентах от максимума шкалы поверяемого прибора.</p></body></html>"))
