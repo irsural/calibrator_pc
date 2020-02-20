@@ -25,7 +25,6 @@ class TemplateListWindow(QtWidgets.QDialog):
 
         self.settings = a_settings
         self.restoreGeometry(self.settings.get_last_geometry(self.__class__.__name__))
-        # self.parent.show()
 
         self.db_operation = OperationDB.ADD
         self.prev_template_name = ""

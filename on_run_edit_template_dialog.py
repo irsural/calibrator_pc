@@ -6,17 +6,20 @@ from PyQt5.QtCore import pyqtSignal, pyqtSlot
 from ui.py.on_run_edit_template_form import Ui_Dialog as OnRunEditConfigForm
 from marks_widget import MarksWidget
 from db_measures import MeasureParams, MeasureTables
+from settings_ini_parser import Settings
 import utils
 
 
 class OnRunEditConfigDialog(QtWidgets.QDialog):
-    def __init__(self, a_measure_config: MeasureParams, a_db_connection: Connection, a_db_tables: MeasureTables,
-                 a_parent=None):
-
+    def __init__(self, a_settings: Settings, a_measure_config: MeasureParams, a_db_connection: Connection,
+                 a_db_tables: MeasureTables, a_parent=None):
         super().__init__(a_parent)
 
         self.ui = OnRunEditConfigForm()
         self.ui.setupUi(self)
+
+        self.settings = a_settings
+        self.restoreGeometry(self.settings.get_last_geometry(self.__class__.__name__))
 
         self.measure_config = a_measure_config
 
@@ -58,3 +61,6 @@ class OnRunEditConfigDialog(QtWidgets.QDialog):
         self.measure_config.device_system = self.ui.system_combobox.currentIndex()
         self.measure_config.comment = self.ui.comment_edit.text()
 
+    def closeEvent(self, a_event: QtGui.QCloseEvent) -> None:
+        self.settings.save_geometry(self.__class__.__name__, self.saveGeometry())
+        a_event.accept()

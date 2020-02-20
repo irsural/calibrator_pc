@@ -67,6 +67,38 @@
        </layout>
       </item>
       <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_4">
+        <item>
+         <widget class="QPushButton" name="edit_template_button">
+          <property name="text">
+           <string>Edit</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="duplicate_template_button">
+          <property name="text">
+           <string>Copy</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="add_template_button">
+          <property name="text">
+           <string>+</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="delete_template_button">
+          <property name="text">
+           <string>-</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
        <widget class="QListWidget" name="templates_list">
         <property name="contextMenuPolicy">
          <enum>Qt::CustomContextMenu</enum>

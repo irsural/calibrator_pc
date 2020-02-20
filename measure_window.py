@@ -526,8 +526,8 @@ class MeasureWindow(QtWidgets.QWidget):
 
     def update_config(self):
         try:
-            on_run_params_edit_dialog = OnRunEditConfigDialog(self.measure_config, self.db_connection, self.db_tables,
-                                                              self)
+            on_run_params_edit_dialog = OnRunEditConfigDialog(self.settings, self.measure_config, self.db_connection,
+                                                              self.db_tables, self)
             on_run_params_edit_dialog.exec()
         except AssertionError as err:
             utils.exception_handler(err)
