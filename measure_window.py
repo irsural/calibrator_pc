@@ -246,7 +246,7 @@ class MeasureWindow(QtWidgets.QWidget):
         elif keys & Qt.ShiftModifier:
             self.tune_amplitude(self.settings.exact_step * steps)
         elif keys & Qt.ControlModifier:
-            self.tune_amplitude(self.settings.exact_step * steps)
+            self.tune_amplitude(self.settings.rough_step * steps)
         else:
             self.tune_amplitude(self.settings.common_step * steps)
 
@@ -328,7 +328,7 @@ class MeasureWindow(QtWidgets.QWidget):
 
     @pyqtSlot()
     def save_point(self):
-        if self.clb_state == clb.State.READY:
+        if self.clb_state != clb.State.WAITING_SIGNAL:
             try:
                 if self.measure_model.isPointGood(self.current_point.point, self.current_point.approach_side):
                     side_text = "СНИЗУ" if self.current_point.approach_side == PointData.ApproachSide.DOWN \
@@ -341,7 +341,10 @@ class MeasureWindow(QtWidgets.QWidget):
                     if reply == QMessageBox.Yes:
                         self.update_table(self.current_point)
                 else:
-                    self.update_table(self.current_point)
+                    if self.clb_state == clb.State.READY:
+                        self.update_table(self.current_point)
+                    else:
+                        self.update_table(PointData(a_point=self.current_point.point))
             except AssertionError as err:
                 print(err)
         else:
