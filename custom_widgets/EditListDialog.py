@@ -1,34 +1,27 @@
 from typing import List
 
 from PyQt5.QtCore import pyqtSignal, pyqtSlot
-from PyQt5.QtWidgets import QDialog
 from PyQt5 import QtWidgets, QtGui, QtCore
 
-from ui.py.edited_lsit_form import Ui_Dialog as EditedListForm
+from ui.py.edited_lsit_widget import Ui_Form as EditedListForm
+from ui.py.ok_cancel_dialog import Ui_Dialog as OkCancelForm
 from custom_widgets.CustomLineEdit import QEditDoubleClick
 import utils
 
 
-class EditedListDialog(QDialog):
-    list_ready = pyqtSignal(list)
-
-    def __init__(self, parent=None, a_init_items=(), a_title="Title", a_list_name="List name"):
+class EditedListWidget(QtWidgets.QWidget):
+    def __init__(self, parent=None, a_init_items=(), a_list_name="List name"):
         super().__init__(parent)
 
         self.ui = EditedListForm()
         self.ui.setupUi(self)
-        self.setWindowTitle(a_title)
         self.ui.lsitname_label.setText(a_list_name)
-        self.show()
 
         self.delete_key_sc = QtWidgets.QShortcut(QtGui.QKeySequence(QtCore.Qt.Key_Delete), self.ui.list_widget)
         self.delete_key_sc.activated.connect(self.delete_selected_row)
 
         self.ui.add_list_item_button.clicked.connect(self.add_list_item_button_clicked)
         self.ui.delete_list_item_button.clicked.connect(self.delete_selected_row)
-
-        self.ui.accept_button.clicked.connect(self.accept)
-        self.ui.cancel_button.clicked.connect(self.reject)
 
         for item in a_init_items:
             self.add_item(item, False)
@@ -47,11 +40,11 @@ class EditedListDialog(QDialog):
         edit = self.ui.list_widget.itemFromIndex(a_index)
         edit.setText(self.process_input(edit.text()))
 
-    def process_input(self, a_input):
+    def process_input(self, a_input: str):
         return a_input
 
     def add_item(self, a_init_value="0", a_edit_item=True):
-        list_item = QtWidgets.QListWidgetItem(a_init_value, self.ui.list_widget)
+        list_item = QtWidgets.QListWidgetItem(self.process_input(a_init_value), self.ui.list_widget)
         list_item.setFlags(int(list_item.flags()) | QtCore.Qt.ItemIsEditable)
         self.ui.list_widget.addItem(list_item)
         self.ui.list_widget.setCurrentItem(list_item)
@@ -64,18 +57,13 @@ class EditedListDialog(QDialog):
     def add_list_item_button_clicked(self):
         self.add_item()
 
-    def prepare_list(self):
+    def get_list(self):
         out_list = []
         for idx in range(self.ui.list_widget.count()):
             item = self.ui.list_widget.item(idx).text()
             if item not in out_list:
                 out_list.append(item)
         return out_list
-
-    @pyqtSlot()
-    def accept(self):
-        self.list_ready.emit(self.prepare_list())
-        self.done(QDialog.Accepted)
 
 
 class QRegExpDelegator(QtWidgets.QItemDelegate):
@@ -97,37 +85,37 @@ class QRegExpDelegator(QtWidgets.QItemDelegate):
         return super().destroyEditor(editor, index)
 
 
-class EditedListOnlyNumbers(EditedListDialog):
-    def __init__(self, parent=None, a_init_items=(), a_title="Title", a_list_name="List name"):
-        super().__init__(parent, a_init_items, a_title, a_list_name)
+class EditedListOnlyNumbers(EditedListWidget):
+    def __init__(self, parent=None, a_init_items=(), a_list_name="List name"):
+        super().__init__(parent, a_init_items, a_list_name)
 
         delegator = QRegExpDelegator(self, utils.find_number_re.pattern)
         delegator.editing_finished.connect(self.item_editing_finished)
         self.ui.list_widget.setItemDelegate(delegator)
 
     def process_input(self, a_input: str):
-        value = float(a_input)
-        return utils.remove_tail_zeroes(str(f"{value:.9f}")).replace(".", ",")
+        value = float(a_input.replace(",", "."))
+        return utils.float_to_string(value)
 
 
-class EditedListWithUnits(EditedListDialog):
-    def __init__(self, units, parent=None, a_init_items=(), a_title="Title", a_list_name="List name"):
-        super().__init__(parent, a_init_items, a_title, a_list_name)
+class EditedListWithUnits(EditedListWidget):
+    def __init__(self, parent=None, units: str = "В", a_init_items=(), a_list_name="List name"):
+        self.value_to_user = utils.value_to_user_with_units(units)
+        items_with_units = (self.value_to_user(item) for item in a_init_items)
+        super().__init__(parent, items_with_units, a_list_name)
 
         delegator = QRegExpDelegator(self, utils.check_input_no_python_re.pattern)
         delegator.editing_finished.connect(self.item_editing_finished)
         self.ui.list_widget.setItemDelegate(delegator)
-
-        self.units = units
 
     def process_input(self, a_input: str):
         try:
             processed_value = utils.parse_input(a_input)
         except ValueError:
             processed_value = 0
-        return utils.value_to_user_with_units(self.units)(processed_value)
+        return self.value_to_user(processed_value)
 
-    def prepare_list(self) -> List[float]:
+    def get_list(self) -> List[float]:
         out_list = []
         try:
             for idx in range(self.ui.list_widget.count()):
@@ -137,3 +125,15 @@ class EditedListWithUnits(EditedListDialog):
             return out_list
         except ValueError:
             return list()
+
+
+class OkCancelDialog(QtWidgets.QDialog):
+    def __init__(self, parent=None, a_title="Dialog"):
+        super().__init__(parent)
+
+        self.ui = OkCancelForm()
+        self.ui.setupUi(self)
+        self.setWindowTitle(a_title)
+
+        self.ui.accept_button.clicked.connect(self.accept)
+        self.ui.cancel_button.clicked.connect(self.reject)

@@ -5,7 +5,7 @@ import calibrator_constants as clb
 import utils
 
 
-path = "C:\\Users\\503\\Desktop\\Qt Projects\\clb_driver_dll\\" \
+path = "C:\\Users\\503.IRS\\Desktop\\Qt Projects\\clb_driver_dll\\" \
        "build-clb_driver_dll-Desktop_Qt_5_12_2_MSVC2017_32bit-Release\\release\\clb_driver_dll.dll"
 
 
@@ -39,6 +39,8 @@ def set_up_driver(a_full_path):
     clb_driver_lib.get_mode.restype = ctypes.c_int
 
     clb_driver_lib.is_signal_ready.restype = ctypes.c_int
+
+    clb_driver_lib.fast_control_mode_enable.argtypes = [ctypes.c_int]
 
     return clb_driver_lib
 
@@ -119,21 +121,22 @@ class ClbDrv:
         self.__signal_ready = False
 
     def connect(self, a_clb_name: str):
+        self.__amplitude = 0
+        self.__frequency = 0
+        self.__signal_type = clb.SignalType.ACI
+        self.__dc_polarity = clb.Polatiry.POS
+        self.__signal_on = False
+        self.__mode = clb.Mode.SOURCE
+        self.__signal_ready = False
+
         if a_clb_name:
             self.__clb_dll.connect_usb(a_clb_name)
         else:
-            self.__amplitude = 0
-            self.__frequency = 0
-            self.__signal_type = clb.SignalType.ACI
-            self.__dc_polarity = clb.Polatiry.POS
-            self.__signal_on = False
-            self.__mode = clb.Mode.SOURCE
-            self.__signal_ready = False
             
             self.__clb_dll.disconnect_usb()
 
     def amplitude_changed(self):
-        actual_amplitude = self.__bound_amplitude(self.__clb_dll.get_amplitude())
+        actual_amplitude = clb.bound_amplitude(self.__clb_dll.get_amplitude(), self.__signal_type)
         signed_amplitude = actual_amplitude if self.__clb_dll.get_polarity() == clb.Polatiry.POS else -actual_amplitude
 
         if self.__amplitude != signed_amplitude:
@@ -148,20 +151,18 @@ class ClbDrv:
 
     @amplitude.setter
     def amplitude(self, a_amplitude: float):
-        self.__amplitude = self.__bound_amplitude(a_amplitude)
+        self.__amplitude = clb.bound_amplitude(a_amplitude, self.__signal_type)
         self.__clb_dll.set_amplitude(abs(self.__amplitude))
         self.__set_polarity_by_amplitude_sign(self.__amplitude)
 
-    def __bound_amplitude(self, a_amplitude):
-        min_value = clb.MIN_VOLTAGE
-        max_value = clb.MAX_VOLTAGE
-        if self.__signal_type == clb.SignalType.ACI or self.__signal_type == clb.SignalType.DCI:
-            min_value = clb.MIN_CURRENT
-            max_value = clb.MAX_CURRENT
-        if self.__signal_type == clb.SignalType.ACV or self.__signal_type == clb.SignalType.ACI:
-            min_value = clb.MIN_ALTERNATIVE
-
-        return utils.bound(a_amplitude, min_value, max_value)
+    def limit_amplitude(self, a_amplitude, a_lower, a_upper):
+        """
+        Обрезает значение амплитуды с учетом типа сигнала и параметров пользователя
+        :param a_amplitude: Заданная амплитуда
+        :param a_lower: Нижняя граница
+        :param a_upper: Верхняя граница
+        """
+        return utils.bound(clb.bound_amplitude(a_amplitude, self.__signal_type), a_lower, a_upper)
 
     def __set_polarity_by_amplitude_sign(self, a_amplitude):
         if a_amplitude < 0 and self.__clb_dll.get_polarity() != clb.Polatiry.NEG:
@@ -267,3 +268,5 @@ class ClbDrv:
         self.__mode = a_mode
         self.__clb_dll.set_mode(a_mode)
 
+    def fast_control_mode_enable(self, a_enable: int):
+        self.__clb_dll.fast_control_mode_enable(a_enable)

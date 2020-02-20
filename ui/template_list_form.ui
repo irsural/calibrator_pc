@@ -1,0 +1,486 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Dialog</class>
+ <widget class="QDialog" name="Dialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>601</width>
+    <height>382</height>
+   </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
+  </property>
+  <property name="font">
+   <font>
+    <pointsize>10</pointsize>
+   </font>
+  </property>
+  <property name="windowTitle">
+   <string>Выбор шаблона</string>
+  </property>
+  <layout class="QHBoxLayout" name="horizontalLayout">
+   <item>
+    <widget class="QWidget" name="choose_templates_widget" native="true">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>150</width>
+       <height>16777215</height>
+      </size>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_2">
+      <property name="spacing">
+       <number>6</number>
+      </property>
+      <property name="leftMargin">
+       <number>0</number>
+      </property>
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <property name="rightMargin">
+       <number>0</number>
+      </property>
+      <property name="bottomMargin">
+       <number>0</number>
+      </property>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_3">
+        <item>
+         <widget class="QLineEdit" name="filter_edit">
+          <property name="placeholderText">
+           <string>Поиск...</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_4">
+        <item>
+         <widget class="QPushButton" name="edit_template_button">
+          <property name="text">
+           <string>Edit</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="duplicate_template_button">
+          <property name="text">
+           <string>Copy</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="add_template_button">
+          <property name="text">
+           <string>+</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="delete_template_button">
+          <property name="text">
+           <string>-</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <widget class="QListWidget" name="templates_list">
+        <property name="contextMenuPolicy">
+         <enum>Qt::CustomContextMenu</enum>
+        </property>
+        <property name="sortingEnabled">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="choose_template_button">
+        <property name="text">
+         <string>Выбрать</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QFrame" name="template_params_widget">
+     <property name="frameShape">
+      <enum>QFrame::Panel</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Sunken</enum>
+     </property>
+     <layout class="QGridLayout" name="gridLayout_2">
+      <item row="0" column="0">
+       <widget class="QSplitter" name="splitter">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="childrenCollapsible">
+         <bool>false</bool>
+        </property>
+        <widget class="QWidget" name="info_layout" native="true">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+           <horstretch>1</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout">
+          <property name="leftMargin">
+           <number>0</number>
+          </property>
+          <property name="topMargin">
+           <number>0</number>
+          </property>
+          <property name="rightMargin">
+           <number>0</number>
+          </property>
+          <property name="bottomMargin">
+           <number>0</number>
+          </property>
+          <item>
+           <widget class="QFrame" name="frame">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <layout class="QGridLayout" name="gridLayout">
+             <property name="leftMargin">
+              <number>0</number>
+             </property>
+             <property name="topMargin">
+              <number>0</number>
+             </property>
+             <property name="rightMargin">
+              <number>9</number>
+             </property>
+             <property name="bottomMargin">
+              <number>0</number>
+             </property>
+             <item row="5" column="0" colspan="2">
+              <widget class="QLabel" name="label_7">
+               <property name="text">
+                <string>Средство поверки</string>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="0" colspan="2">
+              <widget class="QLineEdit" name="template_name_edit"/>
+             </item>
+             <item row="14" column="1">
+              <widget class="QLabel" name="label">
+               <property name="text">
+                <string>Класс</string>
+               </property>
+              </widget>
+             </item>
+             <item row="12" column="0" colspan="2">
+              <widget class="QLabel" name="label_2">
+               <property name="text">
+                <string>Система прибора</string>
+               </property>
+              </widget>
+             </item>
+             <item row="8" column="0" colspan="2">
+              <widget class="QLineEdit" name="device_name_edit"/>
+             </item>
+             <item row="11" column="0" colspan="2">
+              <widget class="QLineEdit" name="device_creator_edit"/>
+             </item>
+             <item row="3" column="0" colspan="2">
+              <widget class="QLabel" name="label_13">
+               <property name="text">
+                <string>Организация-поверитель</string>
+               </property>
+              </widget>
+             </item>
+             <item row="4" column="0" colspan="2">
+              <widget class="QLineEdit" name="organisation_edit">
+               <property name="text">
+                <string/>
+               </property>
+               <property name="readOnly">
+                <bool>false</bool>
+               </property>
+              </widget>
+             </item>
+             <item row="7" column="0" colspan="2">
+              <widget class="QLabel" name="label_4">
+               <property name="text">
+                <string>Наименование прибора</string>
+               </property>
+              </widget>
+             </item>
+             <item row="13" column="0" colspan="2">
+              <widget class="QComboBox" name="device_system_combobox">
+               <item>
+                <property name="text">
+                 <string>Магнитоэлектрическая</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Электродинамическая</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Электромагнитная</string>
+                </property>
+               </item>
+              </widget>
+             </item>
+             <item row="14" column="0">
+              <widget class="QLabel" name="label_8">
+               <property name="text">
+                <string>Род тока</string>
+               </property>
+              </widget>
+             </item>
+             <item row="10" column="0" colspan="2">
+              <widget class="QLabel" name="label_5">
+               <property name="text">
+                <string>Изготовитель прибора</string>
+               </property>
+              </widget>
+             </item>
+             <item row="15" column="1">
+              <widget class="QDoubleSpinBox" name="class_spinbox">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="decimals">
+                <number>4</number>
+               </property>
+               <property name="minimum">
+                <double>0.001000000000000</double>
+               </property>
+               <property name="maximum">
+                <double>10.000000000000000</double>
+               </property>
+               <property name="singleStep">
+                <double>0.050000000000000</double>
+               </property>
+               <property name="value">
+                <double>1.500000000000000</double>
+               </property>
+              </widget>
+             </item>
+             <item row="15" column="0">
+              <widget class="QComboBox" name="signal_type_combobox">
+               <item>
+                <property name="text">
+                 <string>I~</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>U~</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>I=</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>U=</string>
+                </property>
+               </item>
+              </widget>
+             </item>
+             <item row="1" column="0" colspan="2">
+              <widget class="QLabel" name="label_6">
+               <property name="text">
+                <string>Название шаблона</string>
+               </property>
+              </widget>
+             </item>
+             <item row="6" column="0" colspan="2">
+              <widget class="QLineEdit" name="etalon_device_edit">
+               <property name="text">
+                <string>Калибратор N4-25</string>
+               </property>
+               <property name="readOnly">
+                <bool>false</bool>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+        <widget class="QWidget" name="verticalWidget" native="true">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+           <horstretch>1</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_5">
+          <property name="leftMargin">
+           <number>0</number>
+          </property>
+          <property name="topMargin">
+           <number>0</number>
+          </property>
+          <property name="rightMargin">
+           <number>0</number>
+          </property>
+          <property name="bottomMargin">
+           <number>0</number>
+          </property>
+          <item>
+           <layout class="QVBoxLayout" name="verticalLayout_3">
+            <item>
+             <layout class="QGridLayout" name="gridLayout_3">
+              <item row="1" column="0" colspan="3">
+               <widget class="QTableWidget" name="points_table">
+                <property name="selectionBehavior">
+                 <enum>QAbstractItemView::SelectRows</enum>
+                </property>
+                <column>
+                 <property name="text">
+                  <string>Амплитуда</string>
+                 </property>
+                </column>
+                <column>
+                 <property name="text">
+                  <string>Частота, Гц</string>
+                 </property>
+                </column>
+               </widget>
+              </item>
+              <item row="0" column="0" colspan="2">
+               <widget class="QLabel" name="label_3">
+                <property name="text">
+                 <string>Точки поверки</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="1">
+               <widget class="QPushButton" name="save_template_button">
+                <property name="text">
+                 <string>Сохранить</string>
+                </property>
+                <property name="autoDefault">
+                 <bool>false</bool>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="2">
+               <layout class="QHBoxLayout" name="horizontalLayout_2">
+                <item>
+                 <widget class="QPushButton" name="add_point_button">
+                  <property name="maximumSize">
+                   <size>
+                    <width>35</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="font">
+                   <font>
+                    <weight>75</weight>
+                    <bold>true</bold>
+                   </font>
+                  </property>
+                  <property name="text">
+                   <string>+</string>
+                  </property>
+                  <property name="autoDefault">
+                   <bool>false</bool>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="remove_point_button">
+                  <property name="maximumSize">
+                   <size>
+                    <width>35</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="font">
+                   <font>
+                    <weight>75</weight>
+                    <bold>true</bold>
+                   </font>
+                  </property>
+                  <property name="text">
+                   <string>-</string>
+                  </property>
+                  <property name="autoDefault">
+                   <bool>false</bool>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+              <item row="2" column="2">
+               <widget class="QPushButton" name="cancel_edit_template_button">
+                <property name="text">
+                 <string>Отмена</string>
+                </property>
+                <property name="autoDefault">
+                 <bool>false</bool>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </widget>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <tabstops>
+  <tabstop>filter_edit</tabstop>
+  <tabstop>templates_list</tabstop>
+  <tabstop>template_name_edit</tabstop>
+  <tabstop>organisation_edit</tabstop>
+  <tabstop>etalon_device_edit</tabstop>
+  <tabstop>device_name_edit</tabstop>
+  <tabstop>device_creator_edit</tabstop>
+  <tabstop>device_system_combobox</tabstop>
+  <tabstop>signal_type_combobox</tabstop>
+  <tabstop>class_spinbox</tabstop>
+  <tabstop>add_point_button</tabstop>
+  <tabstop>remove_point_button</tabstop>
+  <tabstop>points_table</tabstop>
+  <tabstop>choose_template_button</tabstop>
+  <tabstop>save_template_button</tabstop>
+  <tabstop>cancel_edit_template_button</tabstop>
+ </tabstops>
+ <resources/>
+ <connections/>
+</ui>

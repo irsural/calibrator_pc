@@ -146,6 +146,17 @@ class Ui_Form(object):
 
         self.retranslateUi(Form)
         QtCore.QMetaObject.connectSlotsByName(Form)
+        Form.setTabOrder(self.clb_list_combobox, self.amplitude_edit)
+        Form.setTabOrder(self.amplitude_edit, self.frequency_spinbox)
+        Form.setTabOrder(self.frequency_spinbox, self.aci_radio)
+        Form.setTabOrder(self.aci_radio, self.acv_radio)
+        Form.setTabOrder(self.acv_radio, self.dcv_radio)
+        Form.setTabOrder(self.dcv_radio, self.dci_radio)
+        Form.setTabOrder(self.dci_radio, self.polarity_button)
+        Form.setTabOrder(self.polarity_button, self.source_mode_radio)
+        Form.setTabOrder(self.source_mode_radio, self.fixed_mode_radio)
+        Form.setTabOrder(self.fixed_mode_radio, self.detuning_radio)
+        Form.setTabOrder(self.detuning_radio, self.enable_button)
 
     def retranslateUi(self, Form):
         _translate = QtCore.QCoreApplication.translate

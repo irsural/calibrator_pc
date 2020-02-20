@@ -1,5 +1,7 @@
 <RCC>
-  <qresource prefix="icons">
+  <qresource prefix="resources.py.icons">
     <file>icons/copy.png</file>
+    <file>icons/pause.png</file>
+    <file>icons/play.png</file>
   </qresource>
 </RCC>

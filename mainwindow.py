@@ -1,17 +1,19 @@
-import configparser
-import os
+import sqlite3
 
 from PyQt5.QtCore import pyqtSlot, pyqtSignal
-from PyQt5.QtWidgets import QMessageBox
 from PyQt5 import QtWidgets, QtCore, QtGui
 
-from new_no_template_measure_dialog import NewNoTemplateMeasureDialog, NoTemplateConfig
+from new_fast_measure_dialog import NewFastMeasureDialog, FastMeasureParams
+from variable_template_fields_dialog import VariableTemplateParams
+from template_list_window import TemplateParams, TemplateListWindow
+from db_measures import MeasureParams, MeasureTables
 from ui.py.mainwindow import Ui_MainWindow as MainForm
-from no_template_mode_window import NoTemplateWindow
+from measure_window import MeasureWindow
 from source_mode_window import SourceModeWindow
+from settings_dialog import SettingsDialog
+from settings_ini_parser import Settings, BadIniException
 from startwindow import StartWindow
 import calibrator_constants as clb
-import constants as cfg
 import clb_dll
 import utils
 
@@ -25,56 +27,88 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.ui = MainForm()
         self.ui.setupUi(self)
-        self.show()
 
         self.active_window = None
-        self.previous_start_window_pos = self.pos()
-        self.show_start_window()
 
-        self.settings = self.restore_settings(cfg.CONFIG_PATH)
+        try:
+            self.settings = Settings(self)
+            ini_ok = True
+        except BadIniException:
+            ini_ok = False
+            QtWidgets.QMessageBox.critical(self, "Ошибка", 'Файл конфигурации поврежден. Пожалуйста, '
+                                                           'удалите файл "settings.ini" и запустите программу заново')
+        if ini_ok:
+            self.show_start_window()
+            self.show()
 
-        self.clb_driver = clb_dll.set_up_driver(clb_dll.path)
-        self.usb_driver = clb_dll.UsbDrv(self.clb_driver)
-        self.usb_state = clb_dll.UsbDrv.UsbState.DISABLED
-        self.calibrator = clb_dll.ClbDrv(self.clb_driver)
-        self.clb_state = clb.State.DISCONNECTED
+            self.clb_signal_off_timer = QtCore.QTimer()
+            self.clb_signal_off_timer.timeout.connect(self.close)
+            self.SIGNAL_OFF_TIME_MS = 200
 
-        self.usb_check_timer = QtCore.QTimer()
-        self.usb_check_timer.timeout.connect(self.usb_tick)
-        self.usb_check_timer.start(10)
+            # self.previous_start_window_pos = self.pos()
 
-        self.no_template_config: NoTemplateConfig = None
+            self.clb_driver = clb_dll.set_up_driver(clb_dll.path)
+            self.usb_driver = clb_dll.UsbDrv(self.clb_driver)
+            self.usb_state = clb_dll.UsbDrv.UsbState.DISABLED
+            self.calibrator = clb_dll.ClbDrv(self.clb_driver)
+            self.clb_state = clb.State.DISCONNECTED
 
-    @staticmethod
-    def restore_settings(a_path: str):
-        settings = configparser.ConfigParser()
+            self.usb_check_timer = QtCore.QTimer(self)
+            self.usb_check_timer.timeout.connect(self.usb_tick)
+            self.usb_check_timer.start(10)
 
-        if not os.path.exists(a_path):
-            settings[cfg.NO_TEMPLATE_SECTION] = {cfg.FIXED_RANGES_KEY: "0.0001,0.01,0.1,1,10,20,100"}
-            utils.save_settings(a_path, settings)
+            self.fast_config: FastMeasureParams = None
+
+            self.measure_db_tables = MeasureTables(marks_table="marks", mark_values_table="mark_values",
+                                                   measures_table="measures", results_table="results")
+            self.db_connection = self.create_db("measures.db")
+
+            self.ui.enter_settings_action.triggered.connect(self.open_settings)
+
         else:
-            settings.read(a_path)
+            self.close()
 
-        # Выводит ini файл в консоль
-        # for key in settings:
-        #     print(f"[{key}]")
-        #     for subkey in settings[key]:
-        #         print(f"{subkey} = {settings[key][subkey]}")
+    def __del__(self):
+        if hasattr(self, "db_connection"):
+            self.db_connection.close()
 
-        return settings
+    def create_db(self, a_db_name: str):
+        connection = sqlite3.connect(a_db_name)
+        cursor = connection.cursor()
+        with connection:
+            cursor.execute(f"CREATE TABLE IF NOT EXISTS {self.measure_db_tables.marks_table} "
+                           f"(name text primary key, tag text unique, default_value text)")
+
+            cursor.execute(f"CREATE TABLE IF NOT EXISTS {self.measure_db_tables.measures_table} "
+                           f"(id integer primary key autoincrement, organisation text, etalon_device text,"
+                           f"device_name text, device_creator text, device_system integer, signal_type integer,"
+                           f"device_class real, serial_number text, owner text, user text, date text)")
+
+            cursor.execute(f"CREATE TABLE IF NOT EXISTS {self.measure_db_tables.mark_values_table} "
+                           f"(id integer primary key autoincrement, value text, mark_name text,  measure_id int, "
+                           f"unique (mark_name, measure_id), "
+                           f"foreign key (mark_name) references {self.measure_db_tables.marks_table}(name),"
+                           f"foreign key (measure_id) references {self.measure_db_tables.measures_table}(id))")
+
+            cursor.execute(f"CREATE TABLE IF NOT EXISTS {self.measure_db_tables.results_table} "
+                           f"(id integer primary key autoincrement, point real, frequency real, up_value real,"
+                           f"up_deviation real, up_deviation_percent real, down_value real, down_deviation real,"
+                           f"down_deviation_percent real, variation real, measure_id int,"
+                           f"foreign key (measure_id) references {self.measure_db_tables.measures_table}(id))")
+        return connection
 
     def show_start_window(self):
         try:
+            self.hide()
             if self.active_window is not None:
                 self.active_window.close()
-            self.active_window = StartWindow(self)
-            self.resize(self.active_window.width(), self.active_window.height())
+
+            self.active_window = StartWindow(self.settings, self)
             self.setCentralWidget(self.active_window)
             self.active_window.source_mode_chosen.connect(self.open_source_mode_window)
             self.active_window.no_template_mode_chosen.connect(self.open_config_no_template_mode)
             self.active_window.template_mode_chosen.connect(self.template_mode_chosen)
             self.setWindowTitle(self.active_window.windowTitle())
-            self.move(self.previous_start_window_pos)
         except AssertionError as err:
             print(err)
 
@@ -113,73 +147,116 @@ class MainWindow(QtWidgets.QMainWindow):
         self.usb_status_changed.connect(a_window.update_clb_status)
         self.usb_status_changed.emit(self.clb_state)
 
-        # assert self.receivers(self.clb_list_changed) == 1, "clb_list_changed must be connected to only one slot"
-        # assert self.receivers(self.usb_status_changed) == 1, "usb_status_changed must be connected to only one slot"
+    # @staticmethod
+    # def sync_centers(a_old_widget, a_new_widget):
+    #     new_center: QtCore.QPoint = a_old_widget.geometry().center() - a_new_widget.rect().center()
+    #     new_center.setY(utils.bound(new_center.y(), 0, QtWidgets.QApplication.desktop().screenGeometry().height() -
+    #                                 a_new_widget.height()))
+    #     return new_center
 
-    @staticmethod
-    def sync_centers(a_old_widget, a_new_widget):
-        new_center: QtCore.QPoint = a_old_widget.geometry().center() - a_new_widget.rect().center()
-        new_center.setY(utils.bound(new_center.y(), 0, QtWidgets.QApplication.desktop().screenGeometry().height() -
-                                    a_new_widget.height()))
-        return new_center
-
-    def change_window(self, a_new_window):
-        self.previous_start_window_pos = self.pos()
-        self.active_window.close()
+    def change_window(self, a_new_window, center: bool = False):
+        # self.previous_start_window_pos = self.pos()
         self.active_window = a_new_window
         self.attach_calibrator_to_window(self.active_window)
 
-        self.move(self.sync_centers(self, self.active_window))
-        self.resize(self.active_window.size())
-        self.setCentralWidget(self.active_window)
-        self.ui.back_action.triggered.connect(self.show_start_window)
+        # if center:
+        #     self.move(self.sync_centers(self, self.active_window))
 
+        self.setCentralWidget(self.active_window)
         self.setWindowTitle(self.active_window.windowTitle())
+
+        self.active_window.close_confirmed.connect(self.close_child_widget)
 
     @pyqtSlot()
     def open_source_mode_window(self):
         try:
-            self.change_window(SourceModeWindow(self.calibrator, self))
-        except AssertionError as err:
-            print(err)
+            self.hide()
+            self.active_window.close()
+            self.change_window(SourceModeWindow(self.settings, self.calibrator, self))
+        except Exception as err:
+            utils.exception_handler(err)
 
     @pyqtSlot()
     def open_config_no_template_mode(self):
         try:
-            new_no_template_window = NewNoTemplateMeasureDialog(self.calibrator, self.no_template_config, self)
-            self.attach_calibrator_to_window(new_no_template_window)
-            new_no_template_window.config_ready.connect(self.save_no_template_config)
+            new_fast_measure_window = NewFastMeasureDialog(self.fast_config, self)
+            new_fast_measure_window.config_ready.connect(self.save_no_template_config)
 
-            if new_no_template_window.exec() == QtWidgets.QDialog.Accepted:
-                assert self.no_template_config is not None, "no_template_config must not be None!"
-                new_no_template_window.close()
-                self.no_template_mode_chosen()
+            if new_fast_measure_window.exec() == QtWidgets.QDialog.Accepted:
+                assert self.fast_config is not None, "no_template_config must not be None!"
+                new_fast_measure_window.close()
+                self.start_fast_measure()
         except AssertionError as err:
             print(err)
 
-    def save_no_template_config(self, a_config: NoTemplateConfig):
-        self.no_template_config = a_config
+    def save_no_template_config(self, a_config: FastMeasureParams):
+        self.fast_config = a_config
 
-    def no_template_mode_chosen(self):
+    def start_fast_measure(self):
         try:
-            self.change_window(NoTemplateWindow(self.calibrator, self.no_template_config, self.settings, self))
-            self.ui.change_fixed_range_action.triggered.connect(self.active_window.edit_fixed_step)
+            measure_config = MeasureParams.fromFastParams(self.fast_config)
+
+            self.hide()
+            self.active_window.close()
+            self.change_window(MeasureWindow(a_calibrator=self.calibrator,
+                                             a_measure_config=measure_config,
+                                             a_db_connection=self.db_connection,
+                                             a_db_tables=self.measure_db_tables,
+                                             a_settings=self.settings,
+                                             a_parent=self))
         except Exception as err:
-            print(err)
+            utils.exception_handler(err)
 
     @pyqtSlot()
     def template_mode_chosen(self):
-        pass
+        try:
+            template_list_dialog = TemplateListWindow(self.settings, self)
+            template_list_dialog.config_ready.connect(self.start_template_measure)
+            template_list_dialog.exec()
+        except Exception as err:
+            utils.exception_handler(err)
 
-    # def closeEvent(self, a_event: QtGui.QCloseEvent):
-    #     if isinstance(self.active_window, NoTemplateWindow):
-    #         self.active_window.close()
-    #         a_event.ignore()
-    #         #################################
-    #         reply = QMessageBox.question(self, "Подтвердите действие", "Завершить поверку?", QMessageBox.Yes |
-    #                                      QMessageBox.No, QMessageBox.No)
-    #         if reply == QMessageBox.Yes:
-    #             self.show_start_window()
-    #         a_event.ignore()
+    def start_template_measure(self, a_template_params: TemplateParams, a_variable_params: VariableTemplateParams):
+        try:
+            measure_config = MeasureParams.fromTemplate(a_template_params, a_variable_params)
 
+            self.hide()
+            self.active_window.close()
+            self.change_window(MeasureWindow(a_calibrator=self.calibrator,
+                                             a_measure_config=measure_config,
+                                             a_db_connection=self.db_connection,
+                                             a_db_tables=self.measure_db_tables,
+                                             a_settings=self.settings,
+                                             a_parent=self))
+        except Exception as err:
+            utils.exception_handler(err)
 
+    def close_child_widget(self):
+        self.show_start_window()
+
+    def open_settings(self):
+        try:
+            settings_dialog = SettingsDialog(self.settings, self.db_connection, self.measure_db_tables, self)
+            settings_dialog.exec()
+        except Exception as err:
+            utils.exception_handler(err)
+
+    def closeEvent(self, a_event: QtGui.QCloseEvent):
+        try:
+            if not isinstance(self.active_window, StartWindow):
+                if hasattr(self.active_window, "ask_for_close"):
+                    # Эмитит close_confirmed при подтверждении закрытия
+                    self.active_window.ask_for_close()
+                    a_event.ignore()
+                else:
+                    a_event.accept()
+            else:
+                if self.calibrator.signal_enable:
+                    self.calibrator.signal_enable = False
+                    self.clb_signal_off_timer.start(self.SIGNAL_OFF_TIME_MS)
+                    a_event.ignore()
+                else:
+                    self.active_window.close()
+                    a_event.accept()
+        except Exception as err:
+            print(err)

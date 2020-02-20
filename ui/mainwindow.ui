@@ -26,29 +26,34 @@
      <height>21</height>
     </rect>
    </property>
-   <widget class="QMenu" name="options_menu">
+   <widget class="QMenu" name="settings_menu">
     <property name="title">
-     <string>Опции</string>
+     <string>Настройки</string>
     </property>
-    <addaction name="change_fixed_range_action"/>
+    <addaction name="enter_settings_action"/>
    </widget>
-   <widget class="QMenu" name="window_menu">
+   <widget class="QMenu" name="menu">
     <property name="title">
-     <string>Окно</string>
+     <string>Справка</string>
     </property>
-    <addaction name="back_action"/>
+    <addaction name="action"/>
    </widget>
-   <addaction name="options_menu"/>
-   <addaction name="window_menu"/>
+   <addaction name="settings_menu"/>
+   <addaction name="menu"/>
   </widget>
-  <action name="back_action">
-   <property name="text">
-    <string>Назад</string>
-   </property>
-  </action>
   <action name="change_fixed_range_action">
    <property name="text">
     <string>Изменить фиксированный шаг</string>
+   </property>
+  </action>
+  <action name="enter_settings_action">
+   <property name="text">
+    <string>Настройки...</string>
+   </property>
+  </action>
+  <action name="action">
+   <property name="text">
+    <string>О программе</string>
    </property>
   </action>
  </widget>

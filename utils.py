@@ -2,6 +2,8 @@ import enum
 import math
 import re
 import configparser
+from linecache import checkcache, getline
+from sys import exc_info
 
 import numpy as np
 
@@ -90,7 +92,7 @@ def value_to_user_with_units(a_postfix: str, a_reverse_check=False):
             a_value *= 1e3
             prefix_type = __UnitsPrefix.MILLI
         result = round(a_value, 9)
-        result_str = remove_tail_zeroes(f"{result:.9f}").replace(".", ",")
+        result_str = float_to_string(result)
         result_with_units = f"{result_str} {__enum_to_units[prefix_type]}{a_postfix}"
 
         # print(f"V->S. Input: {a_value}. Output: {result_str}")
@@ -103,14 +105,21 @@ def value_to_user_with_units(a_postfix: str, a_reverse_check=False):
     return value_to_user
 
 
-def remove_tail_zeroes(a_string_num: str):
-    return a_string_num.rstrip('0').rstrip('.')
+def float_to_string(a_number: float):
+    return f"{a_number:.9f}".rstrip('0').rstrip('.').replace(".", ",")
 
 
-def deviation(a_lval: float, a_rval: float):
-    if a_lval == 0 or a_rval == 0:
-        return 0
-    return (a_lval - a_rval) / a_lval * 100
+def absolute_error(a_reference: float, a_value: float):
+    return a_reference - a_value
+
+
+def relative_error(a_reference: float, a_value: float, a_normalize: float):
+    assert a_normalize != 0, "Normalize value must not be zero"
+    return (a_reference - a_value) / a_normalize * 100
+
+
+def variation(a_lval: float, a_rval: float):
+    return abs(a_lval - a_rval)
 
 
 def auto_calc_points(a_start: float, a_stop: float, a_step: float):
@@ -130,12 +139,15 @@ def bound(a_value, a_min, a_max):
     return max(min(a_value, a_max), a_min)
 
 
-def relative_step_change(a_value: float, a_step: float, a_min_step: float):
+def relative_step_change(a_value: float, a_step: float, a_min_step: float, a_normalize_value=None):
     value_sign = 1 if a_step >= 0 else -1
     if a_value == 0:
         return a_min_step * value_sign
 
-    absolute_step = abs(a_value * a_step)
+    if not a_normalize_value:
+        a_normalize_value = a_value
+
+    absolute_step = abs(a_normalize_value * a_step)
     exp = int(math.floor(math.log10(absolute_step)))
 
     absolute_step /= pow(10., exp)
@@ -157,20 +169,64 @@ def relative_step_change(a_value: float, a_step: float, a_min_step: float):
     new_step: float = max(new_step, a_min_step)
     a_value += new_step * value_sign
 
+    # Если это преобразование убрать, то шаг будет равномерным на любой амплитуде
     finish_value = math.ceil(a_value / new_step) * new_step if value_sign > 0 \
         else math.floor(a_value / new_step) * new_step
 
     return finish_value
 
 
-def increase_on_percent(a_value, a_percent):
-    return a_value + a_value * a_percent / 100
+def increase_by_percent(a_value, a_percent, a_normalize_value=None):
+    normalize = a_normalize_value if a_normalize_value else a_value
+    return a_value + abs(normalize) * a_percent / 100
 
 
-def reduce_on_percent(a_value, a_percent):
-    return a_value - a_value * a_percent / 100
+def decrease_by_percent(a_value, a_percent, a_normalize_value=None):
+    normalize = a_normalize_value if a_normalize_value else a_value
+    return a_value - abs(normalize) * a_percent / 100
 
 
 def save_settings(a_path: str, a_config: configparser):
     with open(a_path, 'w') as config_file:
         a_config.write(config_file)
+
+
+def calc_smooth_approach(a_from, a_to, a_count, a_dt, sigma=0.01):
+    """
+    Вычисляет экспоненциальное изменение величины во времени от a_from до a_to с ассимптотическим подходом к a_to
+    :param a_from: Стартовое значение
+    :param a_to: Конечное значение
+    :param a_count: Количество точек между a_from и a_to
+    :param a_dt: Дискрет времени, с которым должна изменяться величина
+    :param sigma: Кэффициент плавного подхода. Чем меньше, там плавнее будет подход к a_to и тем резче будет
+                  скачок в начале
+    :return: Список точек, размером a_count
+    """
+    dt_stop = a_dt * a_count
+    dt_stop_s = dt_stop / 1000
+    a_k = -1 / dt_stop_s * math.log(sigma)
+
+    delta = abs(a_from - a_to)
+    slope = delta / (1 - math.e ** (-a_k * dt_stop_s))
+
+    points = []
+    for t in range(a_dt, dt_stop + a_dt, a_dt):
+
+        point = a_from + slope * (1 - math.e**(-a_k * t / 1000)) if a_from < a_to else \
+            a_from + slope * (math.e ** (-a_k * t / 1000) - 1)
+
+        points.append(round(point, 9))
+
+    return points
+
+
+def exception_handler(a_exception):
+    e_type, e_obj, e_tb = exc_info()
+    frame = e_tb.tb_frame
+    lineno = e_tb.tb_lineno
+    filename = frame.f_code.co_filename
+    checkcache(filename)
+    line = getline(filename, lineno, frame.f_globals)
+    print(f"Exception{type(a_exception)} in {filename}\n"
+          f"Line {lineno}: '{line.strip()}'\n"
+          f"Message: {a_exception}")

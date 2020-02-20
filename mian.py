@@ -8,6 +8,8 @@ from PyQt5.QtWidgets import QApplication
 from PyQt5 import QtCore
 
 from mainwindow import MainWindow
+from utils import exception_handler
+
 
 if __name__ == "__main__":
 
@@ -18,5 +20,9 @@ if __name__ == "__main__":
     translator.load("/".join([path, "qtbase_ru.qm"]))
     app.installTranslator(translator)
 
-    w = MainWindow()
-    sys.exit(app.exec())
+    try:
+        w = MainWindow()
+        sys.exit(app.exec())
+    except Exception as err:
+        print("MAIN:")
+        exception_handler(err)

@@ -1,6 +1,8 @@
 from collections import namedtuple
 import enum
 
+from utils import bound
+
 
 MAX_CURRENT = 11
 MIN_CURRENT = -11
@@ -65,6 +67,27 @@ enum_to_signal_type = {
     SignalType.DCV: "Постоянное напряжение"
 }
 
+signal_type_to_units = {
+    SignalType.ACI: "А",
+    SignalType.DCI: "А",
+    SignalType.ACV: "В",
+    SignalType.DCV: "В"
+}
+
+is_dc_signal = {
+    SignalType.ACI: False,
+    SignalType.ACV: False,
+    SignalType.DCI: True,
+    SignalType.DCV: True
+}
+
+is_voltage_signal = {
+    SignalType.ACI: False,
+    SignalType.DCI: False,
+    SignalType.ACV: True,
+    SignalType.DCV: True
+}
+
 signal_type_to_min_step = {
     SignalType.ACI: 2e-6,
     SignalType.ACV: 2e-6,
@@ -74,5 +97,14 @@ signal_type_to_min_step = {
 
 FREQUENCY_MIN_STEP = 1
 
-Step = namedtuple("Step", "ROUGH COMMON EXACT")
-AmplitudeStep = Step(0.005, 0.0005, 0.00002)
+
+def bound_amplitude(a_amplitude: float, a_signal_type: SignalType):
+    min_value = MIN_VOLTAGE
+    max_value = MAX_VOLTAGE
+    if not is_voltage_signal[a_signal_type]:
+        min_value = MIN_CURRENT
+        max_value = MAX_CURRENT
+    if not is_dc_signal[a_signal_type]:
+        min_value = MIN_ALTERNATIVE
+
+    return bound(a_amplitude, min_value, max_value)
