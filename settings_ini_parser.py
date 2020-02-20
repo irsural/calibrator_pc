@@ -1,5 +1,6 @@
 import configparser
 import os
+from inspect import stack
 from typing import List
 from enum import IntEnum
 
@@ -19,12 +20,14 @@ class Settings(QtCore.QObject):
     class ValueType(IntEnum):
         INT = 0
         FLOAT = 1
-        LIST = 2
+        LIST_FLOAT = 2
+        LIST_INT = 3
 
     ValueTypeConvertFoo = {
         ValueType.INT: int,
         ValueType.FLOAT: float,
-        ValueType.LIST: lambda s: [float(val) for val in s.split(',')]
+        ValueType.LIST_FLOAT: lambda s: [float(val) for val in s.split(',')],
+        ValueType.LIST_INT: lambda s: [int(val) for val in s.split(',')]
     }
 
     MEASURE_SECTION = "Measure"
@@ -49,6 +52,11 @@ class Settings(QtCore.QObject):
     MOUSE_INVERSION_KEY = "mouse_inversion"
     MOUSE_INVERSION_DEFAULT = "0"
 
+    HIDDEN_COLUMNS_KEY = "hidden_columns"
+    HIDDEN_COLUMNS_DEFAULT = "0"
+
+    GEOMETRY_SECTION = "Geometry"
+
     fixed_step_changed = pyqtSignal()
 
     def __init__(self, a_parent=None):
@@ -62,6 +70,8 @@ class Settings(QtCore.QObject):
         self.__exact_step = 0
         self.__start_deviation = 0
         self.__mouse_inversion = 0
+
+        self.__hidden_columns = []
 
         self.settings = configparser.ConfigParser()
         try:
@@ -78,14 +88,15 @@ class Settings(QtCore.QObject):
                                                    self.STEP_COMMON_KEY: self.STEP_COMMON_DEFAULT,
                                                    self.STEP_EXACT_KEY: self.STEP_EXACT_DEFAULT,
                                                    self.START_DEVIATION_KEY: self.START_DEVIATION_DEFAULT,
-                                                   self.MOUSE_INVERSION_KEY: self.MOUSE_INVERSION_DEFAULT}
+                                                   self.MOUSE_INVERSION_KEY: self.MOUSE_INVERSION_DEFAULT,
+                                                   self.HIDDEN_COLUMNS_KEY: self.HIDDEN_COLUMNS_DEFAULT}
             utils.save_settings(self.CONFIG_PATH, self.settings)
         else:
             self.settings.read(self.CONFIG_PATH)
             self.add_ini_section(self.MEASURE_SECTION)
 
         self.__fixed_step_list = self.check_ini_value(self.MEASURE_SECTION, self.FIXED_STEP_KEY,
-                                                      self.FIXED_STEP_DEFAULT, self.ValueType.LIST)
+                                                      self.FIXED_STEP_DEFAULT, self.ValueType.LIST_FLOAT)
 
         self.__fixed_step_idx = self.check_ini_value(self.MEASURE_SECTION, self.FIXED_STEP_IDX_KEY,
                                                      self.FIXED_STEP_IDX_DEFAULT, self.ValueType.INT)
@@ -111,6 +122,9 @@ class Settings(QtCore.QObject):
                                                       self.MOUSE_INVERSION_DEFAULT, self.ValueType.INT)
         self.__mouse_inversion = utils.bound(self.__mouse_inversion, 0, 1)
 
+        self.__hidden_columns = self.check_ini_value(self.MEASURE_SECTION, self.HIDDEN_COLUMNS_KEY,
+                                                     self.HIDDEN_COLUMNS_DEFAULT, self.ValueType.LIST_INT)
+
         # Выводит ini файл в консоль
         # for key in settings:
         #     print(f"[{key}]")
@@ -133,6 +147,18 @@ class Settings(QtCore.QObject):
     def save(self):
         utils.save_settings(self.CONFIG_PATH, self.settings)
 
+    def save_geometry(self, a_window_name: str, a_geometry: QtCore.QByteArray):
+        self.add_ini_section(self.GEOMETRY_SECTION)
+        self.settings[self.GEOMETRY_SECTION][a_window_name] = str(a_geometry.data(), encoding="cp1251")
+        self.save()
+
+    def get_last_geometry(self, a_window_name: str):
+        try:
+            geometry_bytes = self.settings[self.GEOMETRY_SECTION][a_window_name]
+            return QtCore.QByteArray(bytes(geometry_bytes, encoding="cp1251"))
+        except KeyError:
+            return QtCore.QByteArray()
+
     @property
     def fixed_step_list(self):
         return self.__fixed_step_list
@@ -149,7 +175,7 @@ class Settings(QtCore.QObject):
         self.settings[self.MEASURE_SECTION][self.FIXED_STEP_KEY] = saved_string
         self.save()
 
-        self.__fixed_step_list = [float(val) for val in final_list]
+        self.__fixed_step_list = [val for val in final_list]
         self.__fixed_step_idx = utils.bound(self.__fixed_step_idx, 0, len(self.__fixed_step_list) - 1)
         self.fixed_step_changed.emit()
 
@@ -225,4 +251,14 @@ class Settings(QtCore.QObject):
         self.__mouse_inversion = a_enable
         self.__mouse_inversion = utils.bound(self.__mouse_inversion, 0, 1)
 
+    @property
+    def hidden_columns(self):
+        return self.__hidden_columns
 
+    @hidden_columns.setter
+    def hidden_columns(self, a_list: List[int]):
+        saved_string = ','.join(str(val) for val in a_list).strip(',')
+
+        self.settings[self.MEASURE_SECTION][self.HIDDEN_COLUMNS_KEY] = saved_string
+        self.save()
+        self.__hidden_columns = a_list

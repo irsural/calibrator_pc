@@ -6,6 +6,7 @@ from PyQt5.QtCore import pyqtSignal, pyqtSlot
 from ui.py.template_list_form import Ui_Dialog as TemplateListForm
 from variable_template_fields_dialog import VariableTemplateFieldsDialog, VariableTemplateParams
 from db_templates import TemplateParams, TemplatesDB
+from settings_ini_parser import Settings
 import calibrator_constants as clb
 from constants import OperationDB, Point
 import qt_utils
@@ -15,12 +16,16 @@ import utils
 class TemplateListWindow(QtWidgets.QDialog):
     config_ready = pyqtSignal(TemplateParams, VariableTemplateParams)
 
-    def __init__(self, a_parent=None):
+    def __init__(self, a_settings: Settings, a_parent=None):
         super().__init__(a_parent)
 
         self.ui = TemplateListForm()
         self.ui.setupUi(self)
         self.ui.template_params_widget.setDisabled(True)
+
+        self.settings = a_settings
+        self.restoreGeometry(self.settings.get_last_geometry(self.__class__.__name__))
+        # self.parent.show()
 
         self.db_operation = OperationDB.ADD
         self.prev_template_name = ""
@@ -47,13 +52,6 @@ class TemplateListWindow(QtWidgets.QDialog):
 
         self.ui.template_name_edit.textChanged.connect(self.template_name_changed)
         self.ui.filter_edit.textChanged.connect(self.filter_templates)
-
-        self.window_existing_timer = QtCore.QTimer()
-        self.window_existing_timer.timeout.connect(self.window_existing_chech)
-        self.window_existing_timer.start(3000)
-
-    def window_existing_chech(self):
-        print("Template list dialog")
 
     @pyqtSlot(QtCore.QPoint)
     def show_context_menu(self, a_pos: QtCore.QPoint):
@@ -207,6 +205,10 @@ class TemplateListWindow(QtWidgets.QDialog):
         for row in range(self.ui.templates_list.count()):
             item = self.ui.templates_list.item(row)
             item.setHidden(a_text.lower() not in item.text().lower())
+
+    def closeEvent(self, a_event: QtGui.QCloseEvent) -> None:
+        self.settings.save_geometry(self.__class__.__name__, self.saveGeometry())
+        a_event.accept()
 
 
 class PointsDataTable:

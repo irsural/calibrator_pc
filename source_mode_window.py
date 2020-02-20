@@ -4,18 +4,24 @@ from PyQt5.QtCore import pyqtSignal, pyqtSlot, QTimer
 
 from ui.py.source_mode_form import Ui_Form as SourceModeForm
 import calibrator_constants as clb
+from settings_ini_parser import Settings
 import clb_dll
 
 
 class SourceModeWindow(QtWidgets.QWidget):
     close_confirmed = pyqtSignal()
 
-    def __init__(self, a_calibrator: clb_dll.ClbDrv, a_parent=None):
+    def __init__(self, a_settings: Settings, a_calibrator: clb_dll.ClbDrv, a_parent=None):
         super().__init__(a_parent)
 
         self.ui = SourceModeForm()
         self.ui.setupUi(self)
-        self.show()
+
+        self.parent = a_parent
+        self.settings = a_settings
+
+        self.parent.restoreGeometry(self.settings.get_last_geometry(self.__class__.__name__))
+        self.parent.show()
 
         self.setWindowTitle("Режим источника")
 
@@ -41,12 +47,6 @@ class SourceModeWindow(QtWidgets.QWidget):
 
         self.block_signals = False
 
-        self.window_existing_timer = QtCore.QTimer()
-        self.window_existing_timer.timeout.connect(self.window_existing_chech)
-        self.window_existing_timer.start(3000)
-
-    def window_existing_chech(self):
-        print("Source Mode Window")
 
     def connect_signals(self):
         self.ui.clb_list_combobox.currentTextChanged.connect(self.connect_to_clb)
@@ -157,4 +157,5 @@ class SourceModeWindow(QtWidgets.QWidget):
 
     def ask_for_close(self):
         self.calibrator.signal_enable = False
+        self.settings.save_geometry(self.__class__.__name__, self.parent.saveGeometry())
         self.close_confirmed.emit()

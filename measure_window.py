@@ -29,13 +29,16 @@ class MeasureWindow(QtWidgets.QWidget):
 
         self.ui = MeasureForm()
         self.ui.setupUi(self)
+        self.parent = a_parent
 
         self.warning_animation = None
         self.set_up_icons()
 
-        self.show()
-
         self.settings = a_settings
+
+        self.parent.restoreGeometry(self.settings.get_last_geometry(self.__class__.__name__))
+        self.parent.show()
+
         self.db_connection = a_db_connection
         self.db_tables = a_db_tables
 
@@ -123,10 +126,15 @@ class MeasureWindow(QtWidgets.QWidget):
         return menu, lambda_connections
 
     def set_window_elements(self):
+        for column, hide in enumerate(self.settings.hidden_columns):
+            self.ui.measure_table.setColumnHidden(column, bool(hide))
+
         if clb.is_dc_signal[self.measure_config.signal_type]:
             self.ui.apply_frequency_button.setDisabled(True)
             self.ui.frequency_edit.setDisabled(True)
             self.ui.measure_table.hideColumn(QNoTemplateMeasureModel.Column.FREQUENCY)
+        else:
+            self.ui.measure_table.showColumn(QNoTemplateMeasureModel.Column.FREQUENCY)
 
         self.setWindowTitle(f"{clb.enum_to_signal_type[self.measure_config.signal_type]}. "
                             f"{self.measure_config.upper_bound} {self.units_text}.")
@@ -313,7 +321,6 @@ class MeasureWindow(QtWidgets.QWidget):
         self.set_amplitude(self.highest_amplitude)
         self.calibrator.mode = clb.Mode.FIXED_RANGE
         self.calibrator.signal_type = self.measure_config.signal_type
-        # self.calibrator.signal_enable = True
 
         self.start_measure_timer.start(1100)
 
@@ -528,12 +535,20 @@ class MeasureWindow(QtWidgets.QWidget):
                                      QMessageBox.No, QMessageBox.No)
         if reply == QMessageBox.Yes:
             self.calibrator.signal_enable = False
-
             self.measures_db.save(self.measure_config, self.measure_model.exportPoints())
-            self.settings.fixed_step_idx = self.ui.fixed_step_combobox.currentIndex()
+            self.save_settings()
 
             # Без этого диалог не уничтожится
             for sender, connection in self.manual_connections:
                 sender.triggered.disconnect(connection)
 
             self.close_confirmed.emit()
+
+    def save_settings(self):
+        self.settings.fixed_step_idx = self.ui.fixed_step_combobox.currentIndex()
+
+        self.settings.hidden_columns = [int(self.ui.measure_table.isColumnHidden(column)) for column in
+                                        range(self.measure_model.columnCount())]
+
+        self.settings.save_geometry(self.__class__.__name__, self.parent.saveGeometry())
+

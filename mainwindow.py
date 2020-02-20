@@ -27,39 +27,45 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.ui = MainForm()
         self.ui.setupUi(self)
-        self.show()
 
         self.active_window = None
-        self.previous_start_window_pos = self.pos()
-        self.show_start_window()
-
-        self.clb_driver = clb_dll.set_up_driver(clb_dll.path)
-        self.usb_driver = clb_dll.UsbDrv(self.clb_driver)
-        self.usb_state = clb_dll.UsbDrv.UsbState.DISABLED
-        self.calibrator = clb_dll.ClbDrv(self.clb_driver)
-        self.clb_state = clb.State.DISCONNECTED
-
-        self.usb_check_timer = QtCore.QTimer(self)
-        self.usb_check_timer.timeout.connect(self.usb_tick)
-        self.usb_check_timer.start(10)
-
-        self.fast_config: FastMeasureParams = None
-
-        self.measure_db_tables = MeasureTables(marks_table="marks", mark_values_table="mark_values",
-                                               measures_table="measures", results_table="results")
-        self.db_connection = self.create_db("measures.db")
-
-        self.clb_signal_off_timer = QtCore.QTimer()
-        self.clb_signal_off_timer.timeout.connect(self.close)
-        self.SIGNAL_OFF_TIME_MS = 200
-
-        self.ui.enter_settings_action.triggered.connect(self.open_settings)
 
         try:
             self.settings = Settings(self)
+            ini_ok = True
         except BadIniException:
+            ini_ok = False
             QtWidgets.QMessageBox.critical(self, "Ошибка", 'Файл конфигурации поврежден. Пожалуйста, '
                                                            'удалите файл "settings.ini" и запустите программу заново')
+        if ini_ok:
+            self.show_start_window()
+            self.show()
+
+            self.clb_signal_off_timer = QtCore.QTimer()
+            self.clb_signal_off_timer.timeout.connect(self.close)
+            self.SIGNAL_OFF_TIME_MS = 200
+
+            # self.previous_start_window_pos = self.pos()
+
+            self.clb_driver = clb_dll.set_up_driver(clb_dll.path)
+            self.usb_driver = clb_dll.UsbDrv(self.clb_driver)
+            self.usb_state = clb_dll.UsbDrv.UsbState.DISABLED
+            self.calibrator = clb_dll.ClbDrv(self.clb_driver)
+            self.clb_state = clb.State.DISCONNECTED
+
+            self.usb_check_timer = QtCore.QTimer(self)
+            self.usb_check_timer.timeout.connect(self.usb_tick)
+            self.usb_check_timer.start(10)
+
+            self.fast_config: FastMeasureParams = None
+
+            self.measure_db_tables = MeasureTables(marks_table="marks", mark_values_table="mark_values",
+                                                   measures_table="measures", results_table="results")
+            self.db_connection = self.create_db("measures.db")
+
+            self.ui.enter_settings_action.triggered.connect(self.open_settings)
+
+        else:
             self.close()
 
     def __del__(self):
@@ -93,16 +99,16 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def show_start_window(self):
         try:
+            self.hide()
             if self.active_window is not None:
                 self.active_window.close()
-            self.active_window = StartWindow(self)
-            self.resize(self.active_window.width(), self.active_window.height())
+
+            self.active_window = StartWindow(self.settings, self)
             self.setCentralWidget(self.active_window)
             self.active_window.source_mode_chosen.connect(self.open_source_mode_window)
             self.active_window.no_template_mode_chosen.connect(self.open_config_no_template_mode)
             self.active_window.template_mode_chosen.connect(self.template_mode_chosen)
             self.setWindowTitle(self.active_window.windowTitle())
-            self.move(self.previous_start_window_pos)
         except AssertionError as err:
             print(err)
 
@@ -141,23 +147,22 @@ class MainWindow(QtWidgets.QMainWindow):
         self.usb_status_changed.connect(a_window.update_clb_status)
         self.usb_status_changed.emit(self.clb_state)
 
-    @staticmethod
-    def sync_centers(a_old_widget, a_new_widget):
-        new_center: QtCore.QPoint = a_old_widget.geometry().center() - a_new_widget.rect().center()
-        new_center.setY(utils.bound(new_center.y(), 0, QtWidgets.QApplication.desktop().screenGeometry().height() -
-                                    a_new_widget.height()))
-        return new_center
+    # @staticmethod
+    # def sync_centers(a_old_widget, a_new_widget):
+    #     new_center: QtCore.QPoint = a_old_widget.geometry().center() - a_new_widget.rect().center()
+    #     new_center.setY(utils.bound(new_center.y(), 0, QtWidgets.QApplication.desktop().screenGeometry().height() -
+    #                                 a_new_widget.height()))
+    #     return new_center
 
-    def change_window(self, a_new_window):
-        self.previous_start_window_pos = self.pos()
-        self.active_window.close()
+    def change_window(self, a_new_window, center: bool = False):
+        # self.previous_start_window_pos = self.pos()
         self.active_window = a_new_window
         self.attach_calibrator_to_window(self.active_window)
 
-        self.move(self.sync_centers(self, self.active_window))
-        self.resize(self.active_window.size())
-        self.setCentralWidget(self.active_window)
+        # if center:
+        #     self.move(self.sync_centers(self, self.active_window))
 
+        self.setCentralWidget(self.active_window)
         self.setWindowTitle(self.active_window.windowTitle())
 
         self.active_window.close_confirmed.connect(self.close_child_widget)
@@ -165,9 +170,11 @@ class MainWindow(QtWidgets.QMainWindow):
     @pyqtSlot()
     def open_source_mode_window(self):
         try:
-            self.change_window(SourceModeWindow(self.calibrator, self))
-        except AssertionError as err:
-            print(err)
+            self.hide()
+            self.active_window.close()
+            self.change_window(SourceModeWindow(self.settings, self.calibrator, self))
+        except Exception as err:
+            utils.exception_handler(err)
 
     @pyqtSlot()
     def open_config_no_template_mode(self):
@@ -188,6 +195,9 @@ class MainWindow(QtWidgets.QMainWindow):
     def start_fast_measure(self):
         try:
             measure_config = MeasureParams.fromFastParams(self.fast_config)
+
+            self.hide()
+            self.active_window.close()
             self.change_window(MeasureWindow(a_calibrator=self.calibrator,
                                              a_measure_config=measure_config,
                                              a_db_connection=self.db_connection,
@@ -200,7 +210,7 @@ class MainWindow(QtWidgets.QMainWindow):
     @pyqtSlot()
     def template_mode_chosen(self):
         try:
-            template_list_dialog = TemplateListWindow(self)
+            template_list_dialog = TemplateListWindow(self.settings, self)
             template_list_dialog.config_ready.connect(self.start_template_measure)
             template_list_dialog.exec()
         except Exception as err:
@@ -209,6 +219,9 @@ class MainWindow(QtWidgets.QMainWindow):
     def start_template_measure(self, a_template_params: TemplateParams, a_variable_params: VariableTemplateParams):
         try:
             measure_config = MeasureParams.fromTemplate(a_template_params, a_variable_params)
+
+            self.hide()
+            self.active_window.close()
             self.change_window(MeasureWindow(a_calibrator=self.calibrator,
                                              a_measure_config=measure_config,
                                              a_db_connection=self.db_connection,
@@ -231,15 +244,19 @@ class MainWindow(QtWidgets.QMainWindow):
     def closeEvent(self, a_event: QtGui.QCloseEvent):
         try:
             if not isinstance(self.active_window, StartWindow):
-                assert hasattr(self.active_window, "ask_for_close"), \
-                    f"Class {type(self.active_window)} has no method ask_for_close"
-                # Эмитит close_confirmed при подтверждении закрытия
-                self.active_window.ask_for_close()
-                a_event.ignore()
+                if hasattr(self.active_window, "ask_for_close"):
+                    # Эмитит close_confirmed при подтверждении закрытия
+                    self.active_window.ask_for_close()
+                    a_event.ignore()
+                else:
+                    a_event.accept()
             else:
                 if self.calibrator.signal_enable:
                     self.calibrator.signal_enable = False
                     self.clb_signal_off_timer.start(self.SIGNAL_OFF_TIME_MS)
                     a_event.ignore()
-        except AssertionError as err:
+                else:
+                    self.active_window.close()
+                    a_event.accept()
+        except Exception as err:
             print(err)
