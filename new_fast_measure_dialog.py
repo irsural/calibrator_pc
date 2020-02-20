@@ -187,9 +187,8 @@ class NewFastMeasureDialog(QDialog):
             self.fast_params.lower_bound = utils.parse_input(self.ui.lower_bound_edit.text())
             self.fast_params.points_step = utils.parse_input(self.ui.step_edit.text())
 
-            # self.fast_params.frequency = [] if clb.is_dc_signal[self.fast_params.signal_type] else \
-            #     self.ui.frequency_edit.text().split(';')
-            self.fast_params.frequency = self.ui.frequency_edit.text().split(';')
+            self.fast_params.frequency = ["0"] if clb.is_dc_signal[self.fast_params.signal_type] else \
+                self.ui.frequency_edit.text().split(';')
 
             self.fast_params.start_point_side = FastMeasureParams.StartPoint.UPPER if \
                 self.ui.start_point_up_radio.isChecked() else FastMeasureParams.StartPoint.LOWER
@@ -223,7 +222,7 @@ class NewFastMeasureDialog(QDialog):
             input_status = self.InputStatus.bad_input
         else:
             input_status = self.check_input(self.fast_params)
-
+        print(self.fast_params.frequency)
         if input_status == self.InputStatus.ok:
             self.fast_params.amplitudes = [] if not self.fast_params.auto_calc_points else self.calc_points()
             if self.fast_params.frequency[0] == "":
