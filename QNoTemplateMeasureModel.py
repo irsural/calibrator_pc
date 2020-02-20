@@ -85,7 +85,7 @@ class QNoTemplateMeasureModel(QAbstractTableModel):
         self.__bad_color = QColor(255, 0, 0, 127)
 
     def appendPoint(self, a_point_data: PointData) -> int:
-        row_idx = self.__find_point(a_point_data.point)
+        row_idx = self.__find_point(a_point_data.point, a_point_data.frequency)
         point_row = self.rowCount() if row_idx is None else row_idx
 
         if point_row == self.rowCount():
@@ -112,7 +112,7 @@ class QNoTemplateMeasureModel(QAbstractTableModel):
     def exportPoints(self):
         return tuple(self.__points)
 
-    def isPointGood(self, a_point: float, a_approach_side: PointData.ApproachSide) -> bool:
+    def isPointGood(self, a_point: float, a_freqyency: float, a_approach_side: PointData.ApproachSide) -> bool:
         """
         Проверяет, есть ли точка в массиве, если точка есть, то проверяет ее состояние (входит в погрешность или нет)
         Если точки нет, или она не входит в погрешность, возвращает False, иначе возвращает True
@@ -120,7 +120,7 @@ class QNoTemplateMeasureModel(QAbstractTableModel):
         :param a_point: Значение точки
         :return: bool
         """
-        row_idx = self.__find_point(a_point)
+        row_idx = self.__find_point(a_point, a_freqyency)
         if row_idx is None:
             return False
         else:
@@ -130,9 +130,9 @@ class QNoTemplateMeasureModel(QAbstractTableModel):
             else:
                 return False
 
-    def __find_point(self, a_point: float):
+    def __find_point(self, a_point: float, a_frequency: float):
         for idx, row_data in enumerate(self.__points):
-            if a_point == row_data[self.Column.POINT]:
+            if a_point == row_data[self.Column.POINT] and row_data[self.Column.FREQUENCY] == a_frequency:
                 return idx
         return None
 

@@ -18,21 +18,21 @@ class FastMeasureParams:
         UPPER = 1
 
     def __init__(self):
-        self.signal_type = clb.SignalType.DCV
+        self.signal_type = clb.SignalType.ACV
         self.accuracy_class = 2.5
-        self.upper_bound = 600.
-        self.minimal_discrete = 100.
+        self.upper_bound = 10.
+        self.minimal_discrete = 1.
         self.comment = ""
 
         self.date = QtCore.QDate.currentDate().toString("dd.MM.yyyy")
         self.time = QtCore.QTime.currentTime().toString("H:mm")
 
-        self.auto_calc_points = False
+        self.auto_calc_points = True
         self.lower_bound = 0.
         self.points_step = 2.
         self.start_point_side = self.StartPoint.LOWER
         self.amplitudes = []
-        self.frequency = []
+        self.frequency = ["40", "50", "60"]
 
     def __str__(self):
         return f"Signal type: {self.signal_type.name}\n" \
@@ -149,6 +149,7 @@ class NewFastMeasureDialog(QDialog):
     def normalize_edit_value(self, edit: QtWidgets.QLineEdit):
         try:
             value = utils.parse_input(edit.text())
+            value = clb.bound_amplitude(value, self.fast_params.signal_type)
             edit.setText(self.value_to_user(value))
             self.update_edit_color(edit)
         except ValueError:
@@ -184,8 +185,11 @@ class NewFastMeasureDialog(QDialog):
 
             self.fast_params.auto_calc_points = bool(self.ui.auto_calc_points_checkbox.isChecked())
             self.fast_params.lower_bound = utils.parse_input(self.ui.lower_bound_edit.text())
-            self.fast_params.frequency = self.ui.frequency_edit.text().split(';')
             self.fast_params.points_step = utils.parse_input(self.ui.step_edit.text())
+
+            # self.fast_params.frequency = [] if clb.is_dc_signal[self.fast_params.signal_type] else \
+            #     self.ui.frequency_edit.text().split(';')
+            self.fast_params.frequency = self.ui.frequency_edit.text().split(';')
 
             self.fast_params.start_point_side = FastMeasureParams.StartPoint.UPPER if \
                 self.ui.start_point_up_radio.isChecked() else FastMeasureParams.StartPoint.LOWER
@@ -273,6 +277,7 @@ class NewFastMeasureDialog(QDialog):
         self.normalize_edit_value(self.ui.upper_bound_edit)
         self.normalize_edit_value(self.ui.lower_bound_edit)
         self.normalize_edit_value(self.ui.step_edit)
+        self.normalize_edit_value(self.ui.minimal_discrete)
 
     def calc_points(self):
         lower_point, upper_point = (self.fast_params.lower_bound, self.fast_params.upper_bound) if \

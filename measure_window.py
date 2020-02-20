@@ -330,7 +330,8 @@ class MeasureWindow(QtWidgets.QWidget):
     def save_point(self):
         if self.clb_state != clb.State.WAITING_SIGNAL:
             try:
-                if self.measure_model.isPointGood(self.current_point.point, self.current_point.approach_side):
+                if self.measure_model.isPointGood(self.current_point.point, self.current_point.frequency,
+                                                  self.current_point.approach_side):
                     side_text = "СНИЗУ" if self.current_point.approach_side == PointData.ApproachSide.DOWN \
                         else "СВЕРХУ"
                     reply = QMessageBox.question(self, "Подтвердите действие", f"Значение {side_text} уже измерено "
