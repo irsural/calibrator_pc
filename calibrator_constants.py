@@ -115,3 +115,8 @@ def bound_amplitude(a_amplitude: float, a_signal_type: SignalType):
         min_value = MIN_ALTERNATIVE
 
     return bound(a_amplitude, min_value, max_value)
+
+
+def bound_frequency(a_frequency: float, a_signal_type: SignalType):
+    min_frequency = MIN_FREQUENCY if is_ac_signal[a_signal_type] else 0
+    return bound(a_frequency, min_frequency, MAX_FREQUENCY)

@@ -35,9 +35,8 @@ class TemplateListWindow(QtWidgets.QDialog):
         for name in self.templates_db:
             self.ui.templates_list.addItem(name)
 
-        self.points_table = PointsDataTable(clb.signal_type_to_units[self.ui.signal_type_combobox.currentIndex()],
-                                            self.ui.points_table)
-        self.ui.signal_type_combobox.currentIndexChanged.connect(self.points_table.set_units)
+        self.points_table = PointsDataTable(self.ui.signal_type_combobox.currentIndex(), self.ui.points_table)
+        self.ui.signal_type_combobox.currentIndexChanged.connect(self.points_table.set_signal_type)
         self.ui.add_point_button.clicked.connect(self.points_table.append_point)
         self.ui.remove_point_button.clicked.connect(self.points_table.delete_selected_points)
 
@@ -207,7 +206,11 @@ class TemplateListWindow(QtWidgets.QDialog):
         if item is not None:
             variable_params_dialog = VariableTemplateFieldsDialog(self)
             params: VariableTemplateParams = variable_params_dialog.exec_and_get_params()
+
             if params is not None:
+                if clb.is_dc_signal[self.current_template.signal_type]:
+                    self.current_template.points = [Point(a, 0) for a, f in self.current_template.points]
+
                 self.config_ready.emit(self.current_template, params)
                 self.reject()
 
@@ -226,12 +229,13 @@ class PointsDataTable:
         AMPLITUDE = 0
         FREQUENCY = 1
 
-    def __init__(self, a_units, a_table_widget: QtWidgets.QTableWidget):
+    def __init__(self, a_signal_type: clb.SignalType, a_table_widget: QtWidgets.QTableWidget):
         self.table: QtWidgets.QTableWidget = a_table_widget
         self.table.setItemDelegate(TableEditDoubleClick(self.table))
 
-        self.units = a_units
-        self.value_to_user = utils.value_to_user_with_units(a_units)
+        self.signal_type = a_signal_type
+        self.units = clb.signal_type_to_units[self.signal_type]
+        self.value_to_user = utils.value_to_user_with_units(self.units)
 
         self.table.itemChanged.connect(self.set_value_to_user)
         # Нужен, чтобы лишний раз не писать в БД точек, если они не менялись при изменении шаблона
@@ -267,26 +271,20 @@ class PointsDataTable:
         for point in a_points:
             qt_utils.qtablewidget_append_row(self.table, point)
 
-    def set_units(self, a_index: clb.SignalType):
-        prev_units = self.units
-        self.units = clb.signal_type_to_units[a_index]
-        self.value_to_user = utils.value_to_user_with_units(self.units)
-
-        if prev_units != self.units:
-            for row in range(self.table.rowCount()):
-                item = self.table.item(row, self.PointCols.AMPLITUDE)
-                item.setText(item.text().replace(prev_units, self.units))
-
     def set_value_to_user(self, a_item: QtWidgets.QTableWidgetItem):
         self.table.blockSignals(True)
         try:
             if a_item.column() == self.PointCols.AMPLITUDE:
-                value = self.value_to_user(utils.parse_input(a_item.text()))
+                value_f = utils.parse_input(a_item.text())
+                value_f = clb.bound_amplitude(value_f, self.signal_type)
+                value_str = self.value_to_user(value_f)
             else:
-                value = utils.float_to_string(float(a_item.text()))
+                value_f = float(a_item.text())
+                value_f = clb.bound_frequency(value_f, self.signal_type)
+                value_str = utils.float_to_string(value_f)
 
-            a_item.setText(value)
-            a_item.setData(QtCore.Qt.UserRole, value)
+            a_item.setText(value_str)
+            a_item.setData(QtCore.Qt.UserRole, value_str)
             self.points_were_edited = True
 
         except ValueError:
@@ -298,3 +296,16 @@ class PointsDataTable:
 
     def were_points_edited(self):
         return self.points_were_edited
+
+    def set_signal_type(self, a_signal_type: clb.SignalType):
+        if self.signal_type != a_signal_type:
+            self.signal_type = a_signal_type
+
+            self.units = clb.signal_type_to_units[self.signal_type]
+            self.value_to_user = utils.value_to_user_with_units(self.units)
+
+            for row in range(self.table.rowCount()):
+                item = self.table.item(row, self.PointCols.AMPLITUDE)
+                value_f: float = utils.parse_input(item.text())
+                value_f = clb.bound_amplitude(value_f, self.signal_type)
+                item.setText(self.value_to_user(value_f))
