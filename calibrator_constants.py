@@ -111,7 +111,7 @@ def bound_amplitude(a_amplitude: float, a_signal_type: SignalType):
     if not is_voltage_signal[a_signal_type]:
         min_value = MIN_CURRENT
         max_value = MAX_CURRENT
-    if not is_dc_signal[a_signal_type]:
+    if is_ac_signal[a_signal_type]:
         min_value = MIN_ALTERNATIVE
 
     return bound(a_amplitude, min_value, max_value)

@@ -305,7 +305,7 @@ class MeasureWindow(QtWidgets.QWidget):
                       f"Тип сигнала: {clb.enum_to_signal_type[self.measure_config.signal_type]}\n"\
                       f"Амплитуда: {self.value_to_user(self.highest_amplitude)}"
 
-            if not clb.is_dc_signal[self.measure_config.signal_type]:
+            if clb.is_ac_signal[self.measure_config.signal_type]:
                 message += f"\nЧастота: {utils.float_to_string(self.calibrator.frequency)} Гц"
 
             reply = QMessageBox.question(self, "Подтвердите действие", message, QMessageBox.Yes | QMessageBox.No,

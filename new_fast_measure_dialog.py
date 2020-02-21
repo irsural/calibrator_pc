@@ -238,7 +238,7 @@ class NewFastMeasureDialog(QDialog):
             return self.InputStatus.zero_minimal_discrete
         elif a_config.upper_bound <= a_config.lower_bound:
             return self.InputStatus.upper_less_than_lower
-        elif not clb.is_dc_signal[a_config.signal_type] and (a_config.upper_bound < 0 or a_config.lower_bound < 0):
+        elif clb.is_ac_signal[a_config.signal_type] and (a_config.upper_bound < 0 or a_config.lower_bound < 0):
             return self.InputStatus.upper_less_than_zero
         elif not clb.is_voltage_signal[a_config.signal_type] and \
                 (abs(a_config.upper_bound) > clb.MAX_CURRENT or abs(a_config.lower_bound) > clb.MAX_CURRENT):
@@ -248,7 +248,7 @@ class NewFastMeasureDialog(QDialog):
             return self.InputStatus.voltage_too_big
         elif a_config.auto_calc_points and a_config.points_step == 0:
             return self.InputStatus.step_is_zero
-        elif not clb.is_dc_signal[a_config.signal_type] and not a_config.frequency:
+        elif clb.is_ac_signal[a_config.signal_type] and not a_config.frequency:
             return self.InputStatus.no_frequency
         else:
             return self.InputStatus.ok
