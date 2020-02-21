@@ -50,6 +50,7 @@ class SettingsDialog(QtWidgets.QDialog):
         self.ui.common_step_spinbox.setValue(self.settings.common_step)
         self.ui.start_deviation_spinbox.setValue(self.settings.start_deviation)
         self.ui.mouse_inversion_checkbox.setChecked(self.settings.mouse_inversion)
+        self.ui.disable_scroll_on_table_checkbox.setChecked(self.settings.disable_scroll_on_table)
 
         self.ui.settings_menu_list.setCurrentRow(0)
         self.ui.settings_stackedwidget.setCurrentIndex(0)
@@ -74,6 +75,9 @@ class SettingsDialog(QtWidgets.QDialog):
 
             if self.settings.mouse_inversion != int(self.ui.mouse_inversion_checkbox.isChecked()):
                 self.settings.mouse_inversion = int(self.ui.mouse_inversion_checkbox.isChecked())
+
+            if self.settings.disable_scroll_on_table != int(self.ui.disable_scroll_on_table_checkbox.isChecked()):
+                self.settings.disable_scroll_on_table = int(self.ui.disable_scroll_on_table_checkbox.isChecked())
 
             return self.marks_widget.save()
         except Exception as err:

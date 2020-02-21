@@ -235,18 +235,19 @@ class MeasureWindow(QtWidgets.QWidget):
             event.accept()
 
     def wheelEvent(self, event: QWheelEvent):
-        steps = qt_utils.get_wheel_steps(event)
-        steps = -steps if self.settings.mouse_inversion else steps
+        if not (self.ui.measure_table.underMouse() and self.settings.disable_scroll_on_table):
+            steps = qt_utils.get_wheel_steps(event)
+            steps = -steps if self.settings.mouse_inversion else steps
 
-        keys = event.modifiers()
-        if (keys & Qt.ControlModifier) and (keys & Qt.ShiftModifier):
-            self.set_amplitude(self.calibrator.amplitude + (self.fixed_step * steps))
-        elif keys & Qt.ShiftModifier:
-            self.tune_amplitude(self.settings.exact_step * steps)
-        elif keys & Qt.ControlModifier:
-            self.tune_amplitude(self.settings.rough_step * steps)
-        else:
-            self.tune_amplitude(self.settings.common_step * steps)
+            keys = event.modifiers()
+            if (keys & Qt.ControlModifier) and (keys & Qt.ShiftModifier):
+                self.set_amplitude(self.calibrator.amplitude + (self.fixed_step * steps))
+            elif keys & Qt.ShiftModifier:
+                self.tune_amplitude(self.settings.exact_step * steps)
+            elif keys & Qt.ControlModifier:
+                self.tune_amplitude(self.settings.rough_step * steps)
+            else:
+                self.tune_amplitude(self.settings.common_step * steps)
 
         event.accept()
 

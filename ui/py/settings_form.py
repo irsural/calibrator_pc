@@ -128,9 +128,10 @@ class Ui_Dialog(object):
         self.rough_step_spinbox.setProperty("value", 0.5)
         self.rough_step_spinbox.setObjectName("rough_step_spinbox")
         self.verticalLayout_5.addWidget(self.rough_step_spinbox)
-        self.checkBox = QtWidgets.QCheckBox(self.verticalGroupBox_2)
-        self.checkBox.setObjectName("checkBox")
-        self.verticalLayout_5.addWidget(self.checkBox)
+        self.disable_scroll_on_table_checkbox = QtWidgets.QCheckBox(self.verticalGroupBox_2)
+        self.disable_scroll_on_table_checkbox.setChecked(False)
+        self.disable_scroll_on_table_checkbox.setObjectName("disable_scroll_on_table_checkbox")
+        self.verticalLayout_5.addWidget(self.disable_scroll_on_table_checkbox)
         self.mouse_inversion_checkbox = QtWidgets.QCheckBox(self.verticalGroupBox_2)
         self.mouse_inversion_checkbox.setObjectName("mouse_inversion_checkbox")
         self.verticalLayout_5.addWidget(self.mouse_inversion_checkbox)
@@ -201,7 +202,7 @@ class Ui_Dialog(object):
         self.label.setText(_translate("Dialog", "Точный, %"))
         self.label_2.setText(_translate("Dialog", "Обычный, %"))
         self.label_3.setText(_translate("Dialog", "Грубый, %"))
-        self.checkBox.setText(_translate("Dialog", "Отключить прокрутку шага,\n"
+        self.disable_scroll_on_table_checkbox.setText(_translate("Dialog", "Отключить прокрутку шага,\n"
 "если курсор мыши находится\n"
 "на таблице измерения"))
         self.mouse_inversion_checkbox.setText(_translate("Dialog", "Инвертировать\n"

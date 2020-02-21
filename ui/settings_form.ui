@@ -261,11 +261,14 @@ QListWidget::item {
                   </widget>
                  </item>
                  <item>
-                  <widget class="QCheckBox" name="checkBox">
+                  <widget class="QCheckBox" name="disable_scroll_on_table_checkbox">
                    <property name="text">
                     <string>Отключить прокрутку шага,
 если курсор мыши находится
 на таблице измерения</string>
+                   </property>
+                   <property name="checked">
+                    <bool>false</bool>
                    </property>
                   </widget>
                  </item>
