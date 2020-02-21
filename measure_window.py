@@ -7,7 +7,7 @@ from PyQt5.QtGui import QWheelEvent
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 from QNoTemplateMeasureModel import PointData, QNoTemplateMeasureModel
-from custom_widgets.NonOverlappingPainter import NonOverlappingPainter
+from custom_widgets.QTableDelegates import NonOverlappingPainter, TableEditDoubleClick, NonOverlappingDoubleClick
 from on_run_edit_template_dialog import OnRunEditConfigDialog
 from ui.py.measure_form import Ui_main_widget as MeasureForm
 from db_measures import MeasureParams, MeasureTables, MeasuresDB
@@ -74,7 +74,7 @@ class MeasureWindow(QtWidgets.QWidget):
                                                      a_value_units=self.units_text,
                                                      a_parent=self)
         self.ui.measure_table.setModel(self.measure_model)
-        self.ui.measure_table.setItemDelegate(NonOverlappingPainter(self))
+        self.ui.measure_table.setItemDelegate(NonOverlappingDoubleClick(self))
 
         self.set_window_elements()
         # Обязательно вызывать после set_window_elements иначе будет рассинхрон галочек хэдера и отображаемых колонок

@@ -20,19 +20,19 @@ class FastMeasureParams:
     def __init__(self):
         self.signal_type = clb.SignalType.ACV
         self.accuracy_class = 2.5
-        self.upper_bound = 10.
-        self.minimal_discrete = 1.
+        self.upper_bound = 1.
+        self.minimal_discrete = 0.1
         self.comment = ""
 
         self.date = QtCore.QDate.currentDate().toString("dd.MM.yyyy")
         self.time = QtCore.QTime.currentTime().toString("H:mm")
 
-        self.auto_calc_points = True
+        self.auto_calc_points = False
         self.lower_bound = 0.
-        self.points_step = 2.
+        self.points_step = 0.1
         self.start_point_side = self.StartPoint.LOWER
         self.amplitudes = []
-        self.frequency = ["40", "50", "60"]
+        self.frequency = []
 
     def __str__(self):
         return f"Signal type: {self.signal_type.name}\n" \
@@ -222,7 +222,7 @@ class NewFastMeasureDialog(QDialog):
             input_status = self.InputStatus.bad_input
         else:
             input_status = self.check_input(self.fast_params)
-        print(self.fast_params.frequency)
+
         if input_status == self.InputStatus.ok:
             self.fast_params.amplitudes = [] if not self.fast_params.auto_calc_points else self.calc_points()
             if self.fast_params.frequency[0] == "":
