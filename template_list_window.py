@@ -3,8 +3,9 @@ from enum import IntEnum
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import pyqtSignal, pyqtSlot
 
-from ui.py.template_list_form import Ui_Dialog as TemplateListForm
 from variable_template_fields_dialog import VariableTemplateFieldsDialog, VariableTemplateParams
+from ui.py.template_list_form import Ui_Dialog as TemplateListForm
+from custom_widgets.QTableDelegates import TableEditDoubleClick
 from db_templates import TemplateParams, TemplatesDB
 from settings_ini_parser import Settings
 import calibrator_constants as clb
@@ -227,6 +228,8 @@ class PointsDataTable:
 
     def __init__(self, a_units, a_table_widget: QtWidgets.QTableWidget):
         self.table: QtWidgets.QTableWidget = a_table_widget
+        self.table.setItemDelegate(TableEditDoubleClick(self.table))
+
         self.units = a_units
         self.value_to_user = utils.value_to_user_with_units(a_units)
 

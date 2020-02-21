@@ -66,6 +66,11 @@ QListWidget::item:selected:active {
     background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
                                 stop: 0 #4e55c6, stop: 1 #888dd9);
 }
+QListWidget:item:selected:!active {
+    background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+                                stop: 0 #4e55c6, stop: 1 #888dd9);
+	color: white
+}
 QListWidget::item {
 	height: 50;
 }</string>

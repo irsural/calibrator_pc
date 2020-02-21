@@ -260,7 +260,7 @@ class NewFastMeasureDialog(QDialog):
         edit_frequency_dialog = OkCancelDialog(self, "Редактирование частот поверки")
 
         self.edit_frequency_widget = EditedListOnlyNumbers(edit_frequency_dialog, tuple(current_frequency),
-                                                           "Частота, Гц")
+                                                           clb.MIN_FREQUENCY, clb.MAX_FREQUENCY, "Частота, Гц")
 
         edit_frequency_dialog.ui.main_widget_layout.addWidget(self.edit_frequency_widget)
         edit_frequency_dialog.accepted.connect(self.frequency_editing_finished)

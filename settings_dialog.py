@@ -42,7 +42,8 @@ class SettingsDialog(QtWidgets.QDialog):
         self.marks_widget = MarksWidget(a_db_connection, a_db_tables, a_parent=self)
         self.ui.marks_layout.addWidget(self.marks_widget)
 
-        self.edit_fixed_range_widget = EditedListWithUnits(self, "В", self.settings.fixed_step_list, a_list_name="Шаг")
+        self.edit_fixed_range_widget = EditedListWithUnits(self, "В", self.settings.fixed_step_list, clb.MIN_VOLTAGE,
+                                                           clb.MAX_VOLTAGE, a_list_name="Шаг")
         self.ui.fixed_range_groupbox.layout().addWidget(self.edit_fixed_range_widget)
 
         self.ui.exact_step_spinbox.setValue(self.settings.exact_step)
@@ -52,12 +53,15 @@ class SettingsDialog(QtWidgets.QDialog):
         self.ui.mouse_inversion_checkbox.setChecked(self.settings.mouse_inversion)
         self.ui.disable_scroll_on_table_checkbox.setChecked(self.settings.disable_scroll_on_table)
 
+        self.open_marks_table_widget()
+
+    def open_marks_table_widget(self):
         self.ui.settings_menu_list.setCurrentRow(0)
         self.ui.settings_stackedwidget.setCurrentIndex(0)
 
     def save(self):
         try:
-            fixed_step_list = self.edit_fixed_range_widget.get_list()
+            fixed_step_list = self.edit_fixed_range_widget.sort_list()
             if self.settings.fixed_step_list != fixed_step_list:
                 self.settings.fixed_step_list = fixed_step_list
 
@@ -79,7 +83,11 @@ class SettingsDialog(QtWidgets.QDialog):
             if self.settings.disable_scroll_on_table != int(self.ui.disable_scroll_on_table_checkbox.isChecked()):
                 self.settings.disable_scroll_on_table = int(self.ui.disable_scroll_on_table_checkbox.isChecked())
 
-            return self.marks_widget.save()
+            if self.marks_widget.save():
+                return True
+            else:
+                self.open_marks_table_widget()
+                return False
         except Exception as err:
             print(err)
 

@@ -43,6 +43,11 @@ class Ui_Dialog(object):
 "    background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,\n"
 "                                stop: 0 #4e55c6, stop: 1 #888dd9);\n"
 "}\n"
+"QListWidget:item:selected:!active {\n"
+"    background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,\n"
+"                                stop: 0 #4e55c6, stop: 1 #888dd9);\n"
+"    color: white\n"
+"}\n"
 "QListWidget::item {\n"
 "    height: 50;\n"
 "}")

@@ -1,4 +1,6 @@
 from typing import List
+from sys import float_info
+from collections import OrderedDict
 
 from PyQt5.QtCore import pyqtSignal, pyqtSlot
 from PyQt5 import QtWidgets, QtGui, QtCore
@@ -10,12 +12,15 @@ import utils
 
 
 class EditedListWidget(QtWidgets.QWidget):
-    def __init__(self, parent=None, a_init_items=(), a_list_name="List name"):
+    def __init__(self, parent=None, a_init_items=(), a_min_value=None, a_max_value=None, a_list_name="List name"):
         super().__init__(parent)
 
         self.ui = EditedListForm()
         self.ui.setupUi(self)
         self.ui.lsitname_label.setText(a_list_name)
+
+        self.min_value = a_min_value if a_min_value is not None else float_info.min
+        self.max_value = a_max_value if a_max_value is not None else float_info.max
 
         self.delete_key_sc = QtWidgets.QShortcut(QtGui.QKeySequence(QtCore.Qt.Key_Delete), self.ui.list_widget)
         self.delete_key_sc.activated.connect(self.delete_selected_row)
@@ -42,6 +47,9 @@ class EditedListWidget(QtWidgets.QWidget):
 
     def process_input(self, a_input: str):
         return a_input
+
+    def bound_input(self, a_value):
+        return utils.bound(a_value, self.min_value, self.max_value)
 
     def add_item(self, a_init_value="0", a_edit_item=True):
         list_item = QtWidgets.QListWidgetItem(self.process_input(a_init_value), self.ui.list_widget)
@@ -86,8 +94,8 @@ class QRegExpDelegator(QtWidgets.QItemDelegate):
 
 
 class EditedListOnlyNumbers(EditedListWidget):
-    def __init__(self, parent=None, a_init_items=(), a_list_name="List name"):
-        super().__init__(parent, a_init_items, a_list_name)
+    def __init__(self, parent=None, a_init_items=(), a_min_value=None, a_max_value=None, a_list_name="List name"):
+        super().__init__(parent, a_init_items, a_min_value, a_max_value, a_list_name)
 
         delegator = QRegExpDelegator(self, utils.find_number_re.pattern)
         delegator.editing_finished.connect(self.item_editing_finished)
@@ -95,14 +103,16 @@ class EditedListOnlyNumbers(EditedListWidget):
 
     def process_input(self, a_input: str):
         value = float(a_input.replace(",", "."))
+        value = self.bound_input(value)
         return utils.float_to_string(value)
 
 
 class EditedListWithUnits(EditedListWidget):
-    def __init__(self, parent=None, units: str = "В", a_init_items=(), a_list_name="List name"):
+    def __init__(self, parent=None, units: str = "В", a_init_items=(), a_min_value=None, a_max_value=None,
+                 a_list_name="List name"):
         self.value_to_user = utils.value_to_user_with_units(units)
         items_with_units = (self.value_to_user(item) for item in a_init_items)
-        super().__init__(parent, items_with_units, a_list_name)
+        super().__init__(parent, items_with_units, a_min_value, a_max_value, a_list_name)
 
         delegator = QRegExpDelegator(self, utils.check_input_no_python_re.pattern)
         delegator.editing_finished.connect(self.item_editing_finished)
@@ -111,8 +121,9 @@ class EditedListWithUnits(EditedListWidget):
     def process_input(self, a_input: str):
         try:
             processed_value = utils.parse_input(a_input)
+            processed_value = self.bound_input(processed_value)
         except ValueError:
-            processed_value = 0
+            processed_value = self.bound_input(0)
         return self.value_to_user(processed_value)
 
     def get_list(self) -> List[float]:
@@ -125,6 +136,19 @@ class EditedListWithUnits(EditedListWidget):
             return out_list
         except ValueError:
             return list()
+
+    def sort_list(self):
+        items = OrderedDict()
+        for idx in range(self.ui.list_widget.count()):
+            text = self.ui.list_widget.item(idx).text()
+            value = utils.parse_input(text)
+            items[value] = text
+        self.ui.list_widget.clear()
+        items = OrderedDict(sorted(items.items()))
+        for value in items.values():
+            self.ui.list_widget.addItem(QtWidgets.QListWidgetItem(value))
+        return list(items.keys())
+
 
 
 class OkCancelDialog(QtWidgets.QDialog):
