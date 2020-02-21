@@ -71,7 +71,7 @@ class MeasureWindow(QtWidgets.QWidget):
 
         self.measure_model = QNoTemplateMeasureModel(self.current_point.normalize_value,
                                                      a_error_limit=self.measure_config.device_class,
-                                                     a_value_units=self.units_text,
+                                                     a_signal_type=self.measure_config.signal_type,
                                                      a_parent=self)
         self.ui.measure_table.setModel(self.measure_model)
         self.ui.measure_table.setItemDelegate(NonOverlappingDoubleClick(self))

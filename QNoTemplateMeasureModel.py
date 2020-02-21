@@ -4,8 +4,8 @@ from typing import List
 from PyQt5.QtCore import QAbstractTableModel, QModelIndex, Qt, QVariant, pyqtSlot
 from PyQt5.QtGui import QBrush, QColor
 
+import calibrator_constants as clb
 import utils
-
 
 class PointData:
     class ApproachSide(enum.IntEnum):
@@ -69,7 +69,7 @@ class QNoTemplateMeasureModel(QAbstractTableModel):
         PointData.ApproachSide.UP: Column.UP_DEVIATION_PERCENT
     }
 
-    def __init__(self, a_normalize_value, a_error_limit, a_value_units="А", a_parent=None):
+    def __init__(self, a_normalize_value, a_error_limit, a_signal_type, a_parent=None):
         super().__init__(a_parent)
 
         self.__row_count = 0
@@ -78,7 +78,8 @@ class QNoTemplateMeasureModel(QAbstractTableModel):
 
         self.__points: List[List[float]] = []
 
-        self.value_to_user = utils.value_to_user_with_units(a_value_units)
+        self.signal_type = a_signal_type
+        self.value_to_user = utils.value_to_user_with_units(clb.signal_type_to_units[self.signal_type])
         self.normalize_value = a_normalize_value
         self.error_limit = a_error_limit
         self.__good_color = QColor(0, 255, 0, 127)
@@ -116,6 +117,7 @@ class QNoTemplateMeasureModel(QAbstractTableModel):
         """
         Проверяет, есть ли точка в массиве, если точка есть, то проверяет ее состояние (входит в погрешность или нет)
         Если точки нет, или она не входит в погрешность, возвращает False, иначе возвращает True
+        :param a_freqyency: Частота точки
         :param a_approach_side: Сторона подхода к точке
         :param a_point: Значение точки
         :return: bool
@@ -210,6 +212,12 @@ class QNoTemplateMeasureModel(QAbstractTableModel):
             return False
         try:
             float_value = utils.parse_input(value)
+
+            if index.column() in (self.Column.POINT, self.Column.DOWN_VALUE, self.Column.UP_VALUE):
+                float_value = clb.bound_amplitude(float_value, self.signal_type)
+            elif index.column() == self.Column.FREQUENCY:
+                float_value = clb.bound_frequency(float_value, self.signal_type)
+
             self.__points[index.row()][index.column()] = float_value
             self.dataChanged.emit(index, index)
 
