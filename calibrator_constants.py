@@ -81,6 +81,13 @@ is_dc_signal = {
     SignalType.DCV: True
 }
 
+is_ac_signal = {
+    SignalType.ACI: True,
+    SignalType.ACV: True,
+    SignalType.DCI: False,
+    SignalType.DCV: False
+}
+
 is_voltage_signal = {
     SignalType.ACI: False,
     SignalType.DCI: False,

@@ -299,14 +299,17 @@ class MeasureWindow(QtWidgets.QWidget):
     @pyqtSlot()
     def start_stop_measure(self):
         if self.start_button_active:
-            reply = QMessageBox.question(self, "Подтвердите действие",
-                                         f"Начать поверку?\n\n"
-                                         f"На калибраторе будет включен сигнал и установлены следующие параметры:\n\n"
-                                         f"Режим измерения: Фиксированный диапазон\n"
-                                         f"Тип сигнала: "
-                                         f"{clb.enum_to_signal_type[self.measure_config.signal_type]}\n"
-                                         f"Амплитуда: {self.value_to_user(self.highest_amplitude)}",
-                                         QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+            message = f"Начать поверку?\n\n" \
+                      f"На калибраторе будет включен сигнал и установлены следующие параметры:\n\n"\
+                      f"Режим измерения: Фиксированный диапазон\n"\
+                      f"Тип сигнала: {clb.enum_to_signal_type[self.measure_config.signal_type]}\n"\
+                      f"Амплитуда: {self.value_to_user(self.highest_amplitude)}"
+
+            if not clb.is_dc_signal[self.measure_config.signal_type]:
+                message += f"\nЧастота: {utils.float_to_string(self.calibrator.frequency)} Гц"
+
+            reply = QMessageBox.question(self, "Подтвердите действие", message, QMessageBox.Yes | QMessageBox.No,
+                                         QMessageBox.No)
 
             if reply == QMessageBox.Yes:
                 self.start_button_active = False
@@ -333,10 +336,14 @@ class MeasureWindow(QtWidgets.QWidget):
                                                   self.current_point.approach_side):
                     side_text = "СНИЗУ" if self.current_point.approach_side == PointData.ApproachSide.DOWN \
                         else "СВЕРХУ"
+
+                    point_text = f"{self.value_to_user(self.current_point.point)}"
+                    if clb.is_ac_signal[self.measure_config.signal_type]:
+                        point_text += f" : {utils.float_to_string(self.current_point.frequency)} Гц"
+
                     reply = QMessageBox.question(self, "Подтвердите действие", f"Значение {side_text} уже измерено "
-                                                 f"для точки {self.value_to_user(self.current_point.point)} и не "
-                                                 f"превышает допустимую погрешность. Перезаписать значение {side_text} "
-                                                 f"для точки {self.value_to_user(self.current_point.point)} ?",
+                                                 f"для точки {point_text} и не превышает допустимую погрешность. "
+                                                 f"Перезаписать значение {side_text} для точки {point_text}?",
                                                  QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
                     if reply == QMessageBox.Yes:
                         self.update_table(self.current_point)
@@ -411,10 +418,14 @@ class MeasureWindow(QtWidgets.QWidget):
             deleted_points = ""
             for index_model in rows:
                 point_str = self.get_table_item_by_index(index_model.row(), QNoTemplateMeasureModel.Column.POINT)
-                deleted_points += f"{point_str}\n"
+                deleted_points += f"\n{point_str}"
+                if clb.is_ac_signal[self.measure_config.signal_type]:
+                    freq = self.get_table_item_by_index(index_model.row(), QNoTemplateMeasureModel.Column.FREQUENCY)
+                    deleted_points += f" : {utils.float_to_string(float(freq))} Гц"
+
                 row_indexes.append(index_model.row())
 
-            reply = QMessageBox.question(self, "Подтвердите действие", "Удалить следующие точки?\n\n" +
+            reply = QMessageBox.question(self, "Подтвердите действие", "Удалить следующие точки?\n" +
                                          deleted_points, QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
             if reply == QMessageBox.Yes:
                 self.remove_points.emit(row_indexes)
