@@ -16,7 +16,7 @@
    </font>
   </property>
   <property name="windowTitle">
-   <string>Редактирование шаблона во время поверки</string>
+   <string>Редактирование параметров измерения</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
