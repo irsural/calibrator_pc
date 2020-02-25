@@ -34,6 +34,7 @@ class SettingsDialog(QtWidgets.QDialog):
         self.ui.setupUi(self)
 
         self.settings = a_settings
+        self.restoreGeometry(self.settings.get_last_geometry(self.__class__.__name__))
 
         self.ui.save_and_exit_button.clicked.connect(self.save_and_exit)
         self.ui.save_button.clicked.connect(self.save)
@@ -95,3 +96,6 @@ class SettingsDialog(QtWidgets.QDialog):
         if self.save():
             self.close()
 
+    def closeEvent(self, a_event: QtGui.QCloseEvent) -> None:
+        self.settings.save_geometry(self.__class__.__name__, self.saveGeometry())
+        a_event.accept()
