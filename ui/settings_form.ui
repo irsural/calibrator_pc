@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>558</width>
-    <height>382</height>
+    <width>563</width>
+    <height>416</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -65,6 +65,11 @@
 QListWidget::item:selected:active {
     background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
                                 stop: 0 #4e55c6, stop: 1 #888dd9);
+}
+QListWidget:item:selected:!active {
+    background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+                                stop: 0 #4e55c6, stop: 1 #888dd9);
+	color: white
 }
 QListWidget::item {
 	height: 50;
@@ -257,6 +262,18 @@ QListWidget::item {
                    </property>
                    <property name="value">
                     <double>0.500000000000000</double>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QCheckBox" name="disable_scroll_on_table_checkbox">
+                   <property name="text">
+                    <string>Отключить прокрутку шага,
+если курсор мыши находится
+на таблице измерения</string>
+                   </property>
+                   <property name="checked">
+                    <bool>false</bool>
                    </property>
                   </widget>
                  </item>

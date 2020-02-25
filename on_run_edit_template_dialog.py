@@ -24,8 +24,8 @@ class OnRunEditConfigDialog(QtWidgets.QDialog):
         self.measure_config = a_measure_config
 
         assert a_measure_config.id != 0, "Measure id must not be zero!"
-        self.marks_widget = MarksWidget(a_db_connection, a_db_tables, a_measure_id=self.measure_config.id,
-                                        a_parent=self)
+        self.marks_widget = MarksWidget(self.settings, a_db_connection, a_db_tables,
+                                        a_measure_id=self.measure_config.id, a_parent=self)
         self.ui.marks_widget_layout.addWidget(self.marks_widget)
 
         self.set_up_params_to_ui()
@@ -63,4 +63,6 @@ class OnRunEditConfigDialog(QtWidgets.QDialog):
 
     def closeEvent(self, a_event: QtGui.QCloseEvent) -> None:
         self.settings.save_geometry(self.__class__.__name__, self.saveGeometry())
+        # Вызывается вручную, чтобы marks_widget сохранил состояние своего хэдера
+        self.marks_widget.close()
         a_event.accept()

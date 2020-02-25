@@ -80,9 +80,10 @@ class MainWindow(QtWidgets.QMainWindow):
                            f"(name text primary key, tag text unique, default_value text)")
 
             cursor.execute(f"CREATE TABLE IF NOT EXISTS {self.measure_db_tables.measures_table} "
-                           f"(id integer primary key autoincrement, organisation text, etalon_device text,"
-                           f"device_name text, device_creator text, device_system integer, signal_type integer,"
-                           f"device_class real, serial_number text, owner text, user text, date text)")
+                           f"(id integer primary key autoincrement, date text, time text, device_name text, "
+                           f"serial_number text, signal_type integer, device_class real, comment text, owner text, "
+                           f"device_system integer, user text, organisation text, etalon_device text, "
+                           f"device_creator text)")
 
             cursor.execute(f"CREATE TABLE IF NOT EXISTS {self.measure_db_tables.mark_values_table} "
                            f"(id integer primary key autoincrement, value text, mark_name text,  measure_id int, "
@@ -147,20 +148,9 @@ class MainWindow(QtWidgets.QMainWindow):
         self.usb_status_changed.connect(a_window.update_clb_status)
         self.usb_status_changed.emit(self.clb_state)
 
-    # @staticmethod
-    # def sync_centers(a_old_widget, a_new_widget):
-    #     new_center: QtCore.QPoint = a_old_widget.geometry().center() - a_new_widget.rect().center()
-    #     new_center.setY(utils.bound(new_center.y(), 0, QtWidgets.QApplication.desktop().screenGeometry().height() -
-    #                                 a_new_widget.height()))
-    #     return new_center
-
-    def change_window(self, a_new_window, center: bool = False):
-        # self.previous_start_window_pos = self.pos()
+    def change_window(self, a_new_window):
         self.active_window = a_new_window
         self.attach_calibrator_to_window(self.active_window)
-
-        # if center:
-        #     self.move(self.sync_centers(self, self.active_window))
 
         self.setCentralWidget(self.active_window)
         self.setWindowTitle(self.active_window.windowTitle())

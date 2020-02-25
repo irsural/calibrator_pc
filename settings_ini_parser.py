@@ -52,10 +52,14 @@ class Settings(QtCore.QObject):
     MOUSE_INVERSION_KEY = "mouse_inversion"
     MOUSE_INVERSION_DEFAULT = "0"
 
+    DISABLE_SCROLL_ON_TABLE_KEY = "disable_scroll_on_table"
+    DISABLE_SCROLL_ON_TABLE_DEFAULT = "0"
+
     HIDDEN_COLUMNS_KEY = "hidden_columns"
     HIDDEN_COLUMNS_DEFAULT = "0"
 
     GEOMETRY_SECTION = "Geometry"
+    HEADERS_SECTION = "Headers"
 
     fixed_step_changed = pyqtSignal()
 
@@ -72,6 +76,7 @@ class Settings(QtCore.QObject):
         self.__mouse_inversion = 0
 
         self.__hidden_columns = []
+        self.__disable_scroll_on_table = 0
 
         self.settings = configparser.ConfigParser()
         try:
@@ -89,7 +94,8 @@ class Settings(QtCore.QObject):
                                                    self.STEP_EXACT_KEY: self.STEP_EXACT_DEFAULT,
                                                    self.START_DEVIATION_KEY: self.START_DEVIATION_DEFAULT,
                                                    self.MOUSE_INVERSION_KEY: self.MOUSE_INVERSION_DEFAULT,
-                                                   self.HIDDEN_COLUMNS_KEY: self.HIDDEN_COLUMNS_DEFAULT}
+                                                   self.HIDDEN_COLUMNS_KEY: self.HIDDEN_COLUMNS_DEFAULT,
+                                                   self.DISABLE_SCROLL_ON_TABLE_KEY: self.DISABLE_SCROLL_ON_TABLE_DEFAULT}
             utils.save_settings(self.CONFIG_PATH, self.settings)
         else:
             self.settings.read(self.CONFIG_PATH)
@@ -125,6 +131,10 @@ class Settings(QtCore.QObject):
         self.__hidden_columns = self.check_ini_value(self.MEASURE_SECTION, self.HIDDEN_COLUMNS_KEY,
                                                      self.HIDDEN_COLUMNS_DEFAULT, self.ValueType.LIST_INT)
 
+        self.__disable_scroll_on_table = self.check_ini_value(self.MEASURE_SECTION, self.DISABLE_SCROLL_ON_TABLE_KEY,
+                                                              self.DISABLE_SCROLL_ON_TABLE_DEFAULT, self.ValueType.INT)
+        self.__disable_scroll_on_table = utils.bound(self.__disable_scroll_on_table, 0, 1)
+
         # Выводит ini файл в консоль
         # for key in settings:
         #     print(f"[{key}]")
@@ -156,6 +166,18 @@ class Settings(QtCore.QObject):
         try:
             geometry_bytes = self.settings[self.GEOMETRY_SECTION][a_window_name]
             return QtCore.QByteArray(bytes(geometry_bytes, encoding="cp1251"))
+        except KeyError:
+            return QtCore.QByteArray()
+
+    def save_header_state(self, a_header_name: str, a_state: QtCore.QByteArray):
+        self.add_ini_section(self.HEADERS_SECTION)
+        self.settings[self.HEADERS_SECTION][a_header_name] = str(a_state.data(), encoding="cp1251")
+        self.save()
+
+    def get_last_header_state(self, a_header_name: str):
+        try:
+            state_bytes = self.settings[self.HEADERS_SECTION][a_header_name]
+            return QtCore.QByteArray(bytes(state_bytes, encoding="cp1251"))
         except KeyError:
             return QtCore.QByteArray()
 
@@ -262,3 +284,15 @@ class Settings(QtCore.QObject):
         self.settings[self.MEASURE_SECTION][self.HIDDEN_COLUMNS_KEY] = saved_string
         self.save()
         self.__hidden_columns = a_list
+
+    @property
+    def disable_scroll_on_table(self):
+        return self.__disable_scroll_on_table
+
+    @disable_scroll_on_table.setter
+    def disable_scroll_on_table(self, a_enable: int):
+        self.settings[self.MEASURE_SECTION][self.DISABLE_SCROLL_ON_TABLE_KEY] = str(a_enable)
+        self.save()
+
+        self.__disable_scroll_on_table = a_enable
+        self.__disable_scroll_on_table = utils.bound(self.__disable_scroll_on_table, 0, 1)

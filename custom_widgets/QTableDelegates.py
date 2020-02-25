@@ -1,5 +1,8 @@
 from PyQt5 import QtGui, QtCore, QtWidgets
 from PyQt5.QtWidgets import QStyle
+from PyQt5.QtWidgets import QWidget
+
+from custom_widgets.CustomLineEdit import QEditDoubleClick
 
 
 class NonOverlappingPainter(QtWidgets.QStyledItemDelegate):
@@ -17,3 +20,16 @@ class NonOverlappingPainter(QtWidgets.QStyledItemDelegate):
         #     item_option.palette.setColor(QtGui.QPalette.Inactive, QtGui.QPalette.Highlight, QtCore.Qt.red)
 
         QtWidgets.QApplication.style().drawControl(QStyle.CE_ItemViewItem, item_option, painter)
+
+
+class TableEditDoubleClick(QtWidgets.QItemDelegate):
+    def __init__(self, a_parent):
+        super().__init__(a_parent)
+
+    def createEditor(self, parent: QWidget, option, index: QtCore.QModelIndex) -> QWidget:
+        return QEditDoubleClick(parent)
+
+
+class NonOverlappingDoubleClick(NonOverlappingPainter, TableEditDoubleClick):
+    def __init__(self, a_parent):
+        super().__init__(a_parent)

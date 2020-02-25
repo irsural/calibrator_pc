@@ -18,18 +18,18 @@ class FastMeasureParams:
         UPPER = 1
 
     def __init__(self):
-        self.signal_type = clb.SignalType.DCI
+        self.signal_type = clb.SignalType.ACV
         self.accuracy_class = 2.5
-        self.upper_bound = 10.
-        self.minimal_discrete = 2.
+        self.upper_bound = 1.
+        self.minimal_discrete = 0.1
         self.comment = ""
 
         self.date = QtCore.QDate.currentDate().toString("dd.MM.yyyy")
-        self.time = QtCore.QTime.currentTime().toString("H:mm")
+        self.time = QtCore.QTime.currentTime().toString("H:mm:ss")
 
-        self.auto_calc_points = True
+        self.auto_calc_points = False
         self.lower_bound = 0.
-        self.points_step = 2.
+        self.points_step = 0.1
         self.start_point_side = self.StartPoint.LOWER
         self.amplitudes = []
         self.frequency = []
@@ -149,6 +149,7 @@ class NewFastMeasureDialog(QDialog):
     def normalize_edit_value(self, edit: QtWidgets.QLineEdit):
         try:
             value = utils.parse_input(edit.text())
+            value = clb.bound_amplitude(value, self.fast_params.signal_type)
             edit.setText(self.value_to_user(value))
             self.update_edit_color(edit)
         except ValueError:
@@ -184,8 +185,10 @@ class NewFastMeasureDialog(QDialog):
 
             self.fast_params.auto_calc_points = bool(self.ui.auto_calc_points_checkbox.isChecked())
             self.fast_params.lower_bound = utils.parse_input(self.ui.lower_bound_edit.text())
-            self.fast_params.frequency = self.ui.frequency_edit.text().split(';')
             self.fast_params.points_step = utils.parse_input(self.ui.step_edit.text())
+
+            self.fast_params.frequency = ["0"] if clb.is_dc_signal[self.fast_params.signal_type] else \
+                self.ui.frequency_edit.text().split(';')
 
             self.fast_params.start_point_side = FastMeasureParams.StartPoint.UPPER if \
                 self.ui.start_point_up_radio.isChecked() else FastMeasureParams.StartPoint.LOWER
@@ -235,7 +238,7 @@ class NewFastMeasureDialog(QDialog):
             return self.InputStatus.zero_minimal_discrete
         elif a_config.upper_bound <= a_config.lower_bound:
             return self.InputStatus.upper_less_than_lower
-        elif not clb.is_dc_signal[a_config.signal_type] and (a_config.upper_bound < 0 or a_config.lower_bound < 0):
+        elif clb.is_ac_signal[a_config.signal_type] and (a_config.upper_bound < 0 or a_config.lower_bound < 0):
             return self.InputStatus.upper_less_than_zero
         elif not clb.is_voltage_signal[a_config.signal_type] and \
                 (abs(a_config.upper_bound) > clb.MAX_CURRENT or abs(a_config.lower_bound) > clb.MAX_CURRENT):
@@ -245,7 +248,7 @@ class NewFastMeasureDialog(QDialog):
             return self.InputStatus.voltage_too_big
         elif a_config.auto_calc_points and a_config.points_step == 0:
             return self.InputStatus.step_is_zero
-        elif not clb.is_dc_signal[a_config.signal_type] and not a_config.frequency:
+        elif clb.is_ac_signal[a_config.signal_type] and not a_config.frequency:
             return self.InputStatus.no_frequency
         else:
             return self.InputStatus.ok
@@ -257,7 +260,7 @@ class NewFastMeasureDialog(QDialog):
         edit_frequency_dialog = OkCancelDialog(self, "Редактирование частот поверки")
 
         self.edit_frequency_widget = EditedListOnlyNumbers(edit_frequency_dialog, tuple(current_frequency),
-                                                           "Частота, Гц")
+                                                           clb.MIN_FREQUENCY, clb.MAX_FREQUENCY, "Частота, Гц")
 
         edit_frequency_dialog.ui.main_widget_layout.addWidget(self.edit_frequency_widget)
         edit_frequency_dialog.accepted.connect(self.frequency_editing_finished)
@@ -273,6 +276,7 @@ class NewFastMeasureDialog(QDialog):
         self.normalize_edit_value(self.ui.upper_bound_edit)
         self.normalize_edit_value(self.ui.lower_bound_edit)
         self.normalize_edit_value(self.ui.step_edit)
+        self.normalize_edit_value(self.ui.minimal_discrete)
 
     def calc_points(self):
         lower_point, upper_point = (self.fast_params.lower_bound, self.fast_params.upper_bound) if \

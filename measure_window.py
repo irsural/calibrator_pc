@@ -7,7 +7,7 @@ from PyQt5.QtGui import QWheelEvent
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 from QNoTemplateMeasureModel import PointData, QNoTemplateMeasureModel
-from custom_widgets.NonOverlappingPainter import NonOverlappingPainter
+from custom_widgets.QTableDelegates import NonOverlappingDoubleClick
 from on_run_edit_template_dialog import OnRunEditConfigDialog
 from ui.py.measure_form import Ui_main_widget as MeasureForm
 from db_measures import MeasureParams, MeasureTables, MeasuresDB
@@ -39,12 +39,17 @@ class MeasureWindow(QtWidgets.QWidget):
         self.parent.restoreGeometry(self.settings.get_last_geometry(self.__class__.__name__))
         self.parent.show()
 
+        # Вызывать после self.parent.show() !!! Иначе состояние столбцов не восстановится
+        self.ui.measure_table.horizontalHeader().restoreState(self.settings.get_last_header_state(
+            self.__class__.__name__))
+
         self.db_connection = a_db_connection
         self.db_tables = a_db_tables
 
         self.measures_db = MeasuresDB(self.db_connection, self.db_tables)
         self.measure_config: MeasureParams = a_measure_config
         self.measure_config.id = self.measures_db.create()
+        self.measure_config.time = QtCore.QTime.currentTime().toString("H:mm:ss")
 
         self.units_text = clb.signal_type_to_units[self.measure_config.signal_type]
         self.value_to_user = utils.value_to_user_with_units(self.units_text)
@@ -71,12 +76,14 @@ class MeasureWindow(QtWidgets.QWidget):
 
         self.measure_model = QNoTemplateMeasureModel(self.current_point.normalize_value,
                                                      a_error_limit=self.measure_config.device_class,
-                                                     a_value_units=self.units_text,
+                                                     a_signal_type=self.measure_config.signal_type,
                                                      a_parent=self)
         self.ui.measure_table.setModel(self.measure_model)
-        self.ui.measure_table.setItemDelegate(NonOverlappingPainter(self))
+        self.ui.measure_table.setItemDelegate(NonOverlappingDoubleClick(self))
+        self.ui.measure_table.customContextMenuRequested.connect(self.chow_table_custom_menu)
 
         self.set_window_elements()
+
         # Обязательно вызывать после set_window_elements иначе будет рассинхрон галочек хэдера и отображаемых колонок
         self.header_menu, self.manual_connections = self.create_table_header_context_menu(self.ui.measure_table)
 
@@ -126,9 +133,19 @@ class MeasureWindow(QtWidgets.QWidget):
 
         return menu, lambda_connections
 
+    def chow_table_custom_menu(self, a_position: QtCore.QPoint):
+        menu = QMenu(self)
+        copy_cell_act = menu.addAction("Копировать")
+        copy_cell_act.triggered.connect(self.copy_cell_text_to_clipboard)
+        menu.popup(self.ui.measure_table.viewport().mapToGlobal(a_position))
+
+    def copy_cell_text_to_clipboard(self):
+        text = self.measure_model.getText(self.ui.measure_table.selectionModel().currentIndex())
+        QtWidgets.QApplication.clipboard().setText(text)
+
     def set_window_elements(self):
-        for column, hide in enumerate(self.settings.hidden_columns):
-            self.ui.measure_table.setColumnHidden(column, bool(hide))
+        # for column, hide in enumerate(self.settings.hidden_columns):
+        #     self.ui.measure_table.setColumnHidden(column, bool(hide))
 
         if clb.is_dc_signal[self.measure_config.signal_type]:
             self.ui.apply_frequency_button.setDisabled(True)
@@ -184,9 +201,7 @@ class MeasureWindow(QtWidgets.QWidget):
         self.ui.fixed_step_combobox.currentTextChanged.connect(self.set_fixed_step)
         self.ui.pause_button.toggled.connect(self.pause_start_signal)
 
-        self.ui.zero_deviation_edit.editingFinished.connect(self.ui.zero_deviation_edit.clearFocus)
         self.start_measure_timer.timeout.connect(self.check_fixed_range)
-
         self.soft_approach_timer.timeout.connect(self.set_amplitude_soft)
 
         self.ui.edit_parameters_button.clicked.connect(self.update_config)
@@ -237,18 +252,19 @@ class MeasureWindow(QtWidgets.QWidget):
             event.accept()
 
     def wheelEvent(self, event: QWheelEvent):
-        steps = qt_utils.get_wheel_steps(event)
-        steps = -steps if self.settings.mouse_inversion else steps
+        if not (self.ui.measure_table.underMouse() and self.settings.disable_scroll_on_table):
+            steps = qt_utils.get_wheel_steps(event)
+            steps = -steps if self.settings.mouse_inversion else steps
 
-        keys = event.modifiers()
-        if (keys & Qt.ControlModifier) and (keys & Qt.ShiftModifier):
-            self.set_amplitude(self.calibrator.amplitude + (self.fixed_step * steps))
-        elif keys & Qt.ShiftModifier:
-            self.tune_amplitude(self.settings.exact_step * steps)
-        elif keys & Qt.ControlModifier:
-            self.tune_amplitude(self.settings.exact_step * steps)
-        else:
-            self.tune_amplitude(self.settings.common_step * steps)
+            keys = event.modifiers()
+            if (keys & Qt.ControlModifier) and (keys & Qt.ShiftModifier):
+                self.set_amplitude(self.calibrator.amplitude + (self.fixed_step * steps))
+            elif keys & Qt.ShiftModifier:
+                self.tune_amplitude(self.settings.exact_step * steps)
+            elif keys & Qt.ControlModifier:
+                self.tune_amplitude(self.settings.rough_step * steps)
+            else:
+                self.tune_amplitude(self.settings.common_step * steps)
 
         event.accept()
 
@@ -300,14 +316,17 @@ class MeasureWindow(QtWidgets.QWidget):
     @pyqtSlot()
     def start_stop_measure(self):
         if self.start_button_active:
-            reply = QMessageBox.question(self, "Подтвердите действие",
-                                         f"Начать поверку?\n\n"
-                                         f"На калибраторе будет включен сигнал и установлены следующие параметры:\n\n"
-                                         f"Режим измерения: Фиксированный диапазон\n"
-                                         f"Тип сигнала: "
-                                         f"{clb.enum_to_signal_type[self.measure_config.signal_type]}\n"
-                                         f"Амплитуда: {self.value_to_user(self.highest_amplitude)}",
-                                         QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+            message = f"Начать поверку?\n\n" \
+                      f"На калибраторе будет включен сигнал и установлены следующие параметры:\n\n"\
+                      f"Режим измерения: Фиксированный диапазон\n"\
+                      f"Тип сигнала: {clb.enum_to_signal_type[self.measure_config.signal_type]}\n"\
+                      f"Амплитуда: {self.value_to_user(self.highest_amplitude)}"
+
+            if clb.is_ac_signal[self.measure_config.signal_type]:
+                message += f"\nЧастота: {utils.float_to_string(self.calibrator.frequency)} Гц"
+
+            reply = QMessageBox.question(self, "Подтвердите действие", message, QMessageBox.Yes | QMessageBox.No,
+                                         QMessageBox.No)
 
             if reply == QMessageBox.Yes:
                 self.start_button_active = False
@@ -328,20 +347,28 @@ class MeasureWindow(QtWidgets.QWidget):
 
     @pyqtSlot()
     def save_point(self):
-        if self.clb_state == clb.State.READY:
+        if self.clb_state != clb.State.WAITING_SIGNAL:
             try:
-                if self.measure_model.isPointGood(self.current_point.point, self.current_point.approach_side):
+                if self.measure_model.isPointGood(self.current_point.point, self.current_point.frequency,
+                                                  self.current_point.approach_side):
                     side_text = "СНИЗУ" if self.current_point.approach_side == PointData.ApproachSide.DOWN \
                         else "СВЕРХУ"
+
+                    point_text = f"{self.value_to_user(self.current_point.point)}"
+                    if clb.is_ac_signal[self.measure_config.signal_type]:
+                        point_text += f" : {utils.float_to_string(self.current_point.frequency)} Гц"
+
                     reply = QMessageBox.question(self, "Подтвердите действие", f"Значение {side_text} уже измерено "
-                                                 f"для точки {self.value_to_user(self.current_point.point)} и не "
-                                                 f"превышает допустимую погрешность. Перезаписать значение {side_text} "
-                                                 f"для точки {self.value_to_user(self.current_point.point)} ?",
+                                                 f"для точки {point_text} и не превышает допустимую погрешность. "
+                                                 f"Перезаписать значение {side_text} для точки {point_text}?",
                                                  QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
                     if reply == QMessageBox.Yes:
                         self.update_table(self.current_point)
                 else:
-                    self.update_table(self.current_point)
+                    if self.clb_state == clb.State.READY:
+                        self.update_table(self.current_point)
+                    else:
+                        self.update_table(PointData(a_point=self.current_point.point))
             except AssertionError as err:
                 print(err)
         else:
@@ -408,10 +435,14 @@ class MeasureWindow(QtWidgets.QWidget):
             deleted_points = ""
             for index_model in rows:
                 point_str = self.get_table_item_by_index(index_model.row(), QNoTemplateMeasureModel.Column.POINT)
-                deleted_points += f"{point_str}\n"
+                deleted_points += f"\n{point_str}"
+                if clb.is_ac_signal[self.measure_config.signal_type]:
+                    freq = self.get_table_item_by_index(index_model.row(), QNoTemplateMeasureModel.Column.FREQUENCY)
+                    deleted_points += f" : {utils.float_to_string(float(freq))} Гц"
+
                 row_indexes.append(index_model.row())
 
-            reply = QMessageBox.question(self, "Подтвердите действие", "Удалить следующие точки?\n\n" +
+            reply = QMessageBox.question(self, "Подтвердите действие", "Удалить следующие точки?\n" +
                                          deleted_points, QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
             if reply == QMessageBox.Yes:
                 self.remove_points.emit(row_indexes)
@@ -556,8 +587,8 @@ class MeasureWindow(QtWidgets.QWidget):
     def save_settings(self):
         self.settings.fixed_step_idx = self.ui.fixed_step_combobox.currentIndex()
 
-        self.settings.hidden_columns = [int(self.ui.measure_table.isColumnHidden(column)) for column in
-                                        range(self.measure_model.columnCount())]
+        # self.settings.hidden_columns = [int(self.ui.measure_table.isColumnHidden(column)) for column in
+        #                                 range(self.measure_model.columnCount())]
 
         self.settings.save_geometry(self.__class__.__name__, self.parent.saveGeometry())
-
+        self.settings.save_header_state(self.__class__.__name__, self.ui.measure_table.horizontalHeader().saveState())

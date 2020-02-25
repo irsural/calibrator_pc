@@ -4,8 +4,8 @@ from typing import List
 from PyQt5.QtCore import QAbstractTableModel, QModelIndex, Qt, QVariant, pyqtSlot
 from PyQt5.QtGui import QBrush, QColor
 
+import calibrator_constants as clb
 import utils
-
 
 class PointData:
     class ApproachSide(enum.IntEnum):
@@ -69,7 +69,7 @@ class QNoTemplateMeasureModel(QAbstractTableModel):
         PointData.ApproachSide.UP: Column.UP_DEVIATION_PERCENT
     }
 
-    def __init__(self, a_normalize_value, a_error_limit, a_value_units="А", a_parent=None):
+    def __init__(self, a_normalize_value, a_error_limit, a_signal_type, a_parent=None):
         super().__init__(a_parent)
 
         self.__row_count = 0
@@ -78,14 +78,15 @@ class QNoTemplateMeasureModel(QAbstractTableModel):
 
         self.__points: List[List[float]] = []
 
-        self.value_to_user = utils.value_to_user_with_units(a_value_units)
+        self.signal_type = a_signal_type
+        self.value_to_user = utils.value_to_user_with_units(clb.signal_type_to_units[self.signal_type])
         self.normalize_value = a_normalize_value
         self.error_limit = a_error_limit
         self.__good_color = QColor(0, 255, 0, 127)
         self.__bad_color = QColor(255, 0, 0, 127)
 
     def appendPoint(self, a_point_data: PointData) -> int:
-        row_idx = self.__find_point(a_point_data.point)
+        row_idx = self.__find_point(a_point_data.point, a_point_data.frequency)
         point_row = self.rowCount() if row_idx is None else row_idx
 
         if point_row == self.rowCount():
@@ -112,15 +113,16 @@ class QNoTemplateMeasureModel(QAbstractTableModel):
     def exportPoints(self):
         return tuple(self.__points)
 
-    def isPointGood(self, a_point: float, a_approach_side: PointData.ApproachSide) -> bool:
+    def isPointGood(self, a_point: float, a_freqyency: float, a_approach_side: PointData.ApproachSide) -> bool:
         """
         Проверяет, есть ли точка в массиве, если точка есть, то проверяет ее состояние (входит в погрешность или нет)
         Если точки нет, или она не входит в погрешность, возвращает False, иначе возвращает True
+        :param a_freqyency: Частота точки
         :param a_approach_side: Сторона подхода к точке
         :param a_point: Значение точки
         :return: bool
         """
-        row_idx = self.__find_point(a_point)
+        row_idx = self.__find_point(a_point, a_freqyency)
         if row_idx is None:
             return False
         else:
@@ -130,18 +132,18 @@ class QNoTemplateMeasureModel(QAbstractTableModel):
             else:
                 return False
 
-    def __find_point(self, a_point: float):
+    def __find_point(self, a_point: float, a_frequency: float):
         for idx, row_data in enumerate(self.__points):
-            if a_point == row_data[self.Column.POINT]:
+            if a_point == row_data[self.Column.POINT] and row_data[self.Column.FREQUENCY] == a_frequency:
                 return idx
         return None
 
     def isPointMeasured(self, a_point_row, a_approach_side: PointData.ApproachSide):
         data_row = self.__points[a_point_row]
 
-        val, err, err_percent = self.__side_to_value_column[a_approach_side], \
-                                self.__side_to_error_column[a_approach_side], \
-                                self.__side_to_error_percent_column[a_approach_side]
+        val, err, err_percent = (self.__side_to_value_column[a_approach_side],
+                                 self.__side_to_error_column[a_approach_side],
+                                 self.__side_to_error_percent_column[a_approach_side])
 
         if data_row[val] == 0 and data_row[err] == 0 and data_row[err_percent] == 0:
             return False
@@ -210,14 +212,33 @@ class QNoTemplateMeasureModel(QAbstractTableModel):
             return False
         try:
             float_value = utils.parse_input(value)
+
+            if index.column() in (self.Column.POINT, self.Column.DOWN_VALUE, self.Column.UP_VALUE):
+                float_value = clb.bound_amplitude(float_value, self.signal_type)
+            elif index.column() == self.Column.FREQUENCY:
+                float_value = clb.bound_frequency(float_value, self.signal_type)
+
             self.__points[index.row()][index.column()] = float_value
             self.dataChanged.emit(index, index)
 
-            if index.column() == self.Column.POINT:
-                self.__recalculate_parameters(index.row(), PointData.ApproachSide.UP, float_value,
-                                              self.__points[index.row()][self.Column.UP_VALUE])
-                self.__recalculate_parameters(index.row(), PointData.ApproachSide.DOWN, float_value,
-                                              self.__points[index.row()][self.Column.DOWN_VALUE])
+            if index.column() in (self.Column.POINT, self.Column.DOWN_VALUE, self.Column.UP_VALUE):
+                if index.column() != self.Column.DOWN_VALUE:
+                    self.__recalculate_parameters(index.row(), PointData.ApproachSide.UP,
+                                                  self.__points[index.row()][self.Column.POINT],
+                                                  self.__points[index.row()][self.Column.UP_VALUE])
+
+                if index.column() != self.Column.UP_VALUE:
+                    self.__recalculate_parameters(index.row(), PointData.ApproachSide.DOWN,
+                                                  self.__points[index.row()][self.Column.POINT],
+                                                  self.__points[index.row()][self.Column.DOWN_VALUE])
+
+                if index.column() == self.Column.POINT:
+                    # Это нужно, чтобы цвета ячеек Нижнее значение и Верхнее значение обновлялись сразу после изменения
+                    # ячейки Поверяемая точка
+                    self.dataChanged.emit(self.index(index.row(), self.Column.UP_VALUE),
+                                          self.index(index.row(), self.Column.UP_VALUE))
+                    self.dataChanged.emit(self.index(index.row(), self.Column.DOWN_VALUE),
+                                          self.index(index.row(), self.Column.DOWN_VALUE))
 
             return True
         except ValueError:
@@ -230,11 +251,16 @@ class QNoTemplateMeasureModel(QAbstractTableModel):
         del self.__points[a_row_indexes[0]:a_row_indexes[-1] + 1]
         self.endRemoveRows()
 
+    def getText(self, index: QModelIndex):
+        if index.isValid():
+            return index.data()
+        else:
+            return ""
+
     def flags(self, index):
         item_flags = super().flags(index)
         if index.isValid():
-            if index.column() == self.Column.POINT or index.column() == self.Column.FREQUENCY:
+            if index.column() in (self.Column.POINT, self.Column.FREQUENCY,
+                                  self.Column.UP_VALUE, self.Column.DOWN_VALUE):
                 item_flags |= Qt.ItemIsEditable
-            # if index.column() in (self.Column.UP_VALUE, self.Column.DOWN_VALUE):
-            #     item_flags &= ~Qt.ItemIsSelectable
         return item_flags

@@ -193,7 +193,7 @@ class Ui_Dialog(object):
 
     def retranslateUi(self, Dialog):
         _translate = QtCore.QCoreApplication.translate
-        Dialog.setWindowTitle(_translate("Dialog", "Редактирование шаблона во время поверки"))
+        Dialog.setWindowTitle(_translate("Dialog", "Редактирование параметров измерения"))
         self.label_8.setText(_translate("Dialog", "Комментарий"))
         self.label_5.setText(_translate("Dialog", "Изготовитель"))
         self.label_7.setText(_translate("Dialog", "Заводской номер"))

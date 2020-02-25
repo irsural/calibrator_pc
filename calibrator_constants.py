@@ -81,6 +81,13 @@ is_dc_signal = {
     SignalType.DCV: True
 }
 
+is_ac_signal = {
+    SignalType.ACI: True,
+    SignalType.ACV: True,
+    SignalType.DCI: False,
+    SignalType.DCV: False
+}
+
 is_voltage_signal = {
     SignalType.ACI: False,
     SignalType.DCI: False,
@@ -104,7 +111,12 @@ def bound_amplitude(a_amplitude: float, a_signal_type: SignalType):
     if not is_voltage_signal[a_signal_type]:
         min_value = MIN_CURRENT
         max_value = MAX_CURRENT
-    if not is_dc_signal[a_signal_type]:
+    if is_ac_signal[a_signal_type]:
         min_value = MIN_ALTERNATIVE
-
     return bound(a_amplitude, min_value, max_value)
+
+
+def bound_frequency(a_frequency: float, a_signal_type: SignalType):
+    min_frequency = MIN_FREQUENCY if is_ac_signal[a_signal_type] else 0
+    max_frequency = MAX_FREQUENCY if is_ac_signal[a_signal_type] else 0
+    return bound(a_frequency, min_frequency, max_frequency)
