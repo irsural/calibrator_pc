@@ -39,6 +39,10 @@ class MeasureWindow(QtWidgets.QWidget):
         self.parent.restoreGeometry(self.settings.get_last_geometry(self.__class__.__name__))
         self.parent.show()
 
+        # Вызывать после self.parent.show() !!! Иначе состояние столбцов не восстановится
+        self.ui.measure_table.horizontalHeader().restoreState(self.settings.get_last_header_state(
+            self.__class__.__name__))
+
         self.db_connection = a_db_connection
         self.db_tables = a_db_tables
 
@@ -77,6 +81,7 @@ class MeasureWindow(QtWidgets.QWidget):
         self.ui.measure_table.setItemDelegate(NonOverlappingDoubleClick(self))
 
         self.set_window_elements()
+
         # Обязательно вызывать после set_window_elements иначе будет рассинхрон галочек хэдера и отображаемых колонок
         self.header_menu, self.manual_connections = self.create_table_header_context_menu(self.ui.measure_table)
 
@@ -127,8 +132,8 @@ class MeasureWindow(QtWidgets.QWidget):
         return menu, lambda_connections
 
     def set_window_elements(self):
-        for column, hide in enumerate(self.settings.hidden_columns):
-            self.ui.measure_table.setColumnHidden(column, bool(hide))
+        # for column, hide in enumerate(self.settings.hidden_columns):
+        #     self.ui.measure_table.setColumnHidden(column, bool(hide))
 
         if clb.is_dc_signal[self.measure_config.signal_type]:
             self.ui.apply_frequency_button.setDisabled(True)
@@ -570,7 +575,8 @@ class MeasureWindow(QtWidgets.QWidget):
     def save_settings(self):
         self.settings.fixed_step_idx = self.ui.fixed_step_combobox.currentIndex()
 
-        self.settings.hidden_columns = [int(self.ui.measure_table.isColumnHidden(column)) for column in
-                                        range(self.measure_model.columnCount())]
+        # self.settings.hidden_columns = [int(self.ui.measure_table.isColumnHidden(column)) for column in
+        #                                 range(self.measure_model.columnCount())]
 
         self.settings.save_geometry(self.__class__.__name__, self.parent.saveGeometry())
+        self.settings.save_header_state(self.__class__.__name__, self.ui.measure_table.horizontalHeader().saveState())

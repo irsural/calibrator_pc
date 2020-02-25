@@ -147,20 +147,9 @@ class MainWindow(QtWidgets.QMainWindow):
         self.usb_status_changed.connect(a_window.update_clb_status)
         self.usb_status_changed.emit(self.clb_state)
 
-    # @staticmethod
-    # def sync_centers(a_old_widget, a_new_widget):
-    #     new_center: QtCore.QPoint = a_old_widget.geometry().center() - a_new_widget.rect().center()
-    #     new_center.setY(utils.bound(new_center.y(), 0, QtWidgets.QApplication.desktop().screenGeometry().height() -
-    #                                 a_new_widget.height()))
-    #     return new_center
-
-    def change_window(self, a_new_window, center: bool = False):
-        # self.previous_start_window_pos = self.pos()
+    def change_window(self, a_new_window):
         self.active_window = a_new_window
         self.attach_calibrator_to_window(self.active_window)
-
-        # if center:
-        #     self.move(self.sync_centers(self, self.active_window))
 
         self.setCentralWidget(self.active_window)
         self.setWindowTitle(self.active_window.windowTitle())

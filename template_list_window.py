@@ -36,6 +36,8 @@ class TemplateListWindow(QtWidgets.QDialog):
             self.ui.templates_list.addItem(name)
 
         self.points_table = PointsDataTable(self.ui.signal_type_combobox.currentIndex(), self.ui.points_table)
+        self.points_table.restore_header_state(self.settings.get_last_header_state(self.__class__.__name__))
+
         self.ui.signal_type_combobox.currentIndexChanged.connect(self.points_table.set_signal_type)
         self.ui.add_point_button.clicked.connect(self.points_table.append_point)
         self.ui.remove_point_button.clicked.connect(self.points_table.delete_selected_points)
@@ -221,6 +223,7 @@ class TemplateListWindow(QtWidgets.QDialog):
 
     def closeEvent(self, a_event: QtGui.QCloseEvent) -> None:
         self.settings.save_geometry(self.__class__.__name__, self.saveGeometry())
+        self.settings.save_header_state(self.__class__.__name__, self.points_table.get_header_state())
         a_event.accept()
 
 
@@ -240,6 +243,12 @@ class PointsDataTable:
         self.table.itemChanged.connect(self.set_value_to_user)
         # Нужен, чтобы лишний раз не писать в БД точек, если они не менялись при изменении шаблона
         self.points_were_edited = False
+
+    def restore_header_state(self, a_state: QtCore.QByteArray):
+        return self.table.horizontalHeader().restoreState(a_state)
+
+    def get_header_state(self):
+        return self.table.horizontalHeader().saveState()
 
     def append_point(self, _: bool, a_amplitude: float = 0, a_frequency: float = 0):
         row = self.table.rowCount()
