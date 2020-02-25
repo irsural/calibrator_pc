@@ -21,6 +21,9 @@
   <layout class="QHBoxLayout" name="horizontalLayout">
    <item>
     <widget class="QTableWidget" name="marks_table">
+     <property name="contextMenuPolicy">
+      <enum>Qt::CustomContextMenu</enum>
+     </property>
      <property name="selectionMode">
       <enum>QAbstractItemView::ContiguousSelection</enum>
      </property>

@@ -69,6 +69,7 @@ class MarksWidget(QtWidgets.QWidget):
         self.ui.delete_mark_button.clicked.connect(self.delete_row)
 
         self.ui.marks_table.itemChanged.connect(self.mark_items_as_changed)
+        self.ui.marks_table.customContextMenuRequested.connect(self.chow_table_custom_menu)
 
         self.fill_table_from_db()
 
@@ -187,6 +188,17 @@ class MarksWidget(QtWidgets.QWidget):
             QtWidgets.QMessageBox.critical(self, "Ошибка", "Имена параметров и тэги должны быть уникальны!",
                                            QtWidgets.QMessageBox.Ok)
             return False
+
+    def chow_table_custom_menu(self, a_position: QtCore.QPoint):
+        menu = QtWidgets.QMenu(self)
+        copy_cell_act = menu.addAction("Копировать")
+        copy_cell_act.triggered.connect(self.copy_cell_text_to_clipboard)
+        menu.popup(self.ui.marks_table.viewport().mapToGlobal(a_position))
+
+    def copy_cell_text_to_clipboard(self):
+        # text = self.marks_table.getText(self.ui.marks_table.selectionModel().currentIndex())
+        text = self.ui.marks_table.currentItem().text()
+        QtWidgets.QApplication.clipboard().setText(text)
 
     def closeEvent(self, a_event: QtGui.QCloseEvent) -> None:
         self.settings.save_header_state('.'.join([self.parent.__class__.__name__, self.__class__.__name__]),
