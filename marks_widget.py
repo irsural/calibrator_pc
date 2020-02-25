@@ -1,11 +1,12 @@
 import sqlite3
 from enum import IntEnum
 
-from PyQt5 import QtCore, QtWidgets
+from PyQt5 import QtCore, QtWidgets, QtGui
 from PyQt5.QtCore import pyqtSignal
 
 
 from ui.py.marks_widget import Ui_marks_widget as MarksWidgetForm
+from settings_ini_parser import Settings
 from db_measures import MeasureTables
 import qt_utils
 import utils
@@ -28,8 +29,8 @@ class MarksWidget(QtWidgets.QWidget):
         VALUE = 2
         COUNT = 3
 
-    def __init__(self, a_db_connection: sqlite3.Connection, a_db_tables: MeasureTables, a_measure_id=None,
-                 a_parent=None):
+    def __init__(self, a_settings: Settings, a_db_connection: sqlite3.Connection, a_db_tables: MeasureTables,
+                 a_measure_id=None, a_parent=None):
         """
         Виджет, который управляет дополнительными параметрами измерений
         :param a_db_connection: Соединение с базой данных, в которой содержится таблица a_db_table_name
@@ -44,6 +45,11 @@ class MarksWidget(QtWidgets.QWidget):
 
         self.ui = MarksWidgetForm()
         self.ui.setupUi(self)
+        self.parent = a_parent
+
+        self.settings = a_settings
+        self.ui.marks_table.horizontalHeader().restoreState(self.settings.get_last_header_state(
+            '.'.join([self.parent.__class__.__name__, self.__class__.__name__])))
 
         self.connection = a_db_connection
         self.cursor = self.connection.cursor()
@@ -181,3 +187,7 @@ class MarksWidget(QtWidgets.QWidget):
             QtWidgets.QMessageBox.critical(self, "Ошибка", "Имена параметров и тэги должны быть уникальны!",
                                            QtWidgets.QMessageBox.Ok)
             return False
+
+    def closeEvent(self, a_event: QtGui.QCloseEvent) -> None:
+        self.settings.save_header_state('.'.join([self.parent.__class__.__name__, self.__class__.__name__]),
+                                        self.ui.marks_table.horizontalHeader().saveState())

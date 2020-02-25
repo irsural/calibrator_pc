@@ -59,6 +59,7 @@ class Settings(QtCore.QObject):
     HIDDEN_COLUMNS_DEFAULT = "0"
 
     GEOMETRY_SECTION = "Geometry"
+    HEADERS_SECTION = "Headers"
 
     fixed_step_changed = pyqtSignal()
 
@@ -165,6 +166,18 @@ class Settings(QtCore.QObject):
         try:
             geometry_bytes = self.settings[self.GEOMETRY_SECTION][a_window_name]
             return QtCore.QByteArray(bytes(geometry_bytes, encoding="cp1251"))
+        except KeyError:
+            return QtCore.QByteArray()
+
+    def save_header_state(self, a_header_name: str, a_state: QtCore.QByteArray):
+        self.add_ini_section(self.HEADERS_SECTION)
+        self.settings[self.HEADERS_SECTION][a_header_name] = str(a_state.data(), encoding="cp1251")
+        self.save()
+
+    def get_last_header_state(self, a_header_name: str):
+        try:
+            state_bytes = self.settings[self.HEADERS_SECTION][a_header_name]
+            return QtCore.QByteArray(bytes(state_bytes, encoding="cp1251"))
         except KeyError:
             return QtCore.QByteArray()
 
