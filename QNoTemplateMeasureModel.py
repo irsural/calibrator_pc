@@ -141,9 +141,9 @@ class QNoTemplateMeasureModel(QAbstractTableModel):
     def isPointMeasured(self, a_point_row, a_approach_side: PointData.ApproachSide):
         data_row = self.__points[a_point_row]
 
-        val, err, err_percent = self.__side_to_value_column[a_approach_side], \
-                                self.__side_to_error_column[a_approach_side], \
-                                self.__side_to_error_percent_column[a_approach_side]
+        val, err, err_percent = (self.__side_to_value_column[a_approach_side],
+                                 self.__side_to_error_column[a_approach_side],
+                                 self.__side_to_error_percent_column[a_approach_side])
 
         if data_row[val] == 0 and data_row[err] == 0 and data_row[err_percent] == 0:
             return False
@@ -221,11 +221,24 @@ class QNoTemplateMeasureModel(QAbstractTableModel):
             self.__points[index.row()][index.column()] = float_value
             self.dataChanged.emit(index, index)
 
-            if index.column() == self.Column.POINT:
-                self.__recalculate_parameters(index.row(), PointData.ApproachSide.UP, float_value,
-                                              self.__points[index.row()][self.Column.UP_VALUE])
-                self.__recalculate_parameters(index.row(), PointData.ApproachSide.DOWN, float_value,
-                                              self.__points[index.row()][self.Column.DOWN_VALUE])
+            if index.column() in (self.Column.POINT, self.Column.DOWN_VALUE, self.Column.UP_VALUE):
+                if index.column() != self.Column.DOWN_VALUE:
+                    self.__recalculate_parameters(index.row(), PointData.ApproachSide.UP,
+                                                  self.__points[index.row()][self.Column.POINT],
+                                                  self.__points[index.row()][self.Column.UP_VALUE])
+
+                if index.column() != self.Column.UP_VALUE:
+                    self.__recalculate_parameters(index.row(), PointData.ApproachSide.DOWN,
+                                                  self.__points[index.row()][self.Column.POINT],
+                                                  self.__points[index.row()][self.Column.DOWN_VALUE])
+
+                if index.column() == self.Column.POINT:
+                    # Это нужно, чтобы цвета ячеек Нижнее значение и Верхнее значение обновлялись сразу после изменения
+                    # ячейки Поверяемая точка
+                    self.dataChanged.emit(self.index(index.row(), self.Column.UP_VALUE),
+                                          self.index(index.row(), self.Column.UP_VALUE))
+                    self.dataChanged.emit(self.index(index.row(), self.Column.DOWN_VALUE),
+                                          self.index(index.row(), self.Column.DOWN_VALUE))
 
             return True
         except ValueError:
@@ -241,8 +254,7 @@ class QNoTemplateMeasureModel(QAbstractTableModel):
     def flags(self, index):
         item_flags = super().flags(index)
         if index.isValid():
-            if index.column() == self.Column.POINT or index.column() == self.Column.FREQUENCY:
+            if index.column() in (self.Column.POINT, self.Column.FREQUENCY,
+                                  self.Column.UP_VALUE, self.Column.DOWN_VALUE):
                 item_flags |= Qt.ItemIsEditable
-            # if index.column() in (self.Column.UP_VALUE, self.Column.DOWN_VALUE):
-            #     item_flags &= ~Qt.ItemIsSelectable
         return item_flags
