@@ -25,7 +25,7 @@ class FastMeasureParams:
         self.comment = ""
 
         self.date = QtCore.QDate.currentDate().toString("dd.MM.yyyy")
-        self.time = QtCore.QTime.currentTime().toString("H:mm")
+        self.time = QtCore.QTime.currentTime().toString("H:mm:ss")
 
         self.auto_calc_points = False
         self.lower_bound = 0.

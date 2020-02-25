@@ -101,12 +101,12 @@ class MeasuresDB:
         with self.connection:
             self.cursor.execute(f"update {self.measure_table} set organisation = ?, etalon_device = ?,"
                                 f"device_name = ?, device_creator = ?, device_system = ?, signal_type = ?,"
-                                f"device_class = ?, serial_number = ?, owner = ?, user = ?, date = ? "
+                                f"device_class = ?, serial_number = ?, owner = ?, user = ?, date = ?, time = ?"
                                 f"where id = {a_params.id}",
                                 (a_params.organisation, a_params.etalon_device, a_params.device_name,
                                  a_params.device_creator, a_params.device_system, a_params.signal_type,
                                  a_params.device_class, a_params.serial_num, a_params.owner, a_params.user,
-                                 a_params.date))
+                                 a_params.date, a_params.time))
 
             self.cursor.executemany(f"insert into {self.results_table} (point, frequency, up_value, up_deviation, "
                                     f"up_deviation_percent, down_value, down_deviation, down_deviation_percent, "
