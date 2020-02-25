@@ -27,13 +27,9 @@ class StartWindow(QtWidgets.QWidget):
 
         self.parent.restoreGeometry(self.settings.get_last_geometry(self.__class__.__name__))
         self.parent.show()
-        # По каким то причинам restoreGeometry не восстанавливает размер ЭТОГО окна, если оно скрыто
+        # По каким то причинам restoreGeometry не восстанавливает размер MainWindow, если оно скрыто
         self.parent.restoreGeometry(self.settings.get_last_geometry(self.__class__.__name__))
-
 
     def closeEvent(self, a_event: QtGui.QCloseEvent) -> None:
         self.settings.save_geometry(self.__class__.__name__, self.parent.saveGeometry())
         a_event.accept()
-
-
-

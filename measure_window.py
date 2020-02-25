@@ -49,6 +49,7 @@ class MeasureWindow(QtWidgets.QWidget):
         self.measures_db = MeasuresDB(self.db_connection, self.db_tables)
         self.measure_config: MeasureParams = a_measure_config
         self.measure_config.id = self.measures_db.create()
+        self.measure_config.time = QtCore.QTime.currentTime().toString("H:mm:ss")
 
         self.units_text = clb.signal_type_to_units[self.measure_config.signal_type]
         self.value_to_user = utils.value_to_user_with_units(self.units_text)

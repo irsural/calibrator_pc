@@ -22,6 +22,8 @@ class SourceModeWindow(QtWidgets.QWidget):
 
         self.parent.restoreGeometry(self.settings.get_last_geometry(self.__class__.__name__))
         self.parent.show()
+        # По каким то причинам restoreGeometry не восстанавливает размер MainWindow, если оно скрыто
+        self.parent.restoreGeometry(self.settings.get_last_geometry(self.__class__.__name__))
 
         self.setWindowTitle("Режим источника")
 
