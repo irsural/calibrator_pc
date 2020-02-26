@@ -1,16 +1,16 @@
 from sqlite3 import Connection
 from typing import List
 
-from PyQt5.QtWidgets import QMessageBox, QMenu
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QTimer, QModelIndex, Qt
-from PyQt5.QtGui import QWheelEvent
+from PyQt5.QtWidgets import QMessageBox, QMenu
 from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5.QtGui import QWheelEvent
 
-from MeasureModel import PointData, MeasureModel
 from custom_widgets.QTableDelegates import NonOverlappingDoubleClick
 from edit_template_parameters_dialog import EditTemplateParamsDialog
-from ui.py.measure_form import Ui_main_widget as MeasureForm
 from db_measures import MeasureParams, MeasureTables, MeasuresDB
+from ui.py.measure_form import Ui_main_widget as MeasureForm
+from MeasureModel import PointData, MeasureModel
 from settings_ini_parser import Settings
 import calibrator_constants as clb
 import constants as cfg

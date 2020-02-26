@@ -29,7 +29,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QToolButton" name="template_mode_button_2">
+      <widget class="QToolButton" name="create_protocol_button">
        <property name="enabled">
         <bool>false</bool>
        </property>
