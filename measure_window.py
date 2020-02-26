@@ -6,9 +6,9 @@ from PyQt5.QtCore import pyqtSignal, pyqtSlot, QTimer, QPoint, QModelIndex, Qt
 from PyQt5.QtGui import QWheelEvent
 from PyQt5 import QtCore, QtGui, QtWidgets
 
-from QNoTemplateMeasureModel import PointData, QNoTemplateMeasureModel
+from MeasureModel import PointData, MeasureModel
 from custom_widgets.QTableDelegates import NonOverlappingDoubleClick
-from on_run_edit_template_dialog import OnRunEditConfigDialog
+from edit_template_parameters_dialog import EditTemplateParamsDialog
 from ui.py.measure_form import Ui_main_widget as MeasureForm
 from db_measures import MeasureParams, MeasureTables, MeasuresDB
 from settings_ini_parser import Settings
@@ -38,6 +38,7 @@ class MeasureWindow(QtWidgets.QWidget):
 
         self.parent.restoreGeometry(self.settings.get_last_geometry(self.__class__.__name__))
         self.parent.show()
+        self.parent.restoreGeometry(self.settings.get_last_geometry(self.__class__.__name__))
 
         # Вызывать после self.parent.show() !!! Иначе состояние столбцов не восстановится
         self.ui.measure_table.horizontalHeader().restoreState(self.settings.get_last_header_state(
@@ -74,10 +75,10 @@ class MeasureWindow(QtWidgets.QWidget):
         self.highest_amplitude = self.calibrator.limit_amplitude(self.highest_amplitude, self.lowest_amplitude,
                                                                  self.highest_amplitude)
 
-        self.measure_model = QNoTemplateMeasureModel(self.current_point.normalize_value,
-                                                     a_error_limit=self.measure_config.device_class,
-                                                     a_signal_type=self.measure_config.signal_type,
-                                                     a_parent=self)
+        self.measure_model = MeasureModel(self.current_point.normalize_value,
+                                          a_error_limit=self.measure_config.device_class,
+                                          a_signal_type=self.measure_config.signal_type,
+                                          a_parent=self)
         self.ui.measure_table.setModel(self.measure_model)
         self.ui.measure_table.setItemDelegate(NonOverlappingDoubleClick(self))
         self.ui.measure_table.customContextMenuRequested.connect(self.chow_table_custom_menu)
@@ -85,7 +86,8 @@ class MeasureWindow(QtWidgets.QWidget):
         self.set_window_elements()
 
         # Обязательно вызывать после set_window_elements иначе будет рассинхрон галочек хэдера и отображаемых колонок
-        self.header_menu, self.manual_connections = self.create_table_header_context_menu(self.ui.measure_table)
+        self.header_menu, self.manual_connections = qt_utils.create_table_header_context_menu(self,
+                                                                                              self.ui.measure_table)
 
         self.fixed_step = 0
         self.fixed_step_list = self.settings.fixed_step_list
@@ -113,26 +115,6 @@ class MeasureWindow(QtWidgets.QWidget):
         self.warning_animation.setSpeed(500)
         self.warning_animation.finished.connect(self.ui.status_warning_label.hide)
 
-    def create_table_header_context_menu(self, a_table: QTableView):
-        table_header = a_table.horizontalHeader()
-        table_header.setContextMenuPolicy(Qt.CustomContextMenu)
-        table_header.customContextMenuRequested.connect(self.show_active_table_columns)
-
-        menu = QMenu(self)
-        lambda_connections = []
-        for column in range(a_table.model().columnCount()):
-            header_name = a_table.model().headerData(column, Qt.Horizontal)
-            menu_checkbox = QAction(header_name, self)
-            menu_checkbox.setCheckable(True)
-            if not a_table.isColumnHidden(column):
-                menu_checkbox.setChecked(True)
-            menu.addAction(menu_checkbox)
-
-            lambda_connections.append((menu_checkbox, menu_checkbox.triggered.connect(
-                lambda state, col=column: self.hide_selected_table_column(state, col))))
-
-        return menu, lambda_connections
-
     def chow_table_custom_menu(self, a_position: QtCore.QPoint):
         menu = QMenu(self)
         copy_cell_act = menu.addAction("Копировать")
@@ -141,7 +123,8 @@ class MeasureWindow(QtWidgets.QWidget):
 
     def copy_cell_text_to_clipboard(self):
         text = self.measure_model.getText(self.ui.measure_table.selectionModel().currentIndex())
-        QtWidgets.QApplication.clipboard().setText(text)
+        if text:
+            QtWidgets.QApplication.clipboard().setText(text)
 
     def set_window_elements(self):
         # for column, hide in enumerate(self.settings.hidden_columns):
@@ -150,9 +133,9 @@ class MeasureWindow(QtWidgets.QWidget):
         if clb.is_dc_signal[self.measure_config.signal_type]:
             self.ui.apply_frequency_button.setDisabled(True)
             self.ui.frequency_edit.setDisabled(True)
-            self.ui.measure_table.hideColumn(QNoTemplateMeasureModel.Column.FREQUENCY)
+            self.ui.measure_table.hideColumn(MeasureModel.Column.FREQUENCY)
         else:
-            self.ui.measure_table.showColumn(QNoTemplateMeasureModel.Column.FREQUENCY)
+            self.ui.measure_table.showColumn(MeasureModel.Column.FREQUENCY)
 
         self.setWindowTitle(f"{clb.enum_to_signal_type[self.measure_config.signal_type]}. "
                             f"{self.measure_config.upper_bound} {self.units_text}.")
@@ -434,10 +417,10 @@ class MeasureWindow(QtWidgets.QWidget):
             row_indexes = []
             deleted_points = ""
             for index_model in rows:
-                point_str = self.get_table_item_by_index(index_model.row(), QNoTemplateMeasureModel.Column.POINT)
+                point_str = self.get_table_item_by_index(index_model.row(), MeasureModel.Column.POINT)
                 deleted_points += f"\n{point_str}"
                 if clb.is_ac_signal[self.measure_config.signal_type]:
-                    freq = self.get_table_item_by_index(index_model.row(), QNoTemplateMeasureModel.Column.FREQUENCY)
+                    freq = self.get_table_item_by_index(index_model.row(), MeasureModel.Column.FREQUENCY)
                     deleted_points += f" : {utils.float_to_string(float(freq))} Гц"
 
                 row_indexes.append(index_model.row())
@@ -531,10 +514,6 @@ class MeasureWindow(QtWidgets.QWidget):
             self.calibrator.signal_enable = False
             self.ui.pause_button.setText("Возобновить")
 
-    @pyqtSlot(QPoint)
-    def show_active_table_columns(self, a_position: QPoint):
-        self.header_menu.popup(self.ui.measure_table.horizontalHeader().viewport().mapToGlobal(a_position))
-
     @pyqtSlot(str)
     def set_fixed_step(self, a_new_step: str):
         try:
@@ -544,10 +523,7 @@ class MeasureWindow(QtWidgets.QWidget):
 
     @pyqtSlot(bool, int)
     def hide_selected_table_column(self, a_state, a_column):
-        if a_state:
-            self.ui.measure_table.showColumn(a_column)
-        else:
-            self.ui.measure_table.hideColumn(a_column)
+        self.ui.measure_table.setColumnHidden(a_column, not a_state)
 
     @pyqtSlot()
     def check_fixed_range(self):
@@ -557,9 +533,9 @@ class MeasureWindow(QtWidgets.QWidget):
 
     def update_config(self):
         try:
-            on_run_params_edit_dialog = OnRunEditConfigDialog(self.settings, self.measure_config, self.db_connection,
-                                                              self.db_tables, self)
-            on_run_params_edit_dialog.exec()
+            edit_template_params_dialog = EditTemplateParamsDialog(self.settings, self.measure_config,
+                                                                   self.db_connection, self.db_tables, self)
+            edit_template_params_dialog.exec()
         except AssertionError as err:
             utils.exception_handler(err)
 
@@ -577,8 +553,8 @@ class MeasureWindow(QtWidgets.QWidget):
                 self.save_settings()
 
                 # Без этого диалог не уничтожится
-                for sender, connection in self.manual_connections:
-                    sender.triggered.disconnect(connection)
+                for signal, connection in self.manual_connections:
+                    signal.disconnect(connection)
 
                 self.close_confirmed.emit()
         except AssertionError as err:
@@ -592,3 +568,6 @@ class MeasureWindow(QtWidgets.QWidget):
 
         self.settings.save_geometry(self.__class__.__name__, self.parent.saveGeometry())
         self.settings.save_header_state(self.__class__.__name__, self.ui.measure_table.horizontalHeader().saveState())
+
+    def __del__(self):
+        print(self.__class__.__name__, "deleted")

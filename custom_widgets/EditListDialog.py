@@ -5,7 +5,7 @@ from collections import OrderedDict
 from PyQt5.QtCore import pyqtSignal, pyqtSlot
 from PyQt5 import QtWidgets, QtGui, QtCore
 
-from ui.py.edited_lsit_widget import Ui_Form as EditedListForm
+from ui.py.edited_list_widget import Ui_Form as EditedListForm
 from ui.py.ok_cancel_dialog import Ui_Dialog as OkCancelForm
 from custom_widgets.CustomLineEdit import QEditDoubleClick
 import utils

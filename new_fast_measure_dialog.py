@@ -1,9 +1,8 @@
-from typing import List
 import enum
 
 from PyQt5.QtWidgets import QDialog, QMessageBox
 from PyQt5.QtCore import pyqtSignal, pyqtSlot
-from PyQt5 import QtWidgets, QtCore, QtGui
+from PyQt5 import QtWidgets, QtCore
 
 from ui.py.new_fast_measure_form import Ui_Dialog as NewFastMeasureForm
 from custom_widgets.EditListDialog import EditedListOnlyNumbers, OkCancelDialog

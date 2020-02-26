@@ -1,5 +1,6 @@
 from collections import namedtuple
 from typing import List, Tuple
+from enum import IntEnum
 import sqlite3
 
 from variable_template_fields_dialog import VariableTemplateParams
@@ -11,6 +12,40 @@ from constants import Point
 
 MeasureTables = namedtuple("MeasureDB", ["marks_table", "mark_values_table", "measures_table", "results_table"])
 
+
+class MeasureColumn(IntEnum):
+    ID = 0
+    DATE = 1
+    TIME = 2
+    DEVICE_NAME = 3
+    SERIAL_NUMBER = 4
+    SIGNAL_TYPE = 5
+    DEVICE_CLASS = 6
+    COMMENT = 7
+    OWNER = 8
+    DEVICE_SYSTEM = 9
+    USER = 10
+    ORGANISATION = 11
+    ETALON_DEVICE = 12
+    DEVICE_CREATOR = 13
+
+
+MEASURE_COLUMN_TO_NAME = {
+    MeasureColumn.ID: "Id",
+    MeasureColumn.DATE: "Дата",
+    MeasureColumn.TIME: "Время",
+    MeasureColumn.DEVICE_NAME: "Наименование прибора",
+    MeasureColumn.SERIAL_NUMBER: "Заводской номер",
+    MeasureColumn.SIGNAL_TYPE: "Тип сигнала",
+    MeasureColumn.DEVICE_CLASS: "Класс",
+    MeasureColumn.COMMENT: "Комментарий",
+    MeasureColumn.OWNER: "Организация-владелец",
+    MeasureColumn.DEVICE_SYSTEM: "Система",
+    MeasureColumn.USER: "Поверитель",
+    MeasureColumn.ORGANISATION: "Организация-поверитель",
+    MeasureColumn.ETALON_DEVICE: "Эталон",
+    MeasureColumn.DEVICE_CREATOR: "Изготовитель"
+}
 
 class MeasureParams:
     def __init__(self, a_id=0, a_organisation="", a_etalon_device="", a_device_name="",
@@ -65,7 +100,7 @@ class MeasureParams:
         return cls(a_organisation=a_params.organisation, a_etalon_device=a_params.etalon_device,
                    a_device_name=a_params.device_name, a_device_creator=a_params.device_creator,
                    a_device_system=a_params.device_system, a_signal_type=a_params.signal_type,
-                   a_device_class=a_params.device_class, a_points=points, a_owner=a_var_params.owner, 
+                   a_device_class=a_params.device_class, a_points=points, a_owner=a_var_params.owner,
                    a_user=a_var_params.user_name, a_date=a_var_params.date, a_time=a_var_params.time,
                    a_serial_num=a_var_params.serial_num)
 

@@ -1,7 +1,8 @@
-from PyQt5.QtCore import pyqtSlot, pyqtSignal
-from PyQt5 import QtGui, QtWidgets, QtCore
+from PyQt5.QtCore import pyqtSignal
+from PyQt5 import QtGui, QtWidgets, QtCore, QtSql
 
 from ui.py.startform import Ui_Form as StartForm
+from db_measures import MeasureTables, MeasureColumn, MEASURE_COLUMN_TO_NAME
 from settings_ini_parser import Settings
 
 
@@ -10,7 +11,7 @@ class StartWindow(QtWidgets.QWidget):
     no_template_mode_chosen = pyqtSignal()
     template_mode_chosen = pyqtSignal()
 
-    def __init__(self, a_settings: Settings, a_parent=None):
+    def __init__(self, a_db_name: str, a_db_tables: MeasureTables, a_settings: Settings, a_parent=None):
         super().__init__(a_parent)
 
         self.ui = StartForm()
@@ -30,6 +31,30 @@ class StartWindow(QtWidgets.QWidget):
         # По каким то причинам restoreGeometry не восстанавливает размер MainWindow, если оно скрыто
         self.parent.restoreGeometry(self.settings.get_last_geometry(self.__class__.__name__))
 
+        self.db_connection, self.db_model = self.config_measure_table(a_db_name, a_db_tables.measures_table)
+
+    def config_measure_table(self, a_db_name: str, a_table_name: str):
+        db_connection = QtSql.QSqlDatabase.addDatabase("QSQLITE")
+        db_connection.setDatabaseName(a_db_name)
+
+        res = db_connection.open()
+        assert res, f"Can't open database {a_db_name}!"
+
+        db_model = QtSql.QSqlTableModel(self)
+        db_model.setTable(a_table_name)
+
+        self.ui.measures_table.setModel(db_model)
+
+        self.ui.measures_table.horizontalHeader().restoreState(self.settings.get_last_header_state(
+            self.__class__.__name__))
+        self.ui.measures_table.setColumnHidden(MeasureColumn.ID, True)
+
+        db_model.select()
+
+        return db_connection, db_model
+
     def closeEvent(self, a_event: QtGui.QCloseEvent) -> None:
         self.settings.save_geometry(self.__class__.__name__, self.parent.saveGeometry())
+        self.settings.save_header_state(self.__class__.__name__, self.ui.measures_table.horizontalHeader().saveState())
+        self.db_connection.close()
         a_event.accept()

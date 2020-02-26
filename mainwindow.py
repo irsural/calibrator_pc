@@ -38,14 +38,17 @@ class MainWindow(QtWidgets.QMainWindow):
             QtWidgets.QMessageBox.critical(self, "Ошибка", 'Файл конфигурации поврежден. Пожалуйста, '
                                                            'удалите файл "settings.ini" и запустите программу заново')
         if ini_ok:
+            self.measure_db_tables = MeasureTables(marks_table="marks", mark_values_table="mark_values",
+                                                   measures_table="measures", results_table="results")
+            self.db_name = "measures.db"
+            self.db_connection = self.create_db(self.db_name)
             self.show_start_window()
             self.show()
 
             self.clb_signal_off_timer = QtCore.QTimer()
+            # noinspection PyTypeChecker
             self.clb_signal_off_timer.timeout.connect(self.close)
             self.SIGNAL_OFF_TIME_MS = 200
-
-            # self.previous_start_window_pos = self.pos()
 
             self.clb_driver = clb_dll.set_up_driver(clb_dll.path)
             self.usb_driver = clb_dll.UsbDrv(self.clb_driver)
@@ -58,10 +61,6 @@ class MainWindow(QtWidgets.QMainWindow):
             self.usb_check_timer.start(10)
 
             self.fast_config: FastMeasureParams = None
-
-            self.measure_db_tables = MeasureTables(marks_table="marks", mark_values_table="mark_values",
-                                                   measures_table="measures", results_table="results")
-            self.db_connection = self.create_db("measures.db")
 
             self.ui.enter_settings_action.triggered.connect(self.open_settings)
 
@@ -104,14 +103,14 @@ class MainWindow(QtWidgets.QMainWindow):
             if self.active_window is not None:
                 self.active_window.close()
 
-            self.active_window = StartWindow(self.settings, self)
+            self.active_window = StartWindow(self.db_name, self.measure_db_tables, self.settings, self)
             self.setCentralWidget(self.active_window)
             self.active_window.source_mode_chosen.connect(self.open_source_mode_window)
             self.active_window.no_template_mode_chosen.connect(self.open_config_no_template_mode)
             self.active_window.template_mode_chosen.connect(self.template_mode_chosen)
             self.setWindowTitle(self.active_window.windowTitle())
-        except AssertionError as err:
-            print(err)
+        except Exception as err:
+            utils.exception_handler(err)
 
     @pyqtSlot()
     def usb_tick(self):
