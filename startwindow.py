@@ -4,6 +4,7 @@ from PyQt5 import QtGui, QtWidgets, QtCore, QtSql
 from ui.py.startform import Ui_Form as StartForm
 from db_measures import MeasureTables, MeasureColumn, MEASURE_COLUMN_TO_NAME
 from settings_ini_parser import Settings
+import qt_utils
 
 
 class StartWindow(QtWidgets.QWidget):
@@ -31,7 +32,8 @@ class StartWindow(QtWidgets.QWidget):
         # По каким то причинам restoreGeometry не восстанавливает размер MainWindow, если оно скрыто
         self.parent.restoreGeometry(self.settings.get_last_geometry(self.__class__.__name__))
 
-        self.db_connection, self.db_model = self.config_measure_table(a_db_name, a_db_tables.measures_table)
+        self.db_connection, self.db_model, self.header_context = \
+            self.config_measure_table(a_db_name, a_db_tables.measures_table)
 
     def config_measure_table(self, a_db_name: str, a_table_name: str):
         db_connection = QtSql.QSqlDatabase.addDatabase("QSQLITE")
@@ -44,6 +46,7 @@ class StartWindow(QtWidgets.QWidget):
         db_model.setTable(a_table_name)
 
         self.ui.measures_table.setModel(db_model)
+        header_context = qt_utils.TableHeaderContextMenu(self, self.ui.measures_table, True)
 
         self.ui.measures_table.horizontalHeader().restoreState(self.settings.get_last_header_state(
             self.__class__.__name__))
@@ -51,10 +54,11 @@ class StartWindow(QtWidgets.QWidget):
 
         db_model.select()
 
-        return db_connection, db_model
+        return db_connection, db_model, header_context
 
     def closeEvent(self, a_event: QtGui.QCloseEvent) -> None:
         self.settings.save_geometry(self.__class__.__name__, self.parent.saveGeometry())
         self.settings.save_header_state(self.__class__.__name__, self.ui.measures_table.horizontalHeader().saveState())
         self.db_connection.close()
+        self.header_context.delete_connections()
         a_event.accept()

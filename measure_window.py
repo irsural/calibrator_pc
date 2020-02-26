@@ -1,8 +1,8 @@
 from sqlite3 import Connection
 from typing import List
 
-from PyQt5.QtWidgets import QMessageBox, QMenu, QAction, QTableView
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, QTimer, QPoint, QModelIndex, Qt
+from PyQt5.QtWidgets import QMessageBox, QMenu
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, QTimer, QModelIndex, Qt
 from PyQt5.QtGui import QWheelEvent
 from PyQt5 import QtCore, QtGui, QtWidgets
 
@@ -86,8 +86,7 @@ class MeasureWindow(QtWidgets.QWidget):
         self.set_window_elements()
 
         # Обязательно вызывать после set_window_elements иначе будет рассинхрон галочек хэдера и отображаемых колонок
-        self.header_menu, self.manual_connections = qt_utils.create_table_header_context_menu(self,
-                                                                                              self.ui.measure_table)
+        self.header_context = qt_utils.TableHeaderContextMenu(self, self.ui.measure_table)
 
         self.fixed_step = 0
         self.fixed_step_list = self.settings.fixed_step_list
@@ -553,8 +552,7 @@ class MeasureWindow(QtWidgets.QWidget):
                 self.save_settings()
 
                 # Без этого диалог не уничтожится
-                for signal, connection in self.manual_connections:
-                    signal.disconnect(connection)
+                self.header_context.delete_connections()
 
                 self.close_confirmed.emit()
         except AssertionError as err:
