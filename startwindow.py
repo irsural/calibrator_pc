@@ -45,12 +45,16 @@ class StartWindow(QtWidgets.QWidget):
         db_model = QtSql.QSqlTableModel(self)
         db_model.setTable(a_table_name)
 
+        for column in range(db_model.columnCount()):
+            db_model.setHeaderData(column, QtCore.Qt.Horizontal, MEASURE_COLUMN_TO_NAME[column])
+
         self.ui.measures_table.setModel(db_model)
-        header_context = qt_utils.TableHeaderContextMenu(self, self.ui.measures_table, True)
 
         self.ui.measures_table.horizontalHeader().restoreState(self.settings.get_last_header_state(
             self.__class__.__name__))
         self.ui.measures_table.setColumnHidden(MeasureColumn.ID, True)
+
+        header_context = qt_utils.TableHeaderContextMenu(self, self.ui.measures_table, True)
 
         db_model.select()
 
