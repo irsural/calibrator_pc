@@ -3,6 +3,7 @@
 *.pyc
 *.db
 *.spec
+*.ini
 /build
 /venv
 /Lib
