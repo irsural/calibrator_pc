@@ -49,3 +49,33 @@ def qtablewidget_delete_selected(a_table: QtWidgets.QTableWidget):
     if rows:
         for idx_model in reversed(rows):
             a_table.removeRow(idx_model.row())
+
+
+class TableHeaderContextMenu:
+    def __init__(self, a_parent: QtWidgets.QWidget, a_table: QtWidgets.QTableView, a_hide_first_column: bool = False):
+        table_header = a_table.horizontalHeader()
+        table_header.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+
+        self.menu = QtWidgets.QMenu(a_parent)
+        self.lambda_connections = []
+        for column in range(a_table.model().columnCount()):
+            if column == 0 and a_hide_first_column: continue
+            header_name = a_table.model().headerData(column, QtCore.Qt.Horizontal)
+            menu_checkbox = QtWidgets.QAction(header_name, a_parent)
+            menu_checkbox.setCheckable(True)
+            if not a_table.isColumnHidden(column):
+                menu_checkbox.setChecked(True)
+            self.menu.addAction(menu_checkbox)
+
+            self.lambda_connections.append((menu_checkbox.triggered, menu_checkbox.triggered.connect(
+                lambda state, col=column: a_table.setColumnHidden(col, not state))))
+
+        self.lambda_connections.append((table_header.customContextMenuRequested,
+                                        table_header.customContextMenuRequested.connect(
+                                            lambda position: self.menu.popup(a_table.horizontalHeader().viewport().
+                                                                             mapToGlobal(position)))))
+
+    def delete_connections(self):
+        # Нужно потому что лямбда соединения сами не удаляются
+        for signal, connection in self.lambda_connections:
+            signal.disconnect(connection)

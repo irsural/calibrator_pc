@@ -3,6 +3,7 @@ import os
 from inspect import stack
 from typing import List
 from enum import IntEnum
+import base64
 
 from PyQt5.QtCore import pyqtSignal
 from PyQt5 import QtCore
@@ -61,6 +62,12 @@ class Settings(QtCore.QObject):
     GEOMETRY_SECTION = "Geometry"
     HEADERS_SECTION = "Headers"
 
+    # В ini файлы сохраняются QByteArray, в которых могут быть переносы строки, которые херят ini файл
+    LF = '\n'
+    LF_SUBSTITUTE = "\t\t\t\t"
+    CR = '\r'
+    CR_SUBSTITUTE = '\f\f\f\f'
+
     fixed_step_changed = pyqtSignal()
 
     def __init__(self, a_parent=None):
@@ -95,7 +102,8 @@ class Settings(QtCore.QObject):
                                                    self.START_DEVIATION_KEY: self.START_DEVIATION_DEFAULT,
                                                    self.MOUSE_INVERSION_KEY: self.MOUSE_INVERSION_DEFAULT,
                                                    self.HIDDEN_COLUMNS_KEY: self.HIDDEN_COLUMNS_DEFAULT,
-                                                   self.DISABLE_SCROLL_ON_TABLE_KEY: self.DISABLE_SCROLL_ON_TABLE_DEFAULT}
+                                                   self.DISABLE_SCROLL_ON_TABLE_KEY:
+                                                       self.DISABLE_SCROLL_ON_TABLE_DEFAULT}
             utils.save_settings(self.CONFIG_PATH, self.settings)
         else:
             self.settings.read(self.CONFIG_PATH)
@@ -158,28 +166,40 @@ class Settings(QtCore.QObject):
         utils.save_settings(self.CONFIG_PATH, self.settings)
 
     def save_geometry(self, a_window_name: str, a_geometry: QtCore.QByteArray):
-        self.add_ini_section(self.GEOMETRY_SECTION)
-        self.settings[self.GEOMETRY_SECTION][a_window_name] = str(a_geometry.data(), encoding="cp1251")
-        self.save()
+        try:
+            self.add_ini_section(self.GEOMETRY_SECTION)
+
+            self.settings[self.GEOMETRY_SECTION][a_window_name] = self.__to_base64(a_geometry)
+
+            self.save()
+        except Exception as err:
+            utils.exception_handler(err)
 
     def get_last_geometry(self, a_window_name: str):
         try:
-            geometry_bytes = self.settings[self.GEOMETRY_SECTION][a_window_name]
-            return QtCore.QByteArray(bytes(geometry_bytes, encoding="cp1251"))
-        except KeyError:
+            geometry_bytes: str = self.settings[self.GEOMETRY_SECTION][a_window_name]
+            return QtCore.QByteArray(self.__from_base64(geometry_bytes))
+        except (KeyError, ValueError):
             return QtCore.QByteArray()
 
     def save_header_state(self, a_header_name: str, a_state: QtCore.QByteArray):
         self.add_ini_section(self.HEADERS_SECTION)
-        self.settings[self.HEADERS_SECTION][a_header_name] = str(a_state.data(), encoding="cp1251")
+
+        self.settings[self.HEADERS_SECTION][a_header_name] = self.__to_base64(a_state)
         self.save()
 
     def get_last_header_state(self, a_header_name: str):
         try:
             state_bytes = self.settings[self.HEADERS_SECTION][a_header_name]
-            return QtCore.QByteArray(bytes(state_bytes, encoding="cp1251"))
-        except KeyError:
+            return QtCore.QByteArray(self.__from_base64(state_bytes))
+        except (KeyError, ValueError):
             return QtCore.QByteArray()
+
+    def __to_base64(self, a_qt_bytes: QtCore.QByteArray):
+        return base64.b64encode(bytes(a_qt_bytes)).decode()
+
+    def __from_base64(self, a_string: str):
+        return base64.b64decode(a_string)
 
     @property
     def fixed_step_list(self):
@@ -296,3 +316,6 @@ class Settings(QtCore.QObject):
 
         self.__disable_scroll_on_table = a_enable
         self.__disable_scroll_on_table = utils.bound(self.__disable_scroll_on_table, 0, 1)
+
+    def __restore_next_line_symbols(self, state_bytes):
+        pass

@@ -7,6 +7,7 @@ from PyQt5.QtGui import QBrush, QColor
 import calibrator_constants as clb
 import utils
 
+
 class PointData:
     class ApproachSide(enum.IntEnum):
         UP = 0
@@ -30,7 +31,7 @@ class PointData:
             f"Normalize: {self.normalize_value}"
 
 
-class QNoTemplateMeasureModel(QAbstractTableModel):
+class MeasureModel(QAbstractTableModel):
     class Column(enum.IntEnum):
         POINT = 0
         FREQUENCY = 1

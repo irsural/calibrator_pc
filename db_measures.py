@@ -1,5 +1,6 @@
 from collections import namedtuple
 from typing import List, Tuple
+from enum import IntEnum
 import sqlite3
 
 from variable_template_fields_dialog import VariableTemplateParams
@@ -11,6 +12,38 @@ from constants import Point
 
 MeasureTables = namedtuple("MeasureDB", ["marks_table", "mark_values_table", "measures_table", "results_table"])
 
+
+class MeasureColumn(IntEnum):
+    ID = 0
+    DATETIME = 1
+    DEVICE_NAME = 2
+    SERIAL_NUMBER = 3
+    SIGNAL_TYPE = 4
+    DEVICE_CLASS = 5
+    COMMENT = 6
+    OWNER = 7
+    DEVICE_SYSTEM = 8
+    USER = 9
+    ORGANISATION = 10
+    ETALON_DEVICE = 11
+    DEVICE_CREATOR = 12
+
+
+MEASURE_COLUMN_TO_NAME = {
+    MeasureColumn.ID: "Id",
+    MeasureColumn.DATETIME: "Дата / Время",
+    MeasureColumn.DEVICE_NAME: "Наименование\nприбора",
+    MeasureColumn.SERIAL_NUMBER: "Заводской\nномер",
+    MeasureColumn.SIGNAL_TYPE: "Тип сигнала",
+    MeasureColumn.DEVICE_CLASS: "Класс",
+    MeasureColumn.COMMENT: "Комментарий",
+    MeasureColumn.OWNER: "Организация\nвладелец",
+    MeasureColumn.DEVICE_SYSTEM: "Система",
+    MeasureColumn.USER: "Поверитель",
+    MeasureColumn.ORGANISATION: "Организация\nповеритель",
+    MeasureColumn.ETALON_DEVICE: "Эталон",
+    MeasureColumn.DEVICE_CREATOR: "Изготовитель"
+}
 
 class MeasureParams:
     def __init__(self, a_id=0, a_organisation="", a_etalon_device="", a_device_name="",
@@ -65,7 +98,7 @@ class MeasureParams:
         return cls(a_organisation=a_params.organisation, a_etalon_device=a_params.etalon_device,
                    a_device_name=a_params.device_name, a_device_creator=a_params.device_creator,
                    a_device_system=a_params.device_system, a_signal_type=a_params.signal_type,
-                   a_device_class=a_params.device_class, a_points=points, a_owner=a_var_params.owner, 
+                   a_device_class=a_params.device_class, a_points=points, a_owner=a_var_params.owner,
                    a_user=a_var_params.user_name, a_date=a_var_params.date, a_time=a_var_params.time,
                    a_serial_num=a_var_params.serial_num)
 
@@ -101,12 +134,12 @@ class MeasuresDB:
         with self.connection:
             self.cursor.execute(f"update {self.measure_table} set organisation = ?, etalon_device = ?,"
                                 f"device_name = ?, device_creator = ?, device_system = ?, signal_type = ?,"
-                                f"device_class = ?, serial_number = ?, comment = ?, owner = ?, user = ?, date = ?, "
-                                f"time = ? where id = {a_params.id}",
+                                f"device_class = ?, serial_number = ?, comment = ?, owner = ?, user = ?, datetime = ? "
+                                f"where id = {a_params.id}",
                                 (a_params.organisation, a_params.etalon_device, a_params.device_name,
                                  a_params.device_creator, a_params.device_system, a_params.signal_type,
                                  a_params.device_class, a_params.serial_num, a_params.comment, a_params.owner,
-                                 a_params.user, a_params.date, a_params.time))
+                                 a_params.user, ' '.join([a_params.date, a_params.time])))
 
             self.cursor.executemany(f"insert into {self.results_table} (point, frequency, up_value, up_deviation, "
                                     f"up_deviation_percent, down_value, down_deviation, down_deviation_percent, "
