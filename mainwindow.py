@@ -79,7 +79,7 @@ class MainWindow(QtWidgets.QMainWindow):
                            f"(name text primary key, tag text unique, default_value text)")
 
             cursor.execute(f"CREATE TABLE IF NOT EXISTS {self.measure_db_tables.measures_table} "
-                           f"(id integer primary key autoincrement, date text, time text, device_name text, "
+                           f"(id integer primary key autoincrement, datetime text, device_name text, "
                            f"serial_number text, signal_type integer, device_class real, comment text, owner text, "
                            f"device_system integer, user text, organisation text, etalon_device text, "
                            f"device_creator text)")

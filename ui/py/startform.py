@@ -13,7 +13,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_Form(object):
     def setupUi(self, Form):
         Form.setObjectName("Form")
-        Form.resize(688, 312)
+        Form.resize(685, 349)
         font = QtGui.QFont()
         font.setPointSize(13)
         Form.setFont(font)
@@ -88,15 +88,20 @@ class Ui_Form(object):
         self.horizontalLayout.addWidget(self.template_mode_button)
         self.verticalLayout.addLayout(self.horizontalLayout)
         self.measures_table = QtWidgets.QTableView(Form)
-        self.measures_table.setStyleSheet("")
+        self.measures_table.setStyleSheet("selection-color: rgb(0, 0, 0);\n"
+"selection-background-color: rgb(170, 170, 255);")
+        self.measures_table.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
         self.measures_table.setDragEnabled(False)
         self.measures_table.setDragDropMode(QtWidgets.QAbstractItemView.NoDragDrop)
         self.measures_table.setDefaultDropAction(QtCore.Qt.IgnoreAction)
         self.measures_table.setAlternatingRowColors(True)
         self.measures_table.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
+        self.measures_table.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
+        self.measures_table.setSortingEnabled(True)
         self.measures_table.setWordWrap(True)
         self.measures_table.setObjectName("measures_table")
         self.measures_table.horizontalHeader().setSortIndicatorShown(True)
+        self.measures_table.verticalHeader().setVisible(False)
         self.verticalLayout.addWidget(self.measures_table)
 
         self.retranslateUi(Form)

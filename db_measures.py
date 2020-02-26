@@ -15,25 +15,23 @@ MeasureTables = namedtuple("MeasureDB", ["marks_table", "mark_values_table", "me
 
 class MeasureColumn(IntEnum):
     ID = 0
-    DATE = 1
-    TIME = 2
-    DEVICE_NAME = 3
-    SERIAL_NUMBER = 4
-    SIGNAL_TYPE = 5
-    DEVICE_CLASS = 6
-    COMMENT = 7
-    OWNER = 8
-    DEVICE_SYSTEM = 9
-    USER = 10
-    ORGANISATION = 11
-    ETALON_DEVICE = 12
-    DEVICE_CREATOR = 13
+    DATETIME = 1
+    DEVICE_NAME = 2
+    SERIAL_NUMBER = 3
+    SIGNAL_TYPE = 4
+    DEVICE_CLASS = 5
+    COMMENT = 6
+    OWNER = 7
+    DEVICE_SYSTEM = 8
+    USER = 9
+    ORGANISATION = 10
+    ETALON_DEVICE = 11
+    DEVICE_CREATOR = 12
 
 
 MEASURE_COLUMN_TO_NAME = {
     MeasureColumn.ID: "Id",
-    MeasureColumn.DATE: "Дата",
-    MeasureColumn.TIME: "Время",
+    MeasureColumn.DATETIME: "Дата / Время",
     MeasureColumn.DEVICE_NAME: "Наименование\nприбора",
     MeasureColumn.SERIAL_NUMBER: "Заводской\nномер",
     MeasureColumn.SIGNAL_TYPE: "Тип сигнала",
@@ -136,12 +134,12 @@ class MeasuresDB:
         with self.connection:
             self.cursor.execute(f"update {self.measure_table} set organisation = ?, etalon_device = ?,"
                                 f"device_name = ?, device_creator = ?, device_system = ?, signal_type = ?,"
-                                f"device_class = ?, serial_number = ?, comment = ?, owner = ?, user = ?, date = ?, "
-                                f"time = ? where id = {a_params.id}",
+                                f"device_class = ?, serial_number = ?, comment = ?, owner = ?, user = ?, datetime = ? "
+                                f"where id = {a_params.id}",
                                 (a_params.organisation, a_params.etalon_device, a_params.device_name,
                                  a_params.device_creator, a_params.device_system, a_params.signal_type,
                                  a_params.device_class, a_params.serial_num, a_params.comment, a_params.owner,
-                                 a_params.user, a_params.date, a_params.time))
+                                 a_params.user, ' '.join([a_params.date, a_params.time])))
 
             self.cursor.executemany(f"insert into {self.results_table} (point, frequency, up_value, up_deviation, "
                                     f"up_deviation_percent, down_value, down_deviation, down_deviation_percent, "

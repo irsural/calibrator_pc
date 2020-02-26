@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>688</width>
-    <height>312</height>
+    <width>685</width>
+    <height>349</height>
    </rect>
   </property>
   <property name="font">
@@ -167,7 +167,11 @@
    <item>
     <widget class="QTableView" name="measures_table">
      <property name="styleSheet">
-      <string notr="true"/>
+      <string notr="true">selection-color: rgb(0, 0, 0);
+selection-background-color: rgb(170, 170, 255);</string>
+     </property>
+     <property name="editTriggers">
+      <set>QAbstractItemView::NoEditTriggers</set>
      </property>
      <property name="dragEnabled">
       <bool>false</bool>
@@ -184,11 +188,20 @@
      <property name="selectionMode">
       <enum>QAbstractItemView::SingleSelection</enum>
      </property>
+     <property name="selectionBehavior">
+      <enum>QAbstractItemView::SelectRows</enum>
+     </property>
+     <property name="sortingEnabled">
+      <bool>true</bool>
+     </property>
      <property name="wordWrap">
       <bool>true</bool>
      </property>
      <attribute name="horizontalHeaderShowSortIndicator" stdset="0">
       <bool>true</bool>
+     </attribute>
+     <attribute name="verticalHeaderVisible">
+      <bool>false</bool>
      </attribute>
     </widget>
    </item>

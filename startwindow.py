@@ -3,6 +3,7 @@ from PyQt5 import QtGui, QtWidgets, QtCore, QtSql
 
 from ui.py.startform import Ui_Form as StartForm
 from db_measures import MeasureTables, MeasureColumn, MEASURE_COLUMN_TO_NAME
+from custom_widgets.QTableDelegates import NonOverlappingDoubleClick
 from settings_ini_parser import Settings
 import qt_utils
 
@@ -48,7 +49,12 @@ class StartWindow(QtWidgets.QWidget):
         for column in range(db_model.columnCount()):
             db_model.setHeaderData(column, QtCore.Qt.Horizontal, MEASURE_COLUMN_TO_NAME[column])
 
-        self.ui.measures_table.setModel(db_model)
+        sort_filter = QtCore.QSortFilterProxyModel(self)
+        sort_filter.setSourceModel(db_model)
+
+        self.ui.measures_table.setModel(sort_filter)
+        # Чтобы был приятный цвет выделения
+        self.ui.measures_table.setItemDelegate(NonOverlappingDoubleClick(self))
 
         self.ui.measures_table.horizontalHeader().restoreState(self.settings.get_last_header_state(
             self.__class__.__name__))
