@@ -3,6 +3,7 @@ import os
 from inspect import stack
 from typing import List
 from enum import IntEnum
+import base64
 
 from PyQt5.QtCore import pyqtSignal
 from PyQt5 import QtCore
@@ -168,8 +169,7 @@ class Settings(QtCore.QObject):
         try:
             self.add_ini_section(self.GEOMETRY_SECTION)
 
-            saved_data = self.__rm_next_line_symbols(str(a_geometry.data(), encoding="cp1251"))
-            self.settings[self.GEOMETRY_SECTION][a_window_name] = saved_data
+            self.settings[self.GEOMETRY_SECTION][a_window_name] = self.__to_base64(a_geometry)
 
             self.save()
         except Exception as err:
@@ -178,34 +178,28 @@ class Settings(QtCore.QObject):
     def get_last_geometry(self, a_window_name: str):
         try:
             geometry_bytes: str = self.settings[self.GEOMETRY_SECTION][a_window_name]
-            restored_data = self.__restore_next_line_symbols(geometry_bytes)
-
-            return QtCore.QByteArray(bytes(restored_data, encoding="cp1251"))
-        except KeyError:
+            return QtCore.QByteArray(self.__from_base64(geometry_bytes))
+        except (KeyError, ValueError):
             return QtCore.QByteArray()
 
     def save_header_state(self, a_header_name: str, a_state: QtCore.QByteArray):
         self.add_ini_section(self.HEADERS_SECTION)
 
-        saved_data = self.__rm_next_line_symbols(str(a_state.data(), encoding="cp1251"))
-        self.settings[self.HEADERS_SECTION][a_header_name] = saved_data
-
+        self.settings[self.HEADERS_SECTION][a_header_name] = self.__to_base64(a_state)
         self.save()
 
     def get_last_header_state(self, a_header_name: str):
         try:
             state_bytes = self.settings[self.HEADERS_SECTION][a_header_name]
-            restored_data = self.__restore_next_line_symbols(state_bytes)
-
-            return QtCore.QByteArray(bytes(restored_data, encoding="cp1251"))
-        except KeyError:
+            return QtCore.QByteArray(self.__from_base64(state_bytes))
+        except (KeyError, ValueError):
             return QtCore.QByteArray()
 
-    def __rm_next_line_symbols(self, a_string: str):
-        return a_string.replace(self.LF, self.LF_SUBSTITUTE).replace(self.CR, self.CR_SUBSTITUTE)
+    def __to_base64(self, a_qt_bytes: QtCore.QByteArray):
+        return base64.b64encode(bytes(a_qt_bytes)).decode()
 
-    def __restore_next_line_symbols(self, a_string: str):
-        return a_string.replace(self.LF_SUBSTITUTE, self.LF).replace(self.CR_SUBSTITUTE, self.CR)
+    def __from_base64(self, a_string: str):
+        return base64.b64decode(a_string)
 
     @property
     def fixed_step_list(self):
@@ -322,3 +316,6 @@ class Settings(QtCore.QObject):
 
         self.__disable_scroll_on_table = a_enable
         self.__disable_scroll_on_table = utils.bound(self.__disable_scroll_on_table, 0, 1)
+
+    def __restore_next_line_symbols(self, state_bytes):
+        pass
