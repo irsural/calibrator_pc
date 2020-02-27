@@ -1,9 +1,8 @@
-import configparser
-import os
-from inspect import stack
-from typing import List
 from enum import IntEnum
+from typing import List
+import configparser
 import base64
+import os
 
 from PyQt5.QtCore import pyqtSignal
 from PyQt5 import QtCore
@@ -56,9 +55,6 @@ class Settings(QtCore.QObject):
     DISABLE_SCROLL_ON_TABLE_KEY = "disable_scroll_on_table"
     DISABLE_SCROLL_ON_TABLE_DEFAULT = "0"
 
-    HIDDEN_COLUMNS_KEY = "hidden_columns"
-    HIDDEN_COLUMNS_DEFAULT = "0"
-
     GEOMETRY_SECTION = "Geometry"
     HEADERS_SECTION = "Headers"
 
@@ -82,7 +78,6 @@ class Settings(QtCore.QObject):
         self.__start_deviation = 0
         self.__mouse_inversion = 0
 
-        self.__hidden_columns = []
         self.__disable_scroll_on_table = 0
 
         self.settings = configparser.ConfigParser()
@@ -101,7 +96,6 @@ class Settings(QtCore.QObject):
                                                    self.STEP_EXACT_KEY: self.STEP_EXACT_DEFAULT,
                                                    self.START_DEVIATION_KEY: self.START_DEVIATION_DEFAULT,
                                                    self.MOUSE_INVERSION_KEY: self.MOUSE_INVERSION_DEFAULT,
-                                                   self.HIDDEN_COLUMNS_KEY: self.HIDDEN_COLUMNS_DEFAULT,
                                                    self.DISABLE_SCROLL_ON_TABLE_KEY:
                                                        self.DISABLE_SCROLL_ON_TABLE_DEFAULT}
             utils.save_settings(self.CONFIG_PATH, self.settings)
@@ -135,9 +129,6 @@ class Settings(QtCore.QObject):
         self.__mouse_inversion = self.check_ini_value(self.MEASURE_SECTION, self.MOUSE_INVERSION_KEY,
                                                       self.MOUSE_INVERSION_DEFAULT, self.ValueType.INT)
         self.__mouse_inversion = utils.bound(self.__mouse_inversion, 0, 1)
-
-        self.__hidden_columns = self.check_ini_value(self.MEASURE_SECTION, self.HIDDEN_COLUMNS_KEY,
-                                                     self.HIDDEN_COLUMNS_DEFAULT, self.ValueType.LIST_INT)
 
         self.__disable_scroll_on_table = self.check_ini_value(self.MEASURE_SECTION, self.DISABLE_SCROLL_ON_TABLE_KEY,
                                                               self.DISABLE_SCROLL_ON_TABLE_DEFAULT, self.ValueType.INT)
@@ -195,10 +186,12 @@ class Settings(QtCore.QObject):
         except (KeyError, ValueError):
             return QtCore.QByteArray()
 
-    def __to_base64(self, a_qt_bytes: QtCore.QByteArray):
+    @staticmethod
+    def __to_base64(a_qt_bytes: QtCore.QByteArray):
         return base64.b64encode(bytes(a_qt_bytes)).decode()
 
-    def __from_base64(self, a_string: str):
+    @staticmethod
+    def __from_base64(a_string: str):
         return base64.b64decode(a_string)
 
     @property
@@ -292,18 +285,6 @@ class Settings(QtCore.QObject):
 
         self.__mouse_inversion = a_enable
         self.__mouse_inversion = utils.bound(self.__mouse_inversion, 0, 1)
-
-    @property
-    def hidden_columns(self):
-        return self.__hidden_columns
-
-    @hidden_columns.setter
-    def hidden_columns(self, a_list: List[int]):
-        saved_string = ','.join(str(val) for val in a_list).strip(',')
-
-        self.settings[self.MEASURE_SECTION][self.HIDDEN_COLUMNS_KEY] = saved_string
-        self.save()
-        self.__hidden_columns = a_list
 
     @property
     def disable_scroll_on_table(self):

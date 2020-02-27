@@ -126,9 +126,6 @@ class MeasureWindow(QtWidgets.QWidget):
             QtWidgets.QApplication.clipboard().setText(text)
 
     def set_window_elements(self):
-        # for column, hide in enumerate(self.settings.hidden_columns):
-        #     self.ui.measure_table.setColumnHidden(column, bool(hide))
-
         if clb.is_dc_signal[self.measure_config.signal_type]:
             self.ui.apply_frequency_button.setDisabled(True)
             self.ui.frequency_edit.setDisabled(True)
@@ -560,9 +557,6 @@ class MeasureWindow(QtWidgets.QWidget):
 
     def save_settings(self):
         self.settings.fixed_step_idx = self.ui.fixed_step_combobox.currentIndex()
-
-        # self.settings.hidden_columns = [int(self.ui.measure_table.isColumnHidden(column)) for column in
-        #                                 range(self.measure_model.columnCount())]
 
         self.settings.save_geometry(self.__class__.__name__, self.parent.saveGeometry())
         self.settings.save_header_state(self.__class__.__name__, self.ui.measure_table.horizontalHeader().saveState())
