@@ -76,12 +76,12 @@
        <item row="0" column="1">
         <layout class="QGridLayout" name="gridLayout">
          <item row="6" column="0">
-          <widget class="QLabel" name="label_9">
+          <widget class="QLabel" name="etalon_label">
            <property name="contextMenuPolicy">
             <enum>Qt::CustomContextMenu</enum>
            </property>
            <property name="text">
-            <string>Средство поверки (%etalon__)</string>
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Средство поверки (&lt;span style=&quot; color:#ff557f;&quot;&gt;%etalon__&lt;/span&gt;)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
            </property>
           </widget>
          </item>
@@ -113,7 +113,7 @@
           </widget>
          </item>
          <item row="6" column="1">
-          <widget class="QLabel" name="label_3">
+          <widget class="QLabel" name="owner_label">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
              <horstretch>0</horstretch>
@@ -124,12 +124,12 @@
             <enum>Qt::CustomContextMenu</enum>
            </property>
            <property name="text">
-            <string>Орг.-владелец (%owner__)</string>
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Орг.-владелец (&lt;span style=&quot; color:#ff557f;&quot;&gt;%owner__&lt;/span&gt;)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
            </property>
           </widget>
          </item>
          <item row="4" column="1">
-          <widget class="QLabel" name="label_2">
+          <widget class="QLabel" name="system_label">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
              <horstretch>0</horstretch>
@@ -140,7 +140,7 @@
             <enum>Qt::CustomContextMenu</enum>
            </property>
            <property name="text">
-            <string>Система (%system__)</string>
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Система (&lt;span style=&quot; color:#ff557f;&quot;&gt;%system__&lt;/span&gt;)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
            </property>
           </widget>
          </item>
@@ -180,7 +180,7 @@
           </widget>
          </item>
          <item row="0" column="1">
-          <widget class="QLabel" name="label_13">
+          <widget class="QLabel" name="organisation_label">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
              <horstretch>0</horstretch>
@@ -191,12 +191,12 @@
             <enum>Qt::CustomContextMenu</enum>
            </property>
            <property name="text">
-            <string>Орг.-поверитель (%org__)</string>
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Орг.-поверитель (&lt;span style=&quot; color:#ff557f;&quot;&gt;%org__&lt;/span&gt;)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
            </property>
           </widget>
          </item>
          <item row="2" column="0">
-          <widget class="QLabel" name="label_4">
+          <widget class="QLabel" name="name_label">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
              <horstretch>0</horstretch>
@@ -207,17 +207,17 @@
             <enum>Qt::CustomContextMenu</enum>
            </property>
            <property name="text">
-            <string>Наименование (%name__)</string>
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Наименование (&lt;span style=&quot; color:#ff557f;&quot;&gt;%name__&lt;/span&gt;)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
            </property>
           </widget>
          </item>
          <item row="0" column="0">
-          <widget class="QLabel" name="label">
+          <widget class="QLabel" name="user_label">
            <property name="contextMenuPolicy">
             <enum>Qt::CustomContextMenu</enum>
            </property>
            <property name="text">
-            <string>Поверитель (%user__)</string>
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Поверитель (&lt;span style=&quot; color:#ff557f;&quot;&gt;%user__&lt;/span&gt;)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
            </property>
           </widget>
          </item>
@@ -247,27 +247,27 @@
           </widget>
          </item>
          <item row="2" column="2">
-          <widget class="QLabel" name="label_10">
+          <widget class="QLabel" name="signal_type_label">
            <property name="contextMenuPolicy">
             <enum>Qt::CustomContextMenu</enum>
            </property>
            <property name="text">
-            <string>Род тока (%signal__)</string>
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Род тока (&lt;span style=&quot; color:#ff557f;&quot;&gt;%signal__&lt;/span&gt;)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
            </property>
           </widget>
          </item>
          <item row="0" column="2">
-          <widget class="QLabel" name="label_6">
+          <widget class="QLabel" name="date_label">
            <property name="contextMenuPolicy">
             <enum>Qt::CustomContextMenu</enum>
            </property>
            <property name="text">
-            <string>Дата поверки (%date__)</string>
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Дата поверки (&lt;span style=&quot; color:#ff557f;&quot;&gt;%date__&lt;/span&gt;)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
            </property>
           </widget>
          </item>
          <item row="2" column="1">
-          <widget class="QLabel" name="label_7">
+          <widget class="QLabel" name="serial_number_label">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
              <horstretch>0</horstretch>
@@ -278,7 +278,7 @@
             <enum>Qt::CustomContextMenu</enum>
            </property>
            <property name="text">
-            <string>Заводской номер (%serial__)</string>
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Заводской номер (&lt;span style=&quot; color:#ff557f;&quot;&gt;%serial__&lt;/span&gt;)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
            </property>
           </widget>
          </item>
@@ -293,12 +293,12 @@
           <widget class="QLineEdit" name="user_name_edit"/>
          </item>
          <item row="4" column="2">
-          <widget class="QLabel" name="label_11">
+          <widget class="QLabel" name="class_label">
            <property name="contextMenuPolicy">
             <enum>Qt::CustomContextMenu</enum>
            </property>
            <property name="text">
-            <string>Класс (%class__)</string>
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Класс (&lt;span style=&quot; color:#ff557f;&quot;&gt;%class__&lt;/span&gt;)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
            </property>
           </widget>
          </item>
@@ -342,7 +342,7 @@
           </widget>
          </item>
          <item row="4" column="0">
-          <widget class="QLabel" name="label_5">
+          <widget class="QLabel" name="device_creator_label">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
              <horstretch>0</horstretch>
@@ -353,7 +353,7 @@
             <enum>Qt::CustomContextMenu</enum>
            </property>
            <property name="text">
-            <string>Изготовитель (%creator__)</string>
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Изготовитель (&lt;span style=&quot; color:#ff557f;&quot;&gt;%creator__&lt;/span&gt;)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
            </property>
           </widget>
          </item>
@@ -368,12 +368,12 @@
           </widget>
          </item>
          <item row="6" column="2">
-          <widget class="QLabel" name="label_8">
+          <widget class="QLabel" name="comment_label">
            <property name="contextMenuPolicy">
             <enum>Qt::CustomContextMenu</enum>
            </property>
            <property name="text">
-            <string>Комментарий(%comment__)</string>
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Комментарий(&lt;span style=&quot; color:#ff557f;&quot;&gt;%comment__&lt;/span&gt;)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
            </property>
           </widget>
          </item>
