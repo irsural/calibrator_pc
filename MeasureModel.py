@@ -112,7 +112,11 @@ class MeasureModel(QAbstractTableModel):
             return self.__points[a_row_idx][self.Column.POINT]
 
     def exportPoints(self):
-        return tuple(self.__points)
+        exported_points = [(row[MeasureModel.Column.POINT], row[MeasureModel.Column.FREQUENCY],
+                            row[MeasureModel.Column.UP_VALUE], row[MeasureModel.Column.DOWN_VALUE])
+                           for row in self.__points]
+        print(exported_points)
+        return tuple(exported_points)
 
     def isPointGood(self, a_point: float, a_freqyency: float, a_approach_side: PointData.ApproachSide) -> bool:
         """

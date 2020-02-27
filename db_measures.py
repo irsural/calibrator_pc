@@ -143,10 +143,8 @@ class MeasuresDB:
                                  a_params.device_class, a_params.serial_num, a_params.comment, a_params.owner,
                                  a_params.user, ' '.join([a_params.date, a_params.time])))
 
-            self.cursor.executemany(f"insert into {self.results_table} (point, frequency, up_value, up_deviation, "
-                                    f"up_deviation_percent, down_value, down_deviation, down_deviation_percent, "
-                                    f"variation, measure_id) values (?, ?, ?, ?, ?, ?, ?, ?, ?, {a_params.id})",
-                                    points_data)
+            self.cursor.executemany(f"insert into {self.results_table} (point, frequency, up_value, down_value, "
+                                    f"measure_id) values (?, ?, ?, ?, {a_params.id})", points_data)
 
     def delete(self, a_params: MeasureParams):
         assert self.is_measure_exist(a_params.id), "deleted id must exist!"

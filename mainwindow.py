@@ -93,9 +93,8 @@ class MainWindow(QtWidgets.QMainWindow):
                            f"foreign key (measure_id) references {self.measure_db_tables.measures_table}(id))")
 
             cursor.execute(f"CREATE TABLE IF NOT EXISTS {self.measure_db_tables.results_table} "
-                           f"(id integer primary key autoincrement, point real, frequency real, up_value real,"
-                           f"up_deviation real, up_deviation_percent real, down_value real, down_deviation real,"
-                           f"down_deviation_percent real, variation real, measure_id int,"
+                           f"(id integer primary key autoincrement, point real, frequency real, up_value real, "
+                           f"down_value real, measure_id int,"
                            f"foreign key (measure_id) references {self.measure_db_tables.measures_table}(id))")
 
             # Таблицы соответствий системы прибора и типа сигнала
