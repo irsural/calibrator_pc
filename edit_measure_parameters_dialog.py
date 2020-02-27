@@ -1,13 +1,11 @@
 from sqlite3 import Connection
 
 from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtCore import pyqtSignal
 
 from ui.py.edit_measure_parameters_form import Ui_Dialog as EditMeasureParamsForm
 from marks_widget import MarksWidget
 from db_measures import MeasureParams, MeasureTables
 from settings_ini_parser import Settings
-import utils
 
 
 class EditMeasureParamsDialog(QtWidgets.QDialog):
@@ -45,6 +43,10 @@ class EditMeasureParamsDialog(QtWidgets.QDialog):
         self.ui.system_combobox.setCurrentIndex(self.measure_config.device_system)
         self.ui.comment_edit.setText(self.measure_config.comment)
 
+        self.ui.signal_type_combobox.setCurrentIndex(self.measure_config.signal_type)
+        self.ui.class_spinbox.setValue(self.measure_config.device_class)
+        self.ui.etalon_edit.setText(self.measure_config.etalon_device)
+
     def save_pressed(self):
         if self.marks_widget.save():
             self.save()
@@ -60,6 +62,8 @@ class EditMeasureParamsDialog(QtWidgets.QDialog):
         self.measure_config.organisation = self.ui.organisation_edit.text()
         self.measure_config.device_system = self.ui.system_combobox.currentIndex()
         self.measure_config.comment = self.ui.comment_edit.text()
+        self.measure_config.etalon_device = self.ui.etalon_edit.text()
+        self.measure_config.device_class = self.ui.class_spinbox.value()
 
     def closeEvent(self, a_event: QtGui.QCloseEvent) -> None:
         self.settings.save_geometry(self.__class__.__name__, self.saveGeometry())

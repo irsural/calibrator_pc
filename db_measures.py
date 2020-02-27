@@ -35,14 +35,14 @@ MEASURE_COLUMN_TO_NAME = {
     MeasureColumn.DATETIME: "Дата / Время",
     MeasureColumn.DEVICE_NAME: "Наименование\nприбора",
     MeasureColumn.SERIAL_NUMBER: "Заводской\nномер",
-    MeasureColumn.SIGNAL_TYPE: "Тип сигнала",
+    MeasureColumn.SIGNAL_TYPE: "Род\nтока",
     MeasureColumn.DEVICE_CLASS: "Класс",
     MeasureColumn.COMMENT: "Комментарий",
     MeasureColumn.OWNER: "Организация\nвладелец",
     MeasureColumn.DEVICE_SYSTEM: "Система",
     MeasureColumn.USER: "Поверитель",
     MeasureColumn.ORGANISATION: "Организация\nповеритель",
-    MeasureColumn.ETALON_DEVICE: "Эталон",
+    MeasureColumn.ETALON_DEVICE: "Средство\nповерки",
     MeasureColumn.DEVICE_CREATOR: "Изготовитель"
 }
 
