@@ -547,7 +547,7 @@ class MeasureWindow(QtWidgets.QWidget):
                 if self.started:
                     self.measures_db.save(self.measure_config, self.measure_model.exportPoints())
                 else:
-                    self.measures_db.delete(self.measure_config)
+                    self.measures_db.delete(self.measure_config.id)
 
                 self.save_settings()
 

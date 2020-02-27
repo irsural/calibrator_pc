@@ -70,7 +70,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.close()
 
     def __del__(self):
-        if hasattr(self, "db_connection"):
+        if hasattr(self, "display_db_connection"):
             self.db_connection.close()
 
     def create_db(self, a_db_name: str):
@@ -120,7 +120,8 @@ class MainWindow(QtWidgets.QMainWindow):
             if self.active_window is not None:
                 self.active_window.close()
 
-            self.active_window = StartWindow(self.db_name, self.measure_db_tables, self.settings, self)
+            self.active_window = StartWindow(self.db_connection, self.db_name, self.measure_db_tables,
+                                             self.settings, self)
             self.setCentralWidget(self.active_window)
             self.active_window.source_mode_chosen.connect(self.open_source_mode_window)
             self.active_window.no_template_mode_chosen.connect(self.open_config_no_template_mode)

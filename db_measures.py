@@ -146,12 +146,12 @@ class MeasuresDB:
             self.cursor.executemany(f"insert into {self.results_table} (point, frequency, up_value, down_value, "
                                     f"measure_id) values (?, ?, ?, ?, {a_params.id})", points_data)
 
-    def delete(self, a_params: MeasureParams):
-        assert self.is_measure_exist(a_params.id), "deleted id must exist!"
+    def delete(self, a_id: int):
+        assert self.is_measure_exist(a_id), "deleted id must exist!"
         with self.connection:
-            self.cursor.execute(f"delete from {self.mark_values_table} where measure_id={a_params.id}")
-            self.cursor.execute(f"delete from {self.results_table} where measure_id={a_params.id}")
-            self.cursor.execute(f"delete from {self.measure_table} where id={a_params.id}")
+            self.cursor.execute(f"delete from {self.mark_values_table} where measure_id={a_id}")
+            self.cursor.execute(f"delete from {self.results_table} where measure_id={a_id}")
+            self.cursor.execute(f"delete from {self.measure_table} where id={a_id}")
 
     def is_measure_exist(self, a_id: int):
         self.cursor.execute(f"SELECT EXISTS(SELECT 1 FROM {self.measure_table} WHERE id='{a_id}')")
