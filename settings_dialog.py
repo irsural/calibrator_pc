@@ -1,8 +1,7 @@
-from enum import IntEnum
 from sqlite3 import Connection
 
 from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtCore import pyqtSignal, pyqtSlot
+from PyQt5.QtCore import pyqtSignal
 
 from custom_widgets.EditListDialog import EditedListWithUnits
 from ui.py.settings_form import Ui_Dialog as SettingsForm
@@ -10,7 +9,6 @@ from settings_ini_parser import Settings
 from db_measures import MeasureTables
 from marks_widget import MarksWidget
 import calibrator_constants as clb
-import qt_utils
 import utils
 
 

@@ -52,9 +52,9 @@ class QEditCopyButton(QEditDoubleClick):
         self.copy_button.move(self.rect().right() - frame_width - size_hint.width(),
                               (self.rect().bottom() + 1 - size_hint.height()) / 2)
 
-    def setStyleSheet(self, styleSheet: str):
-        styleSheet += self.style_padding
-        super().setStyleSheet(styleSheet)
+    def setStyleSheet(self, a_style_sheet: str):
+        a_style_sheet += self.style_padding
+        super().setStyleSheet(a_style_sheet)
 
     def copy(self):
         QtWidgets.QApplication.clipboard().setText(self.text())

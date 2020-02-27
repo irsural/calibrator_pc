@@ -9,6 +9,7 @@ path = "C:\\Users\\503.IRS\\Desktop\\Qt Projects\\clb_driver_dll\\" \
        "build-clb_driver_dll-Desktop_Qt_5_12_2_MSVC2017_32bit-Release\\release\\clb_driver_dll.dll"
 
 
+# noinspection DuplicatedCode
 def set_up_driver(a_full_path):
     clb_driver_lib = ctypes.CDLL(a_full_path)
 

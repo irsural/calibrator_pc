@@ -256,7 +256,8 @@ class MeasureModel(QAbstractTableModel):
         del self.__points[a_row_indexes[0]:a_row_indexes[-1] + 1]
         self.endRemoveRows()
 
-    def getText(self, index: QModelIndex):
+    @staticmethod
+    def getText(index: QModelIndex):
         if index.isValid():
             return index.data()
         else:

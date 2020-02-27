@@ -1,3 +1,4 @@
+from typing import Union
 import sqlite3
 
 from PyQt5.QtCore import pyqtSlot, pyqtSignal
@@ -62,7 +63,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.usb_check_timer.timeout.connect(self.usb_tick)
             self.usb_check_timer.start(10)
 
-            self.fast_config: FastMeasureParams = None
+            self.fast_config: Union[FastMeasureParams, None] = None
 
             self.ui.enter_settings_action.triggered.connect(self.open_settings)
 

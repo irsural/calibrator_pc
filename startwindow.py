@@ -10,6 +10,7 @@ from settings_ini_parser import Settings
 import qt_utils
 import utils
 
+
 class StartWindow(QtWidgets.QWidget):
     source_mode_chosen = pyqtSignal()
     no_template_mode_chosen = pyqtSignal()

@@ -113,6 +113,7 @@ class TemplateListWindow(QtWidgets.QDialog):
 
         self.points_table.reset(a_template_params.points)
 
+    # noinspection DuplicatedCode
     def fill_template_info_to_db(self):
         self.current_template.organisation = self.ui.organisation_edit.text()
         self.current_template.etalon_device = self.ui.etalon_device_edit.text()
@@ -240,6 +241,7 @@ class PointsDataTable:
         self.units = clb.signal_type_to_units[self.signal_type]
         self.value_to_user = utils.value_to_user_with_units(self.units)
 
+        # noinspection PyUnresolvedReferences
         self.table.itemChanged.connect(self.set_value_to_user)
         # Нужен, чтобы лишний раз не писать в БД точек, если они не менялись при изменении шаблона
         self.points_were_edited = False

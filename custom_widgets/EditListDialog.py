@@ -2,7 +2,7 @@ from typing import List
 from sys import float_info
 from collections import OrderedDict
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot
+from PyQt5.QtCore import pyqtSignal
 from PyQt5 import QtWidgets, QtGui, QtCore
 
 from ui.py.edited_list_widget import Ui_Form as EditedListForm
@@ -148,7 +148,6 @@ class EditedListWithUnits(EditedListWidget):
         for value in items.values():
             self.ui.list_widget.addItem(QtWidgets.QListWidgetItem(value))
         return list(items.keys())
-
 
 
 class OkCancelDialog(QtWidgets.QDialog):

@@ -1,21 +1,21 @@
 from sqlite3 import Connection
 
 from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtCore import pyqtSignal, pyqtSlot
+from PyQt5.QtCore import pyqtSignal
 
-from ui.py.edit_template_parameters_form import Ui_Dialog as EditTemplateParamsForm
+from ui.py.edit_measure_parameters_form import Ui_Dialog as EditMeasureParamsForm
 from marks_widget import MarksWidget
 from db_measures import MeasureParams, MeasureTables
 from settings_ini_parser import Settings
 import utils
 
 
-class EditTemplateParamsDialog(QtWidgets.QDialog):
+class EditMeasureParamsDialog(QtWidgets.QDialog):
     def __init__(self, a_settings: Settings, a_measure_config: MeasureParams, a_db_connection: Connection,
                  a_db_tables: MeasureTables, a_parent=None):
         super().__init__(a_parent)
 
-        self.ui = EditTemplateParamsForm()
+        self.ui = EditMeasureParamsForm()
         self.ui.setupUi(self)
 
         self.settings = a_settings

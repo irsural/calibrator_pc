@@ -1,8 +1,6 @@
-from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtCore import pyqtSignal, pyqtSlot
+from PyQt5 import QtCore, QtWidgets
 
 from ui.py.variable_template_fields_form import Ui_Dialog as VariableTemplateFieldsForm
-import utils
 
 
 class VariableTemplateParams:
@@ -44,4 +42,3 @@ class VariableTemplateFieldsDialog(QtWidgets.QDialog):
             return self.extract_params()
         else:
             return None
-

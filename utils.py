@@ -151,7 +151,9 @@ def relative_step_change(a_value: float, a_step: float, a_min_step: float, a_nor
     exp = int(math.floor(math.log10(absolute_step)))
 
     absolute_step /= pow(10., exp)
-    get_new_step = lambda x, y: x if absolute_step < math.sqrt(x * y) else y
+
+    def get_new_step(x, y):
+        return x if absolute_step < math.sqrt(x * y) else y
 
     if absolute_step <= 2:
         new_step = 1 if absolute_step < math.sqrt(1 * 2) else 2

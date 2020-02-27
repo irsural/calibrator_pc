@@ -1,3 +1,4 @@
+from typing import Union
 import enum
 
 from PyQt5.QtWidgets import QDialog, QMessageBox
@@ -91,7 +92,7 @@ class NewFastMeasureDialog(QDialog):
         self.normalize_edit_value(self.ui.lower_bound_edit)
         self.normalize_edit_value(self.ui.step_edit)
 
-        self.edit_frequency_widget: EditedListOnlyNumbers = None
+        self.edit_frequency_widget: Union[EditedListOnlyNumbers, None] = None
 
     # noinspection DuplicatedCode
     def connect_signals(self):

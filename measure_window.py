@@ -7,7 +7,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtGui import QWheelEvent
 
 from custom_widgets.QTableDelegates import NonOverlappingDoubleClick
-from edit_template_parameters_dialog import EditTemplateParamsDialog
+from edit_measure_parameters_dialog import EditMeasureParamsDialog
 from db_measures import MeasureParams, MeasureTables, MeasuresDB
 from ui.py.measure_form import Ui_main_widget as MeasureForm
 from MeasureModel import PointData, MeasureModel
@@ -529,8 +529,8 @@ class MeasureWindow(QtWidgets.QWidget):
 
     def update_config(self):
         try:
-            edit_template_params_dialog = EditTemplateParamsDialog(self.settings, self.measure_config,
-                                                                   self.db_connection, self.db_tables, self)
+            edit_template_params_dialog = EditMeasureParamsDialog(self.settings, self.measure_config,
+                                                                  self.db_connection, self.db_tables, self)
             edit_template_params_dialog.exec()
         except AssertionError as err:
             utils.exception_handler(err)

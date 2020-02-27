@@ -49,7 +49,6 @@ class SourceModeWindow(QtWidgets.QWidget):
 
         self.block_signals = False
 
-
     def connect_signals(self):
         self.ui.clb_list_combobox.currentTextChanged.connect(self.connect_to_clb)
         self.ui.amplitude_edit.textChanged.connect(self.amplitude_edit_text_changed)
