@@ -35,17 +35,19 @@ class StartWindow(QtWidgets.QWidget):
         self.parent.restoreGeometry(self.settings.get_last_geometry(self.__class__.__name__))
 
         self.db_connection, self.db_model, self.header_context = \
-            self.config_measure_table(a_db_name, a_db_tables.measures_table)
+            self.config_measure_table(a_db_name, a_db_tables)
 
-    def config_measure_table(self, a_db_name: str, a_table_name: str):
+    def config_measure_table(self, a_db_name: str, a_tables: MeasureTables):
         db_connection = QtSql.QSqlDatabase.addDatabase("QSQLITE")
         db_connection.setDatabaseName(a_db_name)
 
         res = db_connection.open()
         assert res, f"Can't open database {a_db_name}!"
 
-        db_model = QtSql.QSqlTableModel(self)
-        db_model.setTable(a_table_name)
+        db_model = QtSql.QSqlRelationalTableModel(self)
+        db_model.setTable(a_tables.measures_table)
+        db_model.setRelation(MeasureColumn.DEVICE_SYSTEM, QtSql.QSqlRelation(a_tables.system_table, "id", "name"))
+        db_model.setRelation(MeasureColumn.SIGNAL_TYPE, QtSql.QSqlRelation(a_tables.signal_type_table, "id", "name"))
 
         for column in range(db_model.columnCount()):
             db_model.setHeaderData(column, QtCore.Qt.Horizontal, MEASURE_COLUMN_TO_NAME[column])

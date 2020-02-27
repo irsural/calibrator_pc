@@ -13,6 +13,7 @@ from source_mode_window import SourceModeWindow
 from settings_dialog import SettingsDialog
 from settings_ini_parser import Settings, BadIniException
 from startwindow import StartWindow
+import constants as cfg
 import calibrator_constants as clb
 import clb_dll
 import utils
@@ -39,7 +40,8 @@ class MainWindow(QtWidgets.QMainWindow):
                                                            'удалите файл "settings.ini" и запустите программу заново')
         if ini_ok:
             self.measure_db_tables = MeasureTables(marks_table="marks", mark_values_table="mark_values",
-                                                   measures_table="measures", results_table="results")
+                                                   measures_table="measures", results_table="results",
+                                                   system_table="system", signal_type_table="signal_type")
             self.db_name = "measures.db"
             self.db_connection = self.create_db(self.db_name)
             self.show_start_window()
@@ -95,6 +97,22 @@ class MainWindow(QtWidgets.QMainWindow):
                            f"up_deviation real, up_deviation_percent real, down_value real, down_deviation real,"
                            f"down_deviation_percent real, variation real, measure_id int,"
                            f"foreign key (measure_id) references {self.measure_db_tables.measures_table}(id))")
+
+            # Таблицы соответствий системы прибора и типа сигнала
+            cursor.execute(f"CREATE TABLE IF NOT EXISTS {self.measure_db_tables.system_table} "
+                           f"(id integer primary key, name text unique)")
+
+            systems_table = [(system, cfg.enum_to_device_system[system]) for system in cfg.DeviceSystem]
+            cursor.executemany(f"insert or ignore into {self.measure_db_tables.system_table} "
+                               f"(id, name) values (?, ?)", systems_table)
+
+            cursor.execute(f"CREATE TABLE IF NOT EXISTS {self.measure_db_tables.signal_type_table} "
+                           f"(id integer primary key, name text unique)")
+
+            signal_types = [(signal_type, clb.enum_to_signal_type_short[signal_type]) for signal_type in clb.SignalType]
+            cursor.executemany(f"insert or ignore into {self.measure_db_tables.signal_type_table} "
+                               f"(id, name) values (?, ?)", signal_types)
+
         return connection
 
     def show_start_window(self):

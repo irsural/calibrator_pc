@@ -10,7 +10,8 @@ from constants import DeviceSystem
 import calibrator_constants as clb
 from constants import Point
 
-MeasureTables = namedtuple("MeasureDB", ["marks_table", "mark_values_table", "measures_table", "results_table"])
+MeasureTables = namedtuple("MeasureDB", ["marks_table", "mark_values_table", "measures_table", "results_table",
+                                         "system_table", "signal_type_table"])
 
 
 class MeasureColumn(IntEnum):
@@ -44,6 +45,7 @@ MEASURE_COLUMN_TO_NAME = {
     MeasureColumn.ETALON_DEVICE: "Эталон",
     MeasureColumn.DEVICE_CREATOR: "Изготовитель"
 }
+
 
 class MeasureParams:
     def __init__(self, a_id=0, a_organisation="", a_etalon_device="", a_device_name="",
