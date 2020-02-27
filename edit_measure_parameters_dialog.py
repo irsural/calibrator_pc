@@ -48,8 +48,8 @@ class EditMeasureParamsDialog(QtWidgets.QDialog):
         self.ui.etalon_edit.setText(self.measure_config.etalon_device)
 
     def save_pressed(self):
+        self.save()
         if self.marks_widget.save():
-            self.save()
             self.close()
 
     def save(self):

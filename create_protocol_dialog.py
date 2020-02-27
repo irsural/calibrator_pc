@@ -34,6 +34,12 @@ class CreateProtocolDialog(QtWidgets.QDialog):
         self.create_label_context_menu()
         self.set_up_params_to_ui(points)
 
+        self.ui.template_protocol_edit.setText(self.settings.template_filepath)
+        self.ui.save_folder_edit.setText(self.settings.save_folder)
+
+        self.ui.choose_protocol_template_button.clicked.connect(self.choose_template_pattern_file)
+        self.ui.choose_save_folder_button.clicked.connect(self.choose_save_protocol_folder)
+
         self.ui.accept_button.clicked.connect(self.save_pressed)
         self.ui.reject_button.clicked.connect(self.reject)
 
@@ -88,10 +94,29 @@ class CreateProtocolDialog(QtWidgets.QDialog):
         mark_text = mark_match.group(0)
         QtWidgets.QApplication.clipboard().setText(mark_text)
 
+    def choose_template_pattern_file(self):
+        file = QtWidgets.QFileDialog.getOpenFileName(self, "Выберите файл, содержащий шаблон протокола",
+                                                     self.ui.template_protocol_edit.text(),
+                                                     "Текстовый документ ODT (*.odt)")
+        filepath = file[0]
+        if filepath:
+            self.ui.template_protocol_edit.setText(filepath)
+
+    def choose_save_protocol_folder(self):
+        folder = QtWidgets.QFileDialog.getExistingDirectory(self, "Выберите каталог", self.ui.save_folder_edit.text(),
+                                                            QtWidgets.QFileDialog.ShowDirsOnly |
+                                                            QtWidgets.QFileDialog.DontResolveSymlinks)
+        if folder:
+            self.ui.save_folder_edit.setText(folder)
+
     def save_pressed(self):
+        self.save()
+        self.settings.template_filepath = self.ui.template_protocol_edit.text()
+        self.settings.save_folder = self.ui.save_folder_edit.text()
         if self.marks_widget.save():
-            self.save()
             self.close()
+        else:
+            self.ui.marks_and_points_tabwidget.setCurrentIndex(0)
 
     # noinspection DuplicatedCode
     def save(self):

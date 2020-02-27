@@ -22,12 +22,14 @@ class Settings(QtCore.QObject):
         FLOAT = 1
         LIST_FLOAT = 2
         LIST_INT = 3
+        STRING = 4
 
     ValueTypeConvertFoo = {
         ValueType.INT: int,
         ValueType.FLOAT: float,
         ValueType.LIST_FLOAT: lambda s: [float(val) for val in s.split(',')],
-        ValueType.LIST_INT: lambda s: [int(val) for val in s.split(',')]
+        ValueType.LIST_INT: lambda s: [int(val) for val in s.split(',')],
+        ValueType.STRING: str
     }
 
     MEASURE_SECTION = "Measure"
@@ -58,6 +60,10 @@ class Settings(QtCore.QObject):
     GEOMETRY_SECTION = "Geometry"
     HEADERS_SECTION = "Headers"
 
+    PROTOCOL_SECTION = "Protocol"
+    TEMPLATE_FILEPATH_KEY = "template_filepath"
+    SAVE_FOLDER_KEY = "save_folder"
+
     # В ini файлы сохраняются QByteArray, в которых могут быть переносы строки, которые херят ini файл
     LF = '\n'
     LF_SUBSTITUTE = "\t\t\t\t"
@@ -80,6 +86,9 @@ class Settings(QtCore.QObject):
 
         self.__disable_scroll_on_table = 0
 
+        self.__template_filepath = ""
+        self.__save_folder = ""
+
         self.settings = configparser.ConfigParser()
         try:
             self.restore_settings()
@@ -98,10 +107,13 @@ class Settings(QtCore.QObject):
                                                    self.MOUSE_INVERSION_KEY: self.MOUSE_INVERSION_DEFAULT,
                                                    self.DISABLE_SCROLL_ON_TABLE_KEY:
                                                        self.DISABLE_SCROLL_ON_TABLE_DEFAULT}
+            self.settings[self.PROTOCOL_SECTION] = {self.TEMPLATE_FILEPATH_KEY: self.TEMPLATE_FILEPATH_DEFAULT,
+                                                    self.SAVE_FOLDER_KEY: self.SAVE_FOLDER_DEFAULT}
             utils.save_settings(self.CONFIG_PATH, self.settings)
         else:
             self.settings.read(self.CONFIG_PATH)
             self.add_ini_section(self.MEASURE_SECTION)
+            self.add_ini_section(self.PROTOCOL_SECTION)
 
         self.__fixed_step_list = self.check_ini_value(self.MEASURE_SECTION, self.FIXED_STEP_KEY,
                                                       self.FIXED_STEP_DEFAULT, self.ValueType.LIST_FLOAT)
@@ -134,6 +146,11 @@ class Settings(QtCore.QObject):
                                                               self.DISABLE_SCROLL_ON_TABLE_DEFAULT, self.ValueType.INT)
         self.__disable_scroll_on_table = utils.bound(self.__disable_scroll_on_table, 0, 1)
 
+        self.__template_filepath = self.check_ini_value(self.PROTOCOL_SECTION, self.TEMPLATE_FILEPATH_KEY,
+                                                        "", self.ValueType.STRING)
+
+        self.__save_folder = self.check_ini_value(self.PROTOCOL_SECTION, self.SAVE_FOLDER_KEY,
+                                                  "", self.ValueType.STRING)
         # Выводит ini файл в консоль
         # for key in settings:
         #     print(f"[{key}]")
@@ -300,3 +317,25 @@ class Settings(QtCore.QObject):
 
     def __restore_next_line_symbols(self, state_bytes):
         pass
+
+    @property
+    def template_filepath(self):
+        return self.__template_filepath
+
+    @template_filepath.setter
+    def template_filepath(self, a_filepath: str):
+        self.settings[self.PROTOCOL_SECTION][self.TEMPLATE_FILEPATH_KEY] = a_filepath
+        self.save()
+
+        self.__template_filepath = a_filepath
+
+    @property
+    def save_folder(self):
+        return self.__save_folder
+
+    @save_folder.setter
+    def save_folder(self, a_filepath: str):
+        self.settings[self.PROTOCOL_SECTION][self.SAVE_FOLDER_KEY] = a_filepath
+        self.save()
+
+        self.__save_folder = a_filepath
