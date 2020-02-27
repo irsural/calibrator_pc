@@ -77,10 +77,10 @@ class MeasureParams:
         elif a_points:
             self.upper_bound = max(a_points, key=lambda p: p.amplitude).amplitude
         else:
-            self.a_upper_bound = 0
+            self.upper_bound = 0
 
-        self.a_upper_bound = clb.bound_amplitude(self.upper_bound, self.signal_type)
-        self.lower_bound = -self.a_upper_bound if a_lower_bound is None else \
+        self.upper_bound = clb.bound_amplitude(self.upper_bound, self.signal_type)
+        self.lower_bound = -self.upper_bound if a_lower_bound is None else \
             clb.bound_amplitude(a_lower_bound, self.signal_type)
 
     @classmethod
@@ -125,11 +125,28 @@ class MeasuresDB:
                                 f"where default_value != ''")
         return measure_id
 
-    def get(self, a_id: str):
-        if a_id in self.ids:
-            return MeasureParams(a_id)
-        else:
-            return None
+    def get(self, a_id: int):
+        self.cursor.execute(f"select * from {self.results_table} where measure_id={a_id}")
+        points: list = self.cursor.fetchall()
+
+        self.cursor.execute(f"select * from {self.measure_table} where id={a_id}")
+        measure_data = self.cursor.fetchone()
+        date, time = measure_data[MeasureColumn.DATETIME].split(' ')
+
+        return MeasureParams(a_id=measure_data[MeasureColumn.ID],
+                             a_date=date,
+                             a_time=time,
+                             a_device_name=measure_data[MeasureColumn.DEVICE_NAME],
+                             a_serial_num=measure_data[MeasureColumn.SERIAL_NUMBER],
+                             a_signal_type=measure_data[MeasureColumn.SIGNAL_TYPE],
+                             a_device_class=measure_data[MeasureColumn.DEVICE_CLASS],
+                             a_comment=measure_data[MeasureColumn.COMMENT],
+                             a_owner=measure_data[MeasureColumn.OWNER],
+                             a_device_system=measure_data[MeasureColumn.DEVICE_SYSTEM],
+                             a_user=measure_data[MeasureColumn.USER],
+                             a_organisation=measure_data[MeasureColumn.ORGANISATION],
+                             a_etalon_device=measure_data[MeasureColumn.ETALON_DEVICE],
+                             a_device_creator=measure_data[MeasureColumn.DEVICE_CREATOR]), points
 
     def save(self, a_params: MeasureParams, points_data: Tuple[List]):
         assert self.is_measure_exist(a_params.id), "Row for saved measure must exist!"

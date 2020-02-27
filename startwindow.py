@@ -6,6 +6,7 @@ from PyQt5 import QtGui, QtWidgets, QtCore, QtSql
 from ui.py.startform import Ui_Form as StartForm
 from db_measures import MeasureTables, MeasureColumn, MEASURE_COLUMN_TO_NAME, MeasuresDB
 from custom_widgets.QTableDelegates import NonOverlappingDoubleClick
+from create_protocol_dialog import CreateProtocolDialog
 from settings_ini_parser import Settings
 import qt_utils
 import utils
@@ -35,13 +36,16 @@ class StartWindow(QtWidgets.QWidget):
         self.parent = a_parent
 
         self.settings = a_settings
+        self.db_tables = a_db_tables
 
         self.setWindowTitle("Калибратор N4-25")
 
         self.ui.source_mode_button.clicked.connect(self.source_mode_chosen)
         self.ui.no_template_mode_button.clicked.connect(self.no_template_mode_chosen)
         self.ui.template_mode_button.clicked.connect(self.template_mode_chosen)
+
         self.ui.create_protocol_button.clicked.connect(self.create_protocol)
+        self.ui.measures_table.doubleClicked.connect(self.create_protocol)
 
         self.parent.restoreGeometry(self.settings.get_last_geometry(self.__class__.__name__))
         self.parent.show()
@@ -53,7 +57,8 @@ class StartWindow(QtWidgets.QWidget):
         self.sort_proxy_model = QtCore.QSortFilterProxyModel(self)
         self.header_context = self.config_measure_table(a_db_name, a_db_tables)
 
-        self.control_db_connection = MeasuresDB(a_control_db_connection, a_db_tables)
+        self.control_db_connection = a_control_db_connection
+        self.measure_db = MeasuresDB(a_control_db_connection, a_db_tables)
 
     def config_measure_table(self, a_db_name: str, a_tables: MeasureTables):
         self.display_db_connection.setDatabaseName(a_db_name)
@@ -93,7 +98,14 @@ class StartWindow(QtWidgets.QWidget):
         self.ui.create_protocol_button.setEnabled(True)
 
     def create_protocol(self):
-        measure_id = self.get_selected_id()
+        try:
+            measure_id = self.get_selected_id()
+            assert measure_id is not None, "measure id must not be None!"
+            create_protocol_dialog = CreateProtocolDialog(self.settings, measure_id, self.control_db_connection,
+                                                          self.db_tables, self)
+            create_protocol_dialog.exec()
+        except Exception as err:
+            utils.exception_handler(err)
 
     def chow_table_custom_menu(self, a_position: QtCore.QPoint):
         menu = QtWidgets.QMenu(self)
@@ -110,7 +122,7 @@ class StartWindow(QtWidgets.QWidget):
             measure_id = self.get_selected_id()
             assert measure_id is not None, "measure id must not be None!"
 
-            self.control_db_connection.delete(measure_id)
+            self.measure_db.delete(measure_id)
             self.display_db_model.select()
 
     def get_selected_id(self):
