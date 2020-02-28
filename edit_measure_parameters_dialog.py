@@ -23,13 +23,16 @@ class EditMeasureParamsDialog(QtWidgets.QDialog):
 
         assert a_measure_config.id != 0, "Measure id must not be zero!"
         self.marks_widget = MarksWidget(self.settings, a_db_connection, a_db_tables,
-                                        a_measure_id=self.measure_config.id, a_parent=self)
+                                        a_measure_id=self.measure_config.id, a_parent=None)
         self.ui.marks_widget_layout.addWidget(self.marks_widget)
 
         self.set_up_params_to_ui()
 
         self.ui.accept_button.clicked.connect(self.save_pressed)
         self.ui.reject_button.clicked.connect(self.reject)
+
+    def __del__(self):
+        print("edit parameters deleted")
 
     def set_up_params_to_ui(self):
         self.ui.user_name_edit.setText(self.measure_config.user)

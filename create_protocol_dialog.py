@@ -5,6 +5,9 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 
 from ui.py.create_protocol_form import Ui_Dialog as CreateProtocolForm
 from db_measures import MeasureParams, MeasureTables, MeasuresDB
+from custom_widgets.QTableDelegates import NonOverlappingDoubleClick
+from MeasureModel import MeasureModel as ResultsModel
+import qt_utils
 from settings_ini_parser import Settings
 from marks_widget import MarksWidget
 
@@ -28,11 +31,23 @@ class CreateProtocolDialog(QtWidgets.QDialog):
         self.measure_config, points = self.measure_db.get(a_measure_id)
 
         self.marks_widget = MarksWidget(self.settings, a_db_connection, a_db_tables,
-                                        a_measure_id=self.measure_config.id, a_parent=self)
+                                        a_measure_id=self.measure_config.id)
         self.ui.marks_widget_layout.addWidget(self.marks_widget)
 
         self.create_label_context_menu()
         self.set_up_params_to_ui(points)
+
+        self.ui.points_table.horizontalHeader().restoreState(self.settings.get_last_header_state(
+            self.__class__.__name__))
+
+        self.results_model = ResultsModel(max(points, key=lambda p: p[0])[0] if points else 0,
+                                          a_error_limit=self.measure_config.device_class,
+                                          a_signal_type=self.measure_config.signal_type,
+                                          a_parent=self)
+        self.ui.points_table.setModel(self.results_model)
+        self.ui.points_table.setItemDelegate(NonOverlappingDoubleClick(self))
+        self.ui.points_table.customContextMenuRequested.connect(self.chow_table_custom_menu)
+        self.header_context = qt_utils.TableHeaderContextMenu(self, self.ui.points_table)
 
         self.ui.template_protocol_edit.setText(self.settings.template_filepath)
         self.ui.save_folder_edit.setText(self.settings.save_folder)
@@ -42,6 +57,17 @@ class CreateProtocolDialog(QtWidgets.QDialog):
 
         self.ui.accept_button.clicked.connect(self.save_pressed)
         self.ui.reject_button.clicked.connect(self.reject)
+
+    def chow_table_custom_menu(self, a_position: QtCore.QPoint):
+        menu = QtWidgets.QMenu(self)
+        copy_cell_act = menu.addAction("Копировать")
+        copy_cell_act.triggered.connect(self.copy_cell_text_to_clipboard)
+        menu.popup(self.ui.points_table.viewport().mapToGlobal(a_position))
+
+    def copy_cell_text_to_clipboard(self):
+        text = self.results_model.getText(self.ui.points_table.selectionModel().currentIndex())
+        if text:
+            QtWidgets.QApplication.clipboard().setText(text)
 
     # noinspection DuplicatedCode
     def create_label_context_menu(self):
@@ -137,6 +163,12 @@ class CreateProtocolDialog(QtWidgets.QDialog):
 
     def closeEvent(self, a_event: QtGui.QCloseEvent) -> None:
         self.settings.save_geometry(self.__class__.__name__, self.saveGeometry())
+        self.settings.save_header_state(self.__class__.__name__, self.ui.points_table.horizontalHeader().saveState())
+        # Без этого диалог не уничтожится
+        self.header_context.delete_connections()
         # Вызывается вручную, чтобы marks_widget сохранил состояние своего хэдера
         self.marks_widget.close()
         a_event.accept()
+
+    def __del__(self):
+        print("create protocol deleted")

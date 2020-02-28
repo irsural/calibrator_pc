@@ -13,20 +13,17 @@ class PointData:
         UP = 0
         DOWN = 1
 
-    def __init__(self, a_point=0., a_frequency=0., a_value=0., a_prev_value=0, a_normalize_value=0):
+    def __init__(self, a_point=0., a_frequency=0., a_value=0., a_normalize_value=0, a_approach_side=ApproachSide.UP):
         self.point = a_point
         self.frequency = a_frequency
         self.value = a_value
-        self.prev_value = a_prev_value
-        self.approach_side = self.ApproachSide.UP
+        self.approach_side = a_approach_side
         self.normalize_value = a_normalize_value
 
     def __str__(self):
         return f"Point: {self.point}\n" \
             f"Frequency: {self.frequency}" \
             f"Value: {self.value}\n" \
-            f"Prev value: {self.prev_value}\n" \
-            f"Prev value: {self.prev_value}\n" \
             f"Side: {self.approach_side.name}" \
             f"Normalize: {self.normalize_value}"
 
@@ -70,7 +67,7 @@ class MeasureModel(QAbstractTableModel):
         PointData.ApproachSide.UP: Column.UP_DEVIATION_PERCENT
     }
 
-    def __init__(self, a_normalize_value, a_error_limit, a_signal_type, a_parent=None):
+    def __init__(self, a_normalize_value, a_error_limit, a_signal_type, a_init_points=None, a_parent=None):
         super().__init__(a_parent)
 
         self.__row_count = 0
@@ -85,6 +82,15 @@ class MeasureModel(QAbstractTableModel):
         self.error_limit = a_error_limit
         self.__good_color = QColor(0, 255, 0, 127)
         self.__bad_color = QColor(255, 0, 0, 127)
+
+        if a_init_points is not None:
+            # Формат a_init_points - кортеж, который формируется в self.exportPoints
+            for init_point in a_init_points:
+                self.appendPoint(PointData(a_point=init_point[0], a_frequency=init_point[1], a_value=init_point[2],
+                                           a_approach_side=PointData.ApproachSide.UP))
+
+                self.appendPoint(PointData(a_point=init_point[0], a_frequency=init_point[1], a_value=init_point[3],
+                                           a_approach_side=PointData.ApproachSide.DOWN))
 
     def appendPoint(self, a_point_data: PointData) -> int:
         row_idx = self.__find_point(a_point_data.point, a_point_data.frequency)

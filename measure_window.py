@@ -282,7 +282,6 @@ class MeasureWindow(QtWidgets.QWidget):
         :param a_current_value: Новое значение амплитуды
         """
         self.current_point.point = self.guess_point(a_current_value)
-        self.current_point.prev_value = self.current_point.value
 
         self.current_point.approach_side = PointData.ApproachSide.UP \
             if a_current_value < self.current_point.value else PointData.ApproachSide.DOWN

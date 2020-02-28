@@ -94,6 +94,9 @@ class NewFastMeasureDialog(QDialog):
 
         self.edit_frequency_widget: Union[EditedListOnlyNumbers, None] = None
 
+    def __del__(self):
+        print("new fast deleted")
+
     # noinspection DuplicatedCode
     def connect_signals(self):
         self.ui.aci_radio.clicked.connect(self.set_mode_aci)

@@ -59,6 +59,9 @@ class TemplateListWindow(QtWidgets.QDialog):
         self.ui.template_name_edit.textChanged.connect(self.template_name_changed)
         self.ui.filter_edit.textChanged.connect(self.filter_templates)
 
+    def __del__(self):
+        print("templates list deleted")
+
     @pyqtSlot(QtCore.QPoint)
     def show_context_menu(self, a_pos: QtCore.QPoint):
         menu = QtWidgets.QMenu()
