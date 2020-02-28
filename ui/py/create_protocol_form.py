@@ -237,6 +237,10 @@ class Ui_Dialog(object):
         self.gridLayout_5.setObjectName("gridLayout_5")
         self.points_table = QtWidgets.QTableView(self.points_tab)
         self.points_table.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        self.points_table.setStyleSheet("selection-color: rgb(0, 0, 0);\n"
+"selection-background-color: rgb(170, 170, 255);")
+        self.points_table.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
+        self.points_table.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
         self.points_table.setObjectName("points_table")
         self.gridLayout_5.addWidget(self.points_table, 0, 0, 1, 1)
         self.marks_and_points_tabwidget.addTab(self.points_tab, "")

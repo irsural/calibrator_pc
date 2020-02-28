@@ -126,12 +126,10 @@ class MeasureWindow(QtWidgets.QWidget):
             QtWidgets.QApplication.clipboard().setText(text)
 
     def set_window_elements(self):
-        if clb.is_dc_signal[self.measure_config.signal_type]:
-            self.ui.apply_frequency_button.setDisabled(True)
-            self.ui.frequency_edit.setDisabled(True)
-            self.ui.measure_table.hideColumn(MeasureModel.Column.FREQUENCY)
-        else:
-            self.ui.measure_table.showColumn(MeasureModel.Column.FREQUENCY)
+        self.ui.apply_frequency_button.setDisabled(clb.is_dc_signal[self.measure_config.signal_type])
+        self.ui.frequency_edit.setDisabled(clb.is_dc_signal[self.measure_config.signal_type])
+        self.ui.measure_table.setColumnHidden(MeasureModel.Column.FREQUENCY,
+                                              clb.is_dc_signal[self.measure_config.signal_type])
 
         self.setWindowTitle(f"{clb.enum_to_signal_type[self.measure_config.signal_type]}. "
                             f"{self.measure_config.upper_bound} {self.units_text}.")

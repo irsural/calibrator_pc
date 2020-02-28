@@ -104,6 +104,7 @@ class StartWindow(QtWidgets.QWidget):
             create_protocol_dialog = CreateProtocolDialog(self.settings, measure_id, self.control_db_connection,
                                                           self.db_tables, self)
             create_protocol_dialog.exec()
+            self.display_db_model.select()
         except Exception as err:
             utils.exception_handler(err)
 

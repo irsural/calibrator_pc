@@ -1,17 +1,18 @@
-from sqlite3 import Connection
 from re import compile as re_compile
+from sqlite3 import Connection
 from typing import List, Tuple
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 from ui.py.create_protocol_form import Ui_Dialog as CreateProtocolForm
-from db_measures import MeasureParams, MeasureTables, MeasuresDB
 from custom_widgets.QTableDelegates import NonOverlappingDoubleClick
 from MeasureModel import MeasureModel as ResultsModel
-import qt_utils
-import utils
+from db_measures import MeasureTables, MeasuresDB
 from settings_ini_parser import Settings
 from marks_widget import MarksWidget
+import calibrator_constants as clb
+import qt_utils
+import utils
 
 
 class CreateProtocolDialog(QtWidgets.QDialog):
@@ -24,10 +25,10 @@ class CreateProtocolDialog(QtWidgets.QDialog):
         self.ui = CreateProtocolForm()
         self.ui.setupUi(self)
 
+        assert a_measure_id != 0, "Measure id must not be zero!"
+
         self.settings = a_settings
         self.restoreGeometry(self.settings.get_last_geometry(self.__class__.__name__))
-
-        assert a_measure_id != 0, "Measure id must not be zero!"
 
         self.measure_db = MeasuresDB(a_db_connection, a_db_tables)
         self.measure_config, points = self.measure_db.get(a_measure_id)
@@ -37,10 +38,6 @@ class CreateProtocolDialog(QtWidgets.QDialog):
         self.ui.marks_widget_layout.addWidget(self.marks_widget)
 
         self.default_marks_widgets = self.get_default_marks_widgets()
-
-        for widgets in self.default_marks_widgets:
-            widgets[0].customContextMenuRequested.connect(self.show_label_custom_menu)
-
         self.set_up_params_to_ui()
 
         self.ui.points_table.horizontalHeader().restoreState(self.settings.get_last_header_state(
@@ -51,18 +48,25 @@ class CreateProtocolDialog(QtWidgets.QDialog):
                                           a_signal_type=self.measure_config.signal_type,
                                           a_init_points=points,
                                           a_parent=self)
+
         assert points == self.results_model.exportPoints(), \
             f"Points were inited with errors:\n{points}\n{self.results_model.exportPoints()}"
 
         self.ui.points_table.setModel(self.results_model)
         self.ui.points_table.setItemDelegate(NonOverlappingDoubleClick(self))
-        self.ui.points_table.customContextMenuRequested.connect(self.show_table_custom_menu)
+
+        self.ui.points_table.setColumnHidden(ResultsModel.Column.FREQUENCY,
+                                             clb.is_dc_signal[self.measure_config.signal_type])
 
         self.header_context = qt_utils.TableHeaderContextMenu(self, self.ui.points_table)
 
-        self.ui.template_protocol_edit.setText(self.settings.template_filepath)
-        self.ui.save_folder_edit.setText(self.settings.save_folder)
+        self.connect_signals()
 
+    def connect_signals(self):
+        for widgets in self.default_marks_widgets:
+            widgets[0].customContextMenuRequested.connect(self.show_label_custom_menu)
+
+        self.ui.points_table.customContextMenuRequested.connect(self.show_table_custom_menu)
         self.ui.choose_protocol_template_button.clicked.connect(self.choose_template_pattern_file)
         self.ui.choose_save_folder_button.clicked.connect(self.choose_save_protocol_folder)
 
@@ -123,6 +127,9 @@ class CreateProtocolDialog(QtWidgets.QDialog):
         self.ui.class_spinbox.setValue(self.measure_config.device_class)
         self.ui.etalon_edit.setText(self.measure_config.etalon_device)
 
+        self.ui.template_protocol_edit.setText(self.settings.template_filepath)
+        self.ui.save_folder_edit.setText(self.settings.save_folder)
+
     def copy_label_mark(self):
         # noinspection PyTypeChecker
         label: QtWidgets.QLabel = self.sender().parent().parent()
@@ -149,8 +156,6 @@ class CreateProtocolDialog(QtWidgets.QDialog):
 
     def save_pressed(self):
         self.save()
-        self.settings.template_filepath = self.ui.template_protocol_edit.text()
-        self.settings.save_folder = self.ui.save_folder_edit.text()
         if self.marks_widget.save():
             self.close()
         else:
@@ -170,8 +175,10 @@ class CreateProtocolDialog(QtWidgets.QDialog):
         self.measure_config.etalon_device = self.ui.etalon_edit.text()
         self.measure_config.device_class = self.ui.class_spinbox.value()
 
-        # Сохранить точки
-        # Сохранить в БД
+        self.measure_db.save(self.measure_config)
+
+        self.settings.template_filepath = self.ui.template_protocol_edit.text()
+        self.settings.save_folder = self.ui.save_folder_edit.text()
 
     def closeEvent(self, a_event: QtGui.QCloseEvent) -> None:
         self.settings.save_geometry(self.__class__.__name__, self.saveGeometry())

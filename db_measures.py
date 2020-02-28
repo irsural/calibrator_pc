@@ -149,7 +149,7 @@ class MeasuresDB:
                              a_etalon_device=measure_data[MeasureColumn.ETALON_DEVICE],
                              a_device_creator=measure_data[MeasureColumn.DEVICE_CREATOR]), points
 
-    def save(self, a_params: MeasureParams, points_data: List[List]):
+    def save(self, a_params: MeasureParams, points_data: List[List] = None):
         assert self.is_measure_exist(a_params.id), "Row for saved measure must exist!"
         with self.connection:
             self.cursor.execute(f"update {self.measure_table} set organisation = ?, etalon_device = ?,"
@@ -160,9 +160,9 @@ class MeasuresDB:
                                  a_params.device_creator, a_params.device_system, a_params.signal_type,
                                  a_params.device_class, a_params.serial_num, a_params.comment, a_params.owner,
                                  a_params.user, ' '.join([a_params.date, a_params.time])))
-
-            self.cursor.executemany(f"insert into {self.results_table} (point, frequency, up_value, down_value, "
-                                    f"measure_id) values (?, ?, ?, ?, {a_params.id})", points_data)
+            if points_data is not None:
+                self.cursor.executemany(f"insert into {self.results_table} (point, frequency, up_value, down_value, "
+                                        f"measure_id) values (?, ?, ?, ?, {a_params.id})", points_data)
 
     def delete(self, a_id: int):
         assert self.is_measure_exist(a_id), "deleted id must exist!"
