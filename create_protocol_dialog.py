@@ -1,5 +1,6 @@
 from sqlite3 import Connection
 from re import compile as re_compile
+from typing import List, Tuple
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 
@@ -8,6 +9,7 @@ from db_measures import MeasureParams, MeasureTables, MeasuresDB
 from custom_widgets.QTableDelegates import NonOverlappingDoubleClick
 from MeasureModel import MeasureModel as ResultsModel
 import qt_utils
+import utils
 from settings_ini_parser import Settings
 from marks_widget import MarksWidget
 
@@ -34,22 +36,27 @@ class CreateProtocolDialog(QtWidgets.QDialog):
                                         a_measure_id=self.measure_config.id)
         self.ui.marks_widget_layout.addWidget(self.marks_widget)
 
-        self.create_label_context_menu()
-        self.set_up_params_to_ui(points)
+        self.default_marks_widgets = self.get_default_marks_widgets()
+
+        for widgets in self.default_marks_widgets:
+            widgets[0].customContextMenuRequested.connect(self.show_label_custom_menu)
+
+        self.set_up_params_to_ui()
 
         self.ui.points_table.horizontalHeader().restoreState(self.settings.get_last_header_state(
             self.__class__.__name__))
 
-        self.results_model = ResultsModel(max(points, key=lambda p: p[0])[0] if points else 0,
+        self.results_model = ResultsModel(a_normalize_value=max(points, key=lambda p: p[0])[0] if points else 0,
                                           a_error_limit=self.measure_config.device_class,
                                           a_signal_type=self.measure_config.signal_type,
                                           a_init_points=points,
                                           a_parent=self)
-        assert points == self.results_model.exportPoints(), "Points were inited with errors!!"
+        assert points == self.results_model.exportPoints(), \
+            f"Points were inited with errors:\n{points}\n{self.results_model.exportPoints()}"
 
         self.ui.points_table.setModel(self.results_model)
         self.ui.points_table.setItemDelegate(NonOverlappingDoubleClick(self))
-        self.ui.points_table.customContextMenuRequested.connect(self.chow_table_custom_menu)
+        self.ui.points_table.customContextMenuRequested.connect(self.show_table_custom_menu)
 
         self.header_context = qt_utils.TableHeaderContextMenu(self, self.ui.points_table)
 
@@ -62,7 +69,7 @@ class CreateProtocolDialog(QtWidgets.QDialog):
         self.ui.accept_button.clicked.connect(self.save_pressed)
         self.ui.reject_button.clicked.connect(self.reject)
 
-    def chow_table_custom_menu(self, a_position: QtCore.QPoint):
+    def show_table_custom_menu(self, a_position: QtCore.QPoint):
         menu = QtWidgets.QMenu(self)
         copy_cell_act = menu.addAction("Копировать")
         copy_cell_act.triggered.connect(self.copy_cell_text_to_clipboard)
@@ -74,19 +81,22 @@ class CreateProtocolDialog(QtWidgets.QDialog):
             QtWidgets.QApplication.clipboard().setText(text)
 
     # noinspection DuplicatedCode
-    def create_label_context_menu(self):
-        self.ui.user_label.customContextMenuRequested.connect(self.show_label_custom_menu)
-        self.ui.organisation_label.customContextMenuRequested.connect(self.show_label_custom_menu)
-        self.ui.date_label.customContextMenuRequested.connect(self.show_label_custom_menu)
-        self.ui.name_label.customContextMenuRequested.connect(self.show_label_custom_menu)
-        self.ui.serial_number_label.customContextMenuRequested.connect(self.show_label_custom_menu)
-        self.ui.signal_type_label.customContextMenuRequested.connect(self.show_label_custom_menu)
-        self.ui.device_creator_label.customContextMenuRequested.connect(self.show_label_custom_menu)
-        self.ui.system_label.customContextMenuRequested.connect(self.show_label_custom_menu)
-        self.ui.class_label.customContextMenuRequested.connect(self.show_label_custom_menu)
-        self.ui.etalon_label.customContextMenuRequested.connect(self.show_label_custom_menu)
-        self.ui.owner_label.customContextMenuRequested.connect(self.show_label_custom_menu)
-        self.ui.comment_label.customContextMenuRequested.connect(self.show_label_custom_menu)
+    def get_default_marks_widgets(self):
+        default_marks_widgets: List[Tuple[QtWidgets.QLabel, QtWidgets.QLineEdit]] = [
+            (self.ui.user_label, self.ui.user_name_edit),
+            (self.ui.organisation_label, self.ui.organisation_edit),
+            (self.ui.date_label, self.ui.date_edit),
+            (self.ui.name_label, self.ui.user_name_edit),
+            (self.ui.serial_number_label, self.ui.serial_number_edit),
+            (self.ui.signal_type_label, self.ui.signal_type_combobox),
+            (self.ui.device_creator_label, self.ui.device_creator_edit),
+            (self.ui.system_label, self.ui.system_combobox),
+            (self.ui.class_label, self.ui.class_spinbox),
+            (self.ui.etalon_label, self.ui.etalon_edit),
+            (self.ui.owner_label, self.ui.owner_edit),
+            (self.ui.comment_label, self.ui.comment_edit)
+        ]
+        return default_marks_widgets
 
     def show_label_custom_menu(self, a_position: QtCore.QPoint):
         label = self.sender()
@@ -97,7 +107,7 @@ class CreateProtocolDialog(QtWidgets.QDialog):
         menu.popup(label.mapToGlobal(a_position))
 
     # noinspection DuplicatedCode
-    def set_up_params_to_ui(self, a_points):
+    def set_up_params_to_ui(self):
         self.ui.user_name_edit.setText(self.measure_config.user)
         self.ui.device_name_edit.setText(self.measure_config.device_name)
         self.ui.serial_number_edit.setText(self.measure_config.serial_num)
@@ -112,8 +122,6 @@ class CreateProtocolDialog(QtWidgets.QDialog):
         self.ui.signal_type_combobox.setCurrentIndex(self.measure_config.signal_type)
         self.ui.class_spinbox.setValue(self.measure_config.device_class)
         self.ui.etalon_edit.setText(self.measure_config.etalon_device)
-
-        # Восстановить точки
 
     def copy_label_mark(self):
         # noinspection PyTypeChecker

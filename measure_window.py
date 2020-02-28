@@ -81,7 +81,7 @@ class MeasureWindow(QtWidgets.QWidget):
                                           a_parent=self)
         self.ui.measure_table.setModel(self.measure_model)
         self.ui.measure_table.setItemDelegate(NonOverlappingDoubleClick(self))
-        self.ui.measure_table.customContextMenuRequested.connect(self.chow_table_custom_menu)
+        self.ui.measure_table.customContextMenuRequested.connect(self.show_table_custom_menu)
 
         self.set_window_elements()
 
@@ -114,7 +114,7 @@ class MeasureWindow(QtWidgets.QWidget):
         self.warning_animation.setSpeed(500)
         self.warning_animation.finished.connect(self.ui.status_warning_label.hide)
 
-    def chow_table_custom_menu(self, a_position: QtCore.QPoint):
+    def show_table_custom_menu(self, a_position: QtCore.QPoint):
         menu = QMenu(self)
         copy_cell_act = menu.addAction("Копировать")
         copy_cell_act.triggered.connect(self.copy_cell_text_to_clipboard)

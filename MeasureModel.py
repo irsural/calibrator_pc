@@ -216,6 +216,8 @@ class MeasureModel(QAbstractTableModel):
             value: float = self.__points[index.row()][index.column()]
             if index.column() not in self.__raw_columns:
                 value = self.value_to_user(value)
+            else:
+                value = utils.float_to_string(value)
             return value
 
     def setData(self, index: QModelIndex, value: str, role=Qt.EditRole):
