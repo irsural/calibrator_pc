@@ -43,10 +43,14 @@ class CreateProtocolDialog(QtWidgets.QDialog):
         self.results_model = ResultsModel(max(points, key=lambda p: p[0])[0] if points else 0,
                                           a_error_limit=self.measure_config.device_class,
                                           a_signal_type=self.measure_config.signal_type,
+                                          a_init_points=points,
                                           a_parent=self)
+        assert points == self.results_model.exportPoints(), "Points were inited with errors!!"
+
         self.ui.points_table.setModel(self.results_model)
         self.ui.points_table.setItemDelegate(NonOverlappingDoubleClick(self))
         self.ui.points_table.customContextMenuRequested.connect(self.chow_table_custom_menu)
+
         self.header_context = qt_utils.TableHeaderContextMenu(self, self.ui.points_table)
 
         self.ui.template_protocol_edit.setText(self.settings.template_filepath)

@@ -98,7 +98,8 @@ class MeasureModel(QAbstractTableModel):
 
         if point_row == self.rowCount():
             # Добавляемой точки еще нет в списке
-            point_data = [a_point_data.point, a_point_data.frequency, 0, 0, 0, 0, 0, 0, 0]
+            point_data = [clb.bound_amplitude(a_point_data.point, self.signal_type),
+                          clb.bound_frequency(a_point_data.frequency, self.signal_type), 0, 0, 0, 0, 0, 0, 0]
             assert len(point_data) == self.Column.COUNT, "Размер point_data не соответствует количеству колонок таблицы"
 
             new_row = self.rowCount()
@@ -121,8 +122,7 @@ class MeasureModel(QAbstractTableModel):
         exported_points = [(row[MeasureModel.Column.POINT], row[MeasureModel.Column.FREQUENCY],
                             row[MeasureModel.Column.UP_VALUE], row[MeasureModel.Column.DOWN_VALUE])
                            for row in self.__points]
-        print(exported_points)
-        return tuple(exported_points)
+        return exported_points
 
     def isPointGood(self, a_point: float, a_freqyency: float, a_approach_side: PointData.ApproachSide) -> bool:
         """

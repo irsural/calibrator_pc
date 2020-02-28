@@ -126,7 +126,8 @@ class MeasuresDB:
         return measure_id
 
     def get(self, a_id: int):
-        self.cursor.execute(f"select * from {self.results_table} where measure_id={a_id}")
+        self.cursor.execute(f"select point, frequency, up_value, down_value from {self.results_table} "
+                            f"where measure_id={a_id}")
         points: list = self.cursor.fetchall()
 
         self.cursor.execute(f"select * from {self.measure_table} where id={a_id}")
@@ -148,7 +149,7 @@ class MeasuresDB:
                              a_etalon_device=measure_data[MeasureColumn.ETALON_DEVICE],
                              a_device_creator=measure_data[MeasureColumn.DEVICE_CREATOR]), points
 
-    def save(self, a_params: MeasureParams, points_data: Tuple[List]):
+    def save(self, a_params: MeasureParams, points_data: List[List]):
         assert self.is_measure_exist(a_params.id), "Row for saved measure must exist!"
         with self.connection:
             self.cursor.execute(f"update {self.measure_table} set organisation = ?, etalon_device = ?,"
