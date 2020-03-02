@@ -287,7 +287,7 @@ class Ui_Dialog(object):
         self.organisation_label.setText(_translate("Dialog", "<html><head/><body><p>Орг.-поверитель (<span style=\" color:#ff557f;\">%org__</span>)</p></body></html>"))
         self.name_label.setText(_translate("Dialog", "<html><head/><body><p>Наименование (<span style=\" color:#ff557f;\">%name__</span>)</p></body></html>"))
         self.user_label.setText(_translate("Dialog", "<html><head/><body><p>Поверитель (<span style=\" color:#ff557f;\">%user__</span>)</p></body></html>"))
-        self.signal_type_label.setText(_translate("Dialog", "<html><head/><body><p>Род тока (<span style=\" color:#ff557f;\">%signal__</span>)</p></body></html>"))
+        self.signal_type_label.setText(_translate("Dialog", "<html><head/><body><p>Род тока (<span style=\" color:#ff557f;\">%signal_type__</span>)</p></body></html>"))
         self.date_label.setText(_translate("Dialog", "<html><head/><body><p>Дата поверки (<span style=\" color:#ff557f;\">%date__</span>)</p></body></html>"))
         self.serial_number_label.setText(_translate("Dialog", "<html><head/><body><p>Заводской номер (<span style=\" color:#ff557f;\">%serial__</span>)</p></body></html>"))
         self.date_edit.setDisplayFormat(_translate("Dialog", "dd.MM.yyyy"))

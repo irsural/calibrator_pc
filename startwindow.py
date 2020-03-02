@@ -88,14 +88,17 @@ class StartWindow(QtWidgets.QWidget):
 
         header_context = qt_utils.TableHeaderContextMenu(self, self.ui.measures_table, True)
         self.ui.measures_table.horizontalHeader().setSectionsMovable(True)
-        self.ui.measures_table.customContextMenuRequested.connect(self.chow_table_custom_menu)
+        self.ui.measures_table.customContextMenuRequested.connect(self.show_table_custom_menu)
 
-        self.display_db_model.select()
-
+        self.update_table()
         return header_context
 
     def activate_create_protocol_button(self):
         self.ui.create_protocol_button.setEnabled(True)
+
+    def update_table(self):
+        self.display_db_model.select()
+        self.ui.create_protocol_button.setEnabled(False)
 
     def create_protocol(self):
         try:
@@ -104,11 +107,11 @@ class StartWindow(QtWidgets.QWidget):
             create_protocol_dialog = CreateProtocolDialog(self.settings, measure_id, self.control_db_connection,
                                                           self.db_tables, self)
             create_protocol_dialog.exec()
-            self.display_db_model.select()
+            self.update_table()
         except Exception as err:
             utils.exception_handler(err)
 
-    def chow_table_custom_menu(self, a_position: QtCore.QPoint):
+    def show_table_custom_menu(self, a_position: QtCore.QPoint):
         menu = QtWidgets.QMenu(self)
         delete_measure_act = menu.addAction("Удалить измерение")
         delete_measure_act.triggered.connect(self.delete_measure)
@@ -124,7 +127,7 @@ class StartWindow(QtWidgets.QWidget):
             assert measure_id is not None, "measure id must not be None!"
 
             self.measure_db.delete(measure_id)
-            self.display_db_model.select()
+            self.update_table()
 
     def get_selected_id(self):
         selected = self.ui.measures_table.selectionModel().selectedRows()

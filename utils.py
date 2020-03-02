@@ -1,10 +1,16 @@
-import enum
+from linecache import checkcache, getline
+from configparser import ConfigParser
+from types import FunctionType
+from enum import IntEnum
+from sys import exc_info
 import math
 import re
-import configparser
-from linecache import checkcache, getline
-from sys import exc_info
 
+from odf import text as odf_text, teletype
+from odf.opendocument import load as odf_load
+from odf.element import Element
+from zipfile import BadZipFile
+import odf
 import numpy as np
 
 
@@ -34,7 +40,7 @@ __units_to_factor = {
 }
 
 
-class __UnitsPrefix(enum.IntEnum):
+class __UnitsPrefix(IntEnum):
     NANO = 0
     MICRO = 1
     MILLI = 2
@@ -188,7 +194,7 @@ def decrease_by_percent(a_value, a_percent, a_normalize_value=None):
     return a_value - abs(normalize) * a_percent / 100
 
 
-def save_settings(a_path: str, a_config: configparser):
+def save_settings(a_path: str, a_config: ConfigParser):
     with open(a_path, 'w') as config_file:
         a_config.write(config_file)
 
@@ -232,3 +238,41 @@ def exception_handler(a_exception):
     print(f"Exception{type(a_exception)} in {filename}\n"
           f"Line {lineno}: '{line.strip()}'\n"
           f"Message: {a_exception}")
+
+
+def replace_text_in_odt(a_src_file: str, a_dst_file: str, a_marks_map: list):
+    try:
+        odt_file = odf_load(a_src_file)
+
+        # Итерация по заголовкам
+        __replace_text_in_odf_element(odt_file, odf_text.H, a_marks_map)
+        # Итерация по остальному тексту и полям таблиц
+        __replace_text_in_odf_element(odt_file, odf_text.P, a_marks_map)
+
+        odt_file.save(a_dst_file)
+
+        return True
+    except (BadZipFile, PermissionError):
+        return False
+
+
+def __replace_text_in_odf_element(a_file, a_element_foo, a_replace_map: list):
+    replace_map = {}
+    for element in a_file.getElementsByType(a_element_foo):
+
+        text = teletype.extractText(element)
+
+        for mark in a_replace_map:
+            text = text.replace(mark[0], mark[1])
+
+        new_odf_element = odf_text.P()
+        new_odf_element.setAttribute("stylename", element.getAttribute("stylename"))
+        new_odf_element.addText(text)
+
+        replace_map[element] = new_odf_element
+
+    for old, new in replace_map.items():
+        old.parentNode.insertBefore(new, old)
+        old.parentNode.removeChild(old)
+
+

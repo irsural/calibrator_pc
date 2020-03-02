@@ -1,6 +1,7 @@
 from re import compile as re_compile
 from sqlite3 import Connection
-from typing import List, Tuple
+from typing import List, Tuple, Union
+import os
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 
@@ -11,6 +12,7 @@ from db_measures import MeasureTables, MeasuresDB
 from settings_ini_parser import Settings
 from marks_widget import MarksWidget
 import calibrator_constants as clb
+import constants as cfg
 import qt_utils
 import utils
 
@@ -61,7 +63,9 @@ class CreateProtocolDialog(QtWidgets.QDialog):
         self.header_context = qt_utils.TableHeaderContextMenu(self, self.ui.points_table)
 
         self.connect_signals()
+        self.ui.marks_and_points_tabwidget.setCurrentIndex(0)
 
+    # noinspection DuplicatedCode
     def connect_signals(self):
         for widgets in self.default_marks_widgets:
             widgets[0].customContextMenuRequested.connect(self.show_label_custom_menu)
@@ -86,7 +90,7 @@ class CreateProtocolDialog(QtWidgets.QDialog):
 
     # noinspection DuplicatedCode
     def get_default_marks_widgets(self):
-        default_marks_widgets: List[Tuple[QtWidgets.QLabel, QtWidgets.QLineEdit]] = [
+        default_marks_widgets: List[Tuple[QtWidgets.QLabel, QtWidgets.QWidget]] = [
             (self.ui.user_label, self.ui.user_name_edit),
             (self.ui.organisation_label, self.ui.organisation_edit),
             (self.ui.date_label, self.ui.date_edit),
@@ -134,10 +138,30 @@ class CreateProtocolDialog(QtWidgets.QDialog):
         # noinspection PyTypeChecker
         label: QtWidgets.QLabel = self.sender().parent().parent()
         assert isinstance(label, QtWidgets.QLabel), "This slot must be called by Qmenu of QLabel!!"
+
+        mark_text = self.extract_mark_from_label(label)
+        QtWidgets.QApplication.clipboard().setText(mark_text)
+
+    def extract_mark_from_label(self, label):
         mark_match = self.GET_MARK_RE.search(label.text())
         assert mark_match is not None, "Label must contain mark in format %*__ !!"
         mark_text = mark_match.group(0)
-        QtWidgets.QApplication.clipboard().setText(mark_text)
+        return mark_text
+
+    # noinspection PyUnresolvedReferences
+    def extract_value_from_widget(self, a_widget: QtWidgets.QWidget):
+        if isinstance(a_widget, QtWidgets.QLineEdit):
+            return a_widget.text()
+        elif a_widget == self.ui.date_edit:
+            return a_widget.text()
+        elif a_widget == self.ui.class_spinbox:
+            return utils.float_to_string(a_widget.value())
+        elif a_widget == self.ui.system_combobox:
+            return cfg.enum_to_device_system[a_widget.currentIndex()]
+        elif a_widget == self.ui.signal_type_combobox:
+            return clb.enum_to_signal_type[a_widget.currentIndex()]
+        else:
+            assert True, "Unexpected widget"
 
     def choose_template_pattern_file(self):
         file = QtWidgets.QFileDialog.getOpenFileName(self, "Выберите файл, содержащий шаблон протокола",
@@ -155,11 +179,15 @@ class CreateProtocolDialog(QtWidgets.QDialog):
             self.ui.save_folder_edit.setText(folder)
 
     def save_pressed(self):
-        self.save()
-        if self.marks_widget.save():
-            self.close()
-        else:
-            self.ui.marks_and_points_tabwidget.setCurrentIndex(0)
+        try:
+            self.save()
+            if self.marks_widget.save():
+                if self.generate_protocol():
+                    self.close()
+            else:
+                self.ui.marks_and_points_tabwidget.setCurrentIndex(0)
+        except Exception as err:
+            utils.exception_handler(err)
 
     # noinspection DuplicatedCode
     def save(self):
@@ -179,6 +207,60 @@ class CreateProtocolDialog(QtWidgets.QDialog):
 
         self.settings.template_filepath = self.ui.template_protocol_edit.text()
         self.settings.save_folder = self.ui.save_folder_edit.text()
+
+    def get_src_dst_path(self) -> Union[Tuple[str, str], None]:
+        src_file = self.ui.template_protocol_edit.text()
+        dst_folder = self.ui.save_folder_edit.text()
+        if os.path.exists(src_file) and os.path.isfile(src_file):
+            if os.path.exists(dst_folder) and os.path.isdir(dst_folder):
+                dst_file = self.generate_filename(dst_folder)
+                if os.path.exists(dst_file):
+                    res = QtWidgets.QMessageBox.question(self, "Создание протокола",
+                                                         "Файл для текущего измерения уже существует.\n"
+                                                         "Хотите заменить его?",
+                                                         QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
+                                                         QtWidgets.QMessageBox.No)
+                    if res == QtWidgets.QMessageBox.Yes:
+                        return src_file, dst_file
+                    else:
+                        return None
+                else:
+                    return src_file, dst_file
+            else:
+                QtWidgets.QMessageBox.critical(self, "Ошибка", "Путь к каталогу сохранения указан неверно",
+                                               QtWidgets.QMessageBox.Ok)
+                return None
+        else:
+            QtWidgets.QMessageBox.critical(self, "Ошибка", "Путь к шаблону протокола указан неверно",
+                                           QtWidgets.QMessageBox.Ok)
+            return None
+
+    def generate_protocol(self):
+        paths = self.get_src_dst_path()
+        if paths is not None:
+            src_file, dst_file = paths
+            marks_map: list = self.marks_widget.get_marks_map()
+
+            for widgets in self.default_marks_widgets:
+                marks_map.append((self.extract_mark_from_label(widgets[0]),
+                                  self.extract_value_from_widget(widgets[1])))
+
+            if utils.replace_text_in_odt(src_file, dst_file, marks_map):
+                QtWidgets.QMessageBox.information(self, "Успех", "Протокол успешно сгенерирован")
+                return True
+            else:
+                QtWidgets.QMessageBox.critical(self, "Ошибка", "При создании протокола произошла ошибка")
+                return False
+        else:
+            return False
+
+    def generate_filename(self, a_dst_folder: str) -> str:
+        dst_folder = a_dst_folder.rstrip("\\").rstrip("/") + os.path.sep
+        dst_file = ' '.join([self.measure_config.date,
+                             self.measure_config.time.replace(':', '.') + '.',
+                             self.measure_config.device_name + '.',
+                             clb.enum_to_signal_type_short[self.measure_config.signal_type] + ".odt"])
+        return os.path.sep.join([os.path.dirname(dst_folder), dst_file])
 
     def closeEvent(self, a_event: QtGui.QCloseEvent) -> None:
         self.settings.save_geometry(self.__class__.__name__, self.saveGeometry())
