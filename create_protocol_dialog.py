@@ -94,7 +94,7 @@ class CreateProtocolDialog(QtWidgets.QDialog):
             (self.ui.user_label, self.ui.user_name_edit),
             (self.ui.organisation_label, self.ui.organisation_edit),
             (self.ui.date_label, self.ui.date_edit),
-            (self.ui.name_label, self.ui.user_name_edit),
+            (self.ui.name_label, self.ui.device_name_edit),
             (self.ui.serial_number_label, self.ui.serial_number_edit),
             (self.ui.signal_type_label, self.ui.signal_type_combobox),
             (self.ui.device_creator_label, self.ui.device_creator_edit),
@@ -245,7 +245,7 @@ class CreateProtocolDialog(QtWidgets.QDialog):
                 marks_map.append((self.extract_mark_from_label(widgets[0]),
                                   self.extract_value_from_widget(widgets[1])))
 
-            if utils.replace_text_in_odt(src_file, dst_file, marks_map):
+            if utils.replace_text_in_odt(src_file, dst_file, marks_map,):
                 QtWidgets.QMessageBox.information(self, "Успех", "Протокол успешно сгенерирован")
                 return True
             else:

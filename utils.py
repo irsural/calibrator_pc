@@ -7,6 +7,7 @@ import math
 import re
 
 from odf import text as odf_text, teletype
+from odf import table as odf_table
 from odf.opendocument import load as odf_load
 from odf.element import Element
 from zipfile import BadZipFile
@@ -240,17 +241,25 @@ def exception_handler(a_exception):
           f"Message: {a_exception}")
 
 
-def replace_text_in_odt(a_src_file: str, a_dst_file: str, a_marks_map: list):
+def replace_text_in_odt(a_src_file: str, a_dst_file: str, a_marks_map: list, a_points=None):
     try:
         odt_file = odf_load(a_src_file)
 
         # Итерация по заголовкам
         __replace_text_in_odf_element(odt_file, odf_text.H, a_marks_map)
+        # Какого то хера удаление дочерних нодов приводит к порче дерева нодов. Фиксится перезагрузкой файла
+        odt_file.save(a_dst_file)
+        odt_file = odf_load(a_dst_file)
+
         # Итерация по остальному тексту и полям таблиц
         __replace_text_in_odf_element(odt_file, odf_text.P, a_marks_map)
+        odt_file.save(a_dst_file)
+        odt_file = odf_load(a_dst_file)
+
+        __fill_odf_table(odt_file, ((1, 2, 3, 4, 5, 6, 7), (7, 6, 5, 4, 3, 2, 1), (0.1, 1.2, 2.3, 3.4, 2.5, 1.6, 0.7)))
+        # __fill_odf_table(odt_file, a_points)
 
         odt_file.save(a_dst_file)
-
         return True
     except (BadZipFile, PermissionError):
         return False
@@ -259,9 +268,7 @@ def replace_text_in_odt(a_src_file: str, a_dst_file: str, a_marks_map: list):
 def __replace_text_in_odf_element(a_file, a_element_foo, a_replace_map: list):
     replace_map = {}
     for element in a_file.getElementsByType(a_element_foo):
-
         text = teletype.extractText(element)
-
         for mark in a_replace_map:
             text = text.replace(mark[0], mark[1])
 
@@ -276,3 +283,26 @@ def __replace_text_in_odf_element(a_file, a_element_foo, a_replace_map: list):
         old.parentNode.removeChild(old)
 
 
+def __fill_odf_table(a_file, a_points):
+    for table in a_file.getElementsByType(odf_table.Table):
+        for table_row in table.getElementsByType(odf_table.TableRow):
+            if teletype.extractText(table_row) == "%insert_table__":
+
+                cell_style = table_row.getElementsByType(odf_table.TableCell)[0].getAttribute("stylename")
+                text_style = table_row.getElementsByType(odf_text.P)[0].getAttribute("stylename")
+
+                # Удаляем флаговую строку
+                table_row.parentNode.removeChild(table_row)
+
+                for row in a_points:
+                    table_row = odf_table.TableRow()
+                    table.addElement(table_row)
+                    for value in row:
+                        value_cell = odf_table.TableCell(valuetype="float")
+                        value_cell.setAttribute("stylename", cell_style)
+
+                        table_row.addElement(value_cell)
+                        cell_text = odf_text.P(text=str(value))
+                        cell_text.setAttribute("stylename", text_style)
+                        value_cell.addElement(cell_text)
+                break
