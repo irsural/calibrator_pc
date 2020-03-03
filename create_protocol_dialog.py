@@ -245,7 +245,9 @@ class CreateProtocolDialog(QtWidgets.QDialog):
                 marks_map.append((self.extract_mark_from_label(widgets[0]),
                                   self.extract_value_from_widget(widgets[1])))
 
-            if utils.replace_text_in_odt(src_file, dst_file, marks_map,):
+                # self.results_model.
+
+            if utils.replace_text_in_odt(src_file, dst_file, marks_map, ((1,2,3,4,5,6,7), (7,6,5,4,3,2,1))):
                 QtWidgets.QMessageBox.information(self, "Успех", "Протокол успешно сгенерирован")
                 return True
             else:

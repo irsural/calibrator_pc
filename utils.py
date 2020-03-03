@@ -1,6 +1,5 @@
 from linecache import checkcache, getline
 from configparser import ConfigParser
-from types import FunctionType
 from enum import IntEnum
 from sys import exc_info
 import math
@@ -241,23 +240,17 @@ def exception_handler(a_exception):
           f"Message: {a_exception}")
 
 
-def replace_text_in_odt(a_src_file: str, a_dst_file: str, a_marks_map: list, a_points=None):
+def replace_text_in_odt(a_src_file: str, a_dst_file: str, a_marks_map: list, a_points):
     try:
         odt_file = odf_load(a_src_file)
 
         # Итерация по заголовкам
         __replace_text_in_odf_element(odt_file, odf_text.H, a_marks_map)
-        # Какого то хера удаление дочерних нодов приводит к порче дерева нодов. Фиксится перезагрузкой файла
-        odt_file.save(a_dst_file)
-        odt_file = odf_load(a_dst_file)
 
         # Итерация по остальному тексту и полям таблиц
         __replace_text_in_odf_element(odt_file, odf_text.P, a_marks_map)
-        odt_file.save(a_dst_file)
-        odt_file = odf_load(a_dst_file)
 
-        __fill_odf_table(odt_file, ((1, 2, 3, 4, 5, 6, 7), (7, 6, 5, 4, 3, 2, 1), (0.1, 1.2, 2.3, 3.4, 2.5, 1.6, 0.7)))
-        # __fill_odf_table(odt_file, a_points)
+        __fill_odf_table(odt_file, a_points)
 
         odt_file.save(a_dst_file)
         return True
@@ -274,13 +267,23 @@ def __replace_text_in_odf_element(a_file, a_element_foo, a_replace_map: list):
 
         new_odf_element = odf_text.P()
         new_odf_element.setAttribute("stylename", element.getAttribute("stylename"))
-        new_odf_element.addText(text)
 
+        for space_elements in element.getElementsByType(odf_text.S):
+            # Без этого все пробельные символы в начале строк удалятся
+            spaces = space_elements.getAttribute('c')
+            if spaces is not None:
+                new_space_element = odf_text.S()
+                new_space_element.setAttribute('c', spaces)
+                new_odf_element.appendChild(new_space_element)
+
+        new_odf_element.addText(text)
         replace_map[element] = new_odf_element
 
     for old, new in replace_map.items():
         old.parentNode.insertBefore(new, old)
         old.parentNode.removeChild(old)
+        # Без этого дерево нодов сломается
+        a_file.rebuild_caches(new.parentNode)
 
 
 def __fill_odf_table(a_file, a_points):
@@ -305,4 +308,7 @@ def __fill_odf_table(a_file, a_points):
                         cell_text = odf_text.P(text=str(value))
                         cell_text.setAttribute("stylename", text_style)
                         value_cell.addElement(cell_text)
+
+                # Без этого дерево нодов сломается
+                a_file.rebuild_caches(table_row.parentNode)
                 break
