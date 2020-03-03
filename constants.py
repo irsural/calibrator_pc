@@ -1,7 +1,6 @@
 from enum import IntEnum
 from collections import namedtuple
 
-
 COPY_ICON_PATH = "./resources/icons/copy.png"
 PLAY_ICON_PATH = "./resources/icons/play.png"
 PAUSE_ICON_PATH = "./resources/icons/pause.png"
@@ -10,7 +9,7 @@ WARNING_GIF_PATH = "./resources/gif/warning.gif"
 FLOAT_EPSILON = 1e-9
 
 
-Point = namedtuple("Point", ["amplitude", "frequency"])
+MeasuredPoint = namedtuple("Point", ["amplitude", "frequency", "up_value", "down_value"])
 Mark = namedtuple("Mark", ["description", "mark", "value"])
 
 

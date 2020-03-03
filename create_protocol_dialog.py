@@ -33,7 +33,7 @@ class CreateProtocolDialog(QtWidgets.QDialog):
         self.restoreGeometry(self.settings.get_last_geometry(self.__class__.__name__))
 
         self.measure_db = MeasuresDB(a_db_connection, a_db_tables)
-        self.measure_config, points = self.measure_db.get(a_measure_id)
+        self.measure_config = self.measure_db.get(a_measure_id)
 
         self.marks_widget = MarksWidget(self.settings, a_db_connection, a_db_tables,
                                         a_measure_id=self.measure_config.id)
@@ -45,14 +45,17 @@ class CreateProtocolDialog(QtWidgets.QDialog):
         self.ui.points_table.horizontalHeader().restoreState(self.settings.get_last_header_state(
             self.__class__.__name__))
 
-        self.results_model = ResultsModel(a_normalize_value=max(points, key=lambda p: p[0])[0] if points else 0,
+        normalize_value = max(self.measure_config.points, key=lambda p: p.amplitude).amplitude if \
+            self.measure_config.points else 0
+
+        self.results_model = ResultsModel(a_normalize_value=normalize_value,
                                           a_error_limit=self.measure_config.device_class,
                                           a_signal_type=self.measure_config.signal_type,
-                                          a_init_points=points,
+                                          a_init_points=self.measure_config.points,
                                           a_parent=self)
 
-        assert points == self.results_model.exportPoints(), \
-            f"Points were inited with errors:\n{points}\n{self.results_model.exportPoints()}"
+        assert self.measure_config.points == self.results_model.exportPoints(), \
+            f"Points were inited with errors:\n{self.measure_config.points}\n{self.results_model.exportPoints()}"
 
         self.ui.points_table.setModel(self.results_model)
         self.ui.points_table.setItemDelegate(NonOverlappingDoubleClick(self))
@@ -203,7 +206,7 @@ class CreateProtocolDialog(QtWidgets.QDialog):
         self.measure_config.etalon_device = self.ui.etalon_edit.text()
         self.measure_config.device_class = self.ui.class_spinbox.value()
 
-        self.measure_db.save(self.measure_config)
+        self.measure_db.save(self.measure_config, a_save_points=False)
 
         self.settings.template_filepath = self.ui.template_protocol_edit.text()
         self.settings.save_folder = self.ui.save_folder_edit.text()

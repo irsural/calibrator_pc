@@ -1,14 +1,15 @@
 from typing import List
 import sqlite3
 
+
 import calibrator_constants as clb
-from constants import DeviceSystem, Point
+from constants import DeviceSystem, MeasuredPoint
 
 
 class TemplateParams:
     def __init__(self, a_name="Новый шаблон", a_organisation="", a_etalon_device="", a_device_name="",
                  a_device_creator="", a_device_system=DeviceSystem.MAGNETOELECTRIC, a_signal_type=clb.SignalType.ACI,
-                 a_device_class=0.05, a_points: List[Point] = None):
+                 a_device_class=0.05, a_points: List[MeasuredPoint] = None):
         self.name = a_name
         self.organisation = a_organisation
         self.etalon_device = a_etalon_device
@@ -17,7 +18,7 @@ class TemplateParams:
         self.device_system = a_device_system
         self.signal_type = a_signal_type
         self.device_class = a_device_class
-        self.points: List[Point] = a_points if a_points is not None else []
+        self.points: List[MeasuredPoint] = a_points if a_points is not None else []
 
 
 class TemplatesDB:
@@ -77,10 +78,11 @@ class TemplatesDB:
         return TemplateParams(a_name=a_row[1], a_organisation=a_row[2], a_etalon_device=a_row[3],
                               a_device_name=a_row[4], a_device_creator=a_row[5], a_device_system=a_row[6],
                               a_signal_type=a_row[7], a_device_class=a_row[8],
-                              a_points=[Point(amplitude=a, frequency=f) for a, f in a_points])
+                              a_points=[MeasuredPoint(amplitude=a, frequency=f, up_value=0, down_value=0)
+                                        for a, f in a_points])
 
-    def __add_points(self, a_points: list, a_template_id):
-        points = ((a, f) for (a, f) in a_points)
+    def __add_points(self, a_points: List[MeasuredPoint], a_template_id):
+        points = ((a, f) for (a, f, up_v, down_v) in a_points)
         self.cursor.executemany(f"insert into {self.points_tab} (amplitude, frequency, template_id) "
                                 f"values (?,?,{a_template_id})", points)
 
@@ -108,7 +110,11 @@ class TemplatesDB:
 
     def delete(self, a_name: str):
         with self.connection:
-            self.cursor.execute(f"delete from {self.templates_tab} where name = '{a_name}'")
+            self.cursor.execute(f"select id from {self.templates_tab} where name = '{a_name}'")
+            template_id = self.cursor.fetchone()[0]
+
+            self.cursor.execute(f"delete from {self.points_tab} where template_id = '{template_id}'")
+            self.cursor.execute(f"delete from {self.templates_tab} where id = '{template_id}'")
             return True
 
     def is_name_exist(self, a_name: str):

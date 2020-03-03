@@ -78,7 +78,9 @@ class MeasureWindow(QtWidgets.QWidget):
         self.measure_model = MeasureModel(self.current_point.normalize_value,
                                           a_error_limit=self.measure_config.device_class,
                                           a_signal_type=self.measure_config.signal_type,
+                                          a_init_points=self.measure_config.points,
                                           a_parent=self)
+
         self.ui.measure_table.setModel(self.measure_model)
         self.ui.measure_table.setItemDelegate(NonOverlappingDoubleClick(self))
         self.ui.measure_table.customContextMenuRequested.connect(self.show_table_custom_menu)
@@ -133,9 +135,6 @@ class MeasureWindow(QtWidgets.QWidget):
 
         self.setWindowTitle(f"{clb.enum_to_signal_type[self.measure_config.signal_type]}. "
                             f"{self.measure_config.upper_bound} {self.units_text}.")
-
-        for point in self.measure_config.points:
-            self.measure_model.appendPoint(PointData(a_point=point.amplitude, a_frequency=point.frequency))
 
     def fill_fixed_step_combobox(self):
         values: List[float] = self.settings.fixed_step_list
@@ -344,7 +343,8 @@ class MeasureWindow(QtWidgets.QWidget):
                     if self.clb_state == clb.State.READY:
                         self.update_table(self.current_point)
                     else:
-                        self.update_table(PointData(a_point=self.current_point.point))
+                        self.update_table(PointData(a_point=self.current_point.point,
+                                                    a_frequency=self.current_point.frequency))
             except AssertionError as err:
                 print(err)
         else:
@@ -539,7 +539,8 @@ class MeasureWindow(QtWidgets.QWidget):
             if reply == QMessageBox.Yes:
                 self.calibrator.signal_enable = False
                 if self.started:
-                    self.measures_db.save(self.measure_config, self.measure_model.exportPoints())
+                    self.measure_config.points = self.measure_model.exportPoints()
+                    self.measures_db.save(self.measure_config, True)
                 else:
                     self.measures_db.delete(self.measure_config.id)
 

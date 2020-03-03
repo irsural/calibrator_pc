@@ -4,6 +4,7 @@ from typing import List
 from PyQt5.QtCore import QAbstractTableModel, QModelIndex, Qt, QVariant, pyqtSlot
 from PyQt5.QtGui import QBrush, QColor
 
+from constants import MeasuredPoint
 import calibrator_constants as clb
 import utils
 
@@ -67,7 +68,8 @@ class MeasureModel(QAbstractTableModel):
         PointData.ApproachSide.UP: Column.UP_DEVIATION_PERCENT
     }
 
-    def __init__(self, a_normalize_value, a_error_limit, a_signal_type, a_init_points=None, a_parent=None):
+    def __init__(self, a_normalize_value, a_error_limit, a_signal_type, a_init_points: List[MeasuredPoint],
+                 a_parent=None):
         super().__init__(a_parent)
 
         self.__row_count = 0
@@ -83,13 +85,15 @@ class MeasureModel(QAbstractTableModel):
         self.__good_color = QColor(0, 255, 0, 127)
         self.__bad_color = QColor(255, 0, 0, 127)
 
-        if a_init_points is not None:
+        assert a_init_points is not None, "a_init_points must not be None!"
+
+        if a_init_points:
             # Формат a_init_points - кортеж, который формируется в self.exportPoints
-            for init_point in a_init_points:
-                self.appendPoint(PointData(a_point=init_point[0], a_frequency=init_point[1], a_value=init_point[2],
+            for a, f, up_v, down_v in a_init_points:
+                self.appendPoint(PointData(a_point=a, a_frequency=f, a_value=up_v,
                                            a_approach_side=PointData.ApproachSide.UP))
 
-                self.appendPoint(PointData(a_point=init_point[0], a_frequency=init_point[1], a_value=init_point[3],
+                self.appendPoint(PointData(a_point=a, a_frequency=f, a_value=down_v,
                                            a_approach_side=PointData.ApproachSide.DOWN))
 
     def appendPoint(self, a_point_data: PointData) -> int:
@@ -118,22 +122,24 @@ class MeasureModel(QAbstractTableModel):
         else:
             return self.__points[a_row_idx][self.Column.POINT]
 
-    def exportPoints(self):
-        exported_points = [(row[MeasureModel.Column.POINT], row[MeasureModel.Column.FREQUENCY],
-                            row[MeasureModel.Column.UP_VALUE], row[MeasureModel.Column.DOWN_VALUE])
+    def exportPoints(self) -> List[MeasuredPoint]:
+        exported_points = [MeasuredPoint(amplitude=row[MeasureModel.Column.POINT],
+                                         frequency=row[MeasureModel.Column.FREQUENCY],
+                                         up_value=row[MeasureModel.Column.UP_VALUE],
+                                         down_value=row[MeasureModel.Column.DOWN_VALUE])
                            for row in self.__points]
         return exported_points
 
-    def isPointGood(self, a_point: float, a_freqyency: float, a_approach_side: PointData.ApproachSide) -> bool:
+    def isPointGood(self, a_point: float, a_frequency: float, a_approach_side: PointData.ApproachSide) -> bool:
         """
         Проверяет, есть ли точка в массиве, если точка есть, то проверяет ее состояние (входит в погрешность или нет)
         Если точки нет, или она не входит в погрешность, возвращает False, иначе возвращает True
-        :param a_freqyency: Частота точки
+        :param a_frequency: Частота точки
         :param a_approach_side: Сторона подхода к точке
         :param a_point: Значение точки
         :return: bool
         """
-        row_idx = self.__find_point(a_point, a_freqyency)
+        row_idx = self.__find_point(a_point, a_frequency)
         if row_idx is None:
             return False
         else:
