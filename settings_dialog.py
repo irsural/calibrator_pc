@@ -1,8 +1,7 @@
-from enum import IntEnum
 from sqlite3 import Connection
 
 from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtCore import pyqtSignal, pyqtSlot
+from PyQt5.QtCore import pyqtSignal
 
 from custom_widgets.EditListDialog import EditedListWithUnits
 from ui.py.settings_form import Ui_Dialog as SettingsForm
@@ -10,7 +9,6 @@ from settings_ini_parser import Settings
 from db_measures import MeasureTables
 from marks_widget import MarksWidget
 import calibrator_constants as clb
-import qt_utils
 import utils
 
 
@@ -40,7 +38,7 @@ class SettingsDialog(QtWidgets.QDialog):
         self.ui.save_button.clicked.connect(self.save)
         self.ui.cancel_button.clicked.connect(self.close)
 
-        self.marks_widget = MarksWidget(self.settings, a_db_connection, a_db_tables, a_parent=self)
+        self.marks_widget = MarksWidget(self.settings, a_db_connection, a_db_tables, a_parent=None)
         self.ui.marks_layout.addWidget(self.marks_widget)
 
         self.edit_fixed_range_widget = EditedListWithUnits(self, "В", self.settings.fixed_step_list, clb.MIN_VOLTAGE,
@@ -55,6 +53,9 @@ class SettingsDialog(QtWidgets.QDialog):
         self.ui.disable_scroll_on_table_checkbox.setChecked(self.settings.disable_scroll_on_table)
 
         self.open_marks_table_widget()
+
+    def __del__(self):
+        print("settings deleted")
 
     def open_marks_table_widget(self):
         self.ui.settings_menu_list.setCurrentRow(0)

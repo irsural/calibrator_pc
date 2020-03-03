@@ -7,7 +7,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtGui import QWheelEvent
 
 from custom_widgets.QTableDelegates import NonOverlappingDoubleClick
-from edit_template_parameters_dialog import EditTemplateParamsDialog
+from edit_measure_parameters_dialog import EditMeasureParamsDialog
 from db_measures import MeasureParams, MeasureTables, MeasuresDB
 from ui.py.measure_form import Ui_main_widget as MeasureForm
 from MeasureModel import PointData, MeasureModel
@@ -81,7 +81,7 @@ class MeasureWindow(QtWidgets.QWidget):
                                           a_parent=self)
         self.ui.measure_table.setModel(self.measure_model)
         self.ui.measure_table.setItemDelegate(NonOverlappingDoubleClick(self))
-        self.ui.measure_table.customContextMenuRequested.connect(self.chow_table_custom_menu)
+        self.ui.measure_table.customContextMenuRequested.connect(self.show_table_custom_menu)
 
         self.set_window_elements()
 
@@ -114,7 +114,7 @@ class MeasureWindow(QtWidgets.QWidget):
         self.warning_animation.setSpeed(500)
         self.warning_animation.finished.connect(self.ui.status_warning_label.hide)
 
-    def chow_table_custom_menu(self, a_position: QtCore.QPoint):
+    def show_table_custom_menu(self, a_position: QtCore.QPoint):
         menu = QMenu(self)
         copy_cell_act = menu.addAction("Копировать")
         copy_cell_act.triggered.connect(self.copy_cell_text_to_clipboard)
@@ -126,15 +126,10 @@ class MeasureWindow(QtWidgets.QWidget):
             QtWidgets.QApplication.clipboard().setText(text)
 
     def set_window_elements(self):
-        # for column, hide in enumerate(self.settings.hidden_columns):
-        #     self.ui.measure_table.setColumnHidden(column, bool(hide))
-
-        if clb.is_dc_signal[self.measure_config.signal_type]:
-            self.ui.apply_frequency_button.setDisabled(True)
-            self.ui.frequency_edit.setDisabled(True)
-            self.ui.measure_table.hideColumn(MeasureModel.Column.FREQUENCY)
-        else:
-            self.ui.measure_table.showColumn(MeasureModel.Column.FREQUENCY)
+        self.ui.apply_frequency_button.setDisabled(clb.is_dc_signal[self.measure_config.signal_type])
+        self.ui.frequency_edit.setDisabled(clb.is_dc_signal[self.measure_config.signal_type])
+        self.ui.measure_table.setColumnHidden(MeasureModel.Column.FREQUENCY,
+                                              clb.is_dc_signal[self.measure_config.signal_type])
 
         self.setWindowTitle(f"{clb.enum_to_signal_type[self.measure_config.signal_type]}. "
                             f"{self.measure_config.upper_bound} {self.units_text}.")
@@ -285,7 +280,6 @@ class MeasureWindow(QtWidgets.QWidget):
         :param a_current_value: Новое значение амплитуды
         """
         self.current_point.point = self.guess_point(a_current_value)
-        self.current_point.prev_value = self.current_point.value
 
         self.current_point.approach_side = PointData.ApproachSide.UP \
             if a_current_value < self.current_point.value else PointData.ApproachSide.DOWN
@@ -532,8 +526,8 @@ class MeasureWindow(QtWidgets.QWidget):
 
     def update_config(self):
         try:
-            edit_template_params_dialog = EditTemplateParamsDialog(self.settings, self.measure_config,
-                                                                   self.db_connection, self.db_tables, self)
+            edit_template_params_dialog = EditMeasureParamsDialog(self.settings, self.measure_config,
+                                                                  self.db_connection, self.db_tables, self)
             edit_template_params_dialog.exec()
         except AssertionError as err:
             utils.exception_handler(err)
@@ -547,7 +541,7 @@ class MeasureWindow(QtWidgets.QWidget):
                 if self.started:
                     self.measures_db.save(self.measure_config, self.measure_model.exportPoints())
                 else:
-                    self.measures_db.delete(self.measure_config)
+                    self.measures_db.delete(self.measure_config.id)
 
                 self.save_settings()
 
@@ -560,9 +554,6 @@ class MeasureWindow(QtWidgets.QWidget):
 
     def save_settings(self):
         self.settings.fixed_step_idx = self.ui.fixed_step_combobox.currentIndex()
-
-        # self.settings.hidden_columns = [int(self.ui.measure_table.isColumnHidden(column)) for column in
-        #                                 range(self.measure_model.columnCount())]
 
         self.settings.save_geometry(self.__class__.__name__, self.parent.saveGeometry())
         self.settings.save_header_state(self.__class__.__name__, self.ui.measure_table.horizontalHeader().saveState())

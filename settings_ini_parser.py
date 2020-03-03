@@ -1,9 +1,8 @@
-import configparser
-import os
-from inspect import stack
-from typing import List
 from enum import IntEnum
+from typing import List
+import configparser
 import base64
+import os
 
 from PyQt5.QtCore import pyqtSignal
 from PyQt5 import QtCore
@@ -23,12 +22,14 @@ class Settings(QtCore.QObject):
         FLOAT = 1
         LIST_FLOAT = 2
         LIST_INT = 3
+        STRING = 4
 
     ValueTypeConvertFoo = {
         ValueType.INT: int,
         ValueType.FLOAT: float,
         ValueType.LIST_FLOAT: lambda s: [float(val) for val in s.split(',')],
-        ValueType.LIST_INT: lambda s: [int(val) for val in s.split(',')]
+        ValueType.LIST_INT: lambda s: [int(val) for val in s.split(',')],
+        ValueType.STRING: str
     }
 
     MEASURE_SECTION = "Measure"
@@ -56,11 +57,12 @@ class Settings(QtCore.QObject):
     DISABLE_SCROLL_ON_TABLE_KEY = "disable_scroll_on_table"
     DISABLE_SCROLL_ON_TABLE_DEFAULT = "0"
 
-    HIDDEN_COLUMNS_KEY = "hidden_columns"
-    HIDDEN_COLUMNS_DEFAULT = "0"
-
     GEOMETRY_SECTION = "Geometry"
     HEADERS_SECTION = "Headers"
+
+    PROTOCOL_SECTION = "Protocol"
+    TEMPLATE_FILEPATH_KEY = "template_filepath"
+    SAVE_FOLDER_KEY = "save_folder"
 
     # В ini файлы сохраняются QByteArray, в которых могут быть переносы строки, которые херят ini файл
     LF = '\n'
@@ -82,8 +84,10 @@ class Settings(QtCore.QObject):
         self.__start_deviation = 0
         self.__mouse_inversion = 0
 
-        self.__hidden_columns = []
         self.__disable_scroll_on_table = 0
+
+        self.__template_filepath = ""
+        self.__save_folder = ""
 
         self.settings = configparser.ConfigParser()
         try:
@@ -101,13 +105,15 @@ class Settings(QtCore.QObject):
                                                    self.STEP_EXACT_KEY: self.STEP_EXACT_DEFAULT,
                                                    self.START_DEVIATION_KEY: self.START_DEVIATION_DEFAULT,
                                                    self.MOUSE_INVERSION_KEY: self.MOUSE_INVERSION_DEFAULT,
-                                                   self.HIDDEN_COLUMNS_KEY: self.HIDDEN_COLUMNS_DEFAULT,
                                                    self.DISABLE_SCROLL_ON_TABLE_KEY:
                                                        self.DISABLE_SCROLL_ON_TABLE_DEFAULT}
+            self.settings[self.PROTOCOL_SECTION] = {self.TEMPLATE_FILEPATH_KEY: self.TEMPLATE_FILEPATH_DEFAULT,
+                                                    self.SAVE_FOLDER_KEY: self.SAVE_FOLDER_DEFAULT}
             utils.save_settings(self.CONFIG_PATH, self.settings)
         else:
             self.settings.read(self.CONFIG_PATH)
             self.add_ini_section(self.MEASURE_SECTION)
+            self.add_ini_section(self.PROTOCOL_SECTION)
 
         self.__fixed_step_list = self.check_ini_value(self.MEASURE_SECTION, self.FIXED_STEP_KEY,
                                                       self.FIXED_STEP_DEFAULT, self.ValueType.LIST_FLOAT)
@@ -136,13 +142,15 @@ class Settings(QtCore.QObject):
                                                       self.MOUSE_INVERSION_DEFAULT, self.ValueType.INT)
         self.__mouse_inversion = utils.bound(self.__mouse_inversion, 0, 1)
 
-        self.__hidden_columns = self.check_ini_value(self.MEASURE_SECTION, self.HIDDEN_COLUMNS_KEY,
-                                                     self.HIDDEN_COLUMNS_DEFAULT, self.ValueType.LIST_INT)
-
         self.__disable_scroll_on_table = self.check_ini_value(self.MEASURE_SECTION, self.DISABLE_SCROLL_ON_TABLE_KEY,
                                                               self.DISABLE_SCROLL_ON_TABLE_DEFAULT, self.ValueType.INT)
         self.__disable_scroll_on_table = utils.bound(self.__disable_scroll_on_table, 0, 1)
 
+        self.__template_filepath = self.check_ini_value(self.PROTOCOL_SECTION, self.TEMPLATE_FILEPATH_KEY,
+                                                        "", self.ValueType.STRING)
+
+        self.__save_folder = self.check_ini_value(self.PROTOCOL_SECTION, self.SAVE_FOLDER_KEY,
+                                                  "", self.ValueType.STRING)
         # Выводит ini файл в консоль
         # for key in settings:
         #     print(f"[{key}]")
@@ -195,10 +203,12 @@ class Settings(QtCore.QObject):
         except (KeyError, ValueError):
             return QtCore.QByteArray()
 
-    def __to_base64(self, a_qt_bytes: QtCore.QByteArray):
+    @staticmethod
+    def __to_base64(a_qt_bytes: QtCore.QByteArray):
         return base64.b64encode(bytes(a_qt_bytes)).decode()
 
-    def __from_base64(self, a_string: str):
+    @staticmethod
+    def __from_base64(a_string: str):
         return base64.b64decode(a_string)
 
     @property
@@ -294,18 +304,6 @@ class Settings(QtCore.QObject):
         self.__mouse_inversion = utils.bound(self.__mouse_inversion, 0, 1)
 
     @property
-    def hidden_columns(self):
-        return self.__hidden_columns
-
-    @hidden_columns.setter
-    def hidden_columns(self, a_list: List[int]):
-        saved_string = ','.join(str(val) for val in a_list).strip(',')
-
-        self.settings[self.MEASURE_SECTION][self.HIDDEN_COLUMNS_KEY] = saved_string
-        self.save()
-        self.__hidden_columns = a_list
-
-    @property
     def disable_scroll_on_table(self):
         return self.__disable_scroll_on_table
 
@@ -319,3 +317,25 @@ class Settings(QtCore.QObject):
 
     def __restore_next_line_symbols(self, state_bytes):
         pass
+
+    @property
+    def template_filepath(self):
+        return self.__template_filepath
+
+    @template_filepath.setter
+    def template_filepath(self, a_filepath: str):
+        self.settings[self.PROTOCOL_SECTION][self.TEMPLATE_FILEPATH_KEY] = a_filepath
+        self.save()
+
+        self.__template_filepath = a_filepath
+
+    @property
+    def save_folder(self):
+        return self.__save_folder
+
+    @save_folder.setter
+    def save_folder(self, a_filepath: str):
+        self.settings[self.PROTOCOL_SECTION][self.SAVE_FOLDER_KEY] = a_filepath
+        self.save()
+
+        self.__save_folder = a_filepath

@@ -1,3 +1,4 @@
+from typing import Union
 import sqlite3
 
 from PyQt5.QtCore import pyqtSlot, pyqtSignal
@@ -13,6 +14,7 @@ from source_mode_window import SourceModeWindow
 from settings_dialog import SettingsDialog
 from settings_ini_parser import Settings, BadIniException
 from startwindow import StartWindow
+import constants as cfg
 import calibrator_constants as clb
 import clb_dll
 import utils
@@ -39,7 +41,8 @@ class MainWindow(QtWidgets.QMainWindow):
                                                            'удалите файл "settings.ini" и запустите программу заново')
         if ini_ok:
             self.measure_db_tables = MeasureTables(marks_table="marks", mark_values_table="mark_values",
-                                                   measures_table="measures", results_table="results")
+                                                   measures_table="measures", results_table="results",
+                                                   system_table="system", signal_type_table="signal_type")
             self.db_name = "measures.db"
             self.db_connection = self.create_db(self.db_name)
             self.show_start_window()
@@ -60,7 +63,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.usb_check_timer.timeout.connect(self.usb_tick)
             self.usb_check_timer.start(10)
 
-            self.fast_config: FastMeasureParams = None
+            self.fast_config: Union[FastMeasureParams, None] = None
 
             self.ui.enter_settings_action.triggered.connect(self.open_settings)
 
@@ -68,7 +71,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.close()
 
     def __del__(self):
-        if hasattr(self, "db_connection"):
+        if hasattr(self, "display_db_connection"):
             self.db_connection.close()
 
     def create_db(self, a_db_name: str):
@@ -91,10 +94,25 @@ class MainWindow(QtWidgets.QMainWindow):
                            f"foreign key (measure_id) references {self.measure_db_tables.measures_table}(id))")
 
             cursor.execute(f"CREATE TABLE IF NOT EXISTS {self.measure_db_tables.results_table} "
-                           f"(id integer primary key autoincrement, point real, frequency real, up_value real,"
-                           f"up_deviation real, up_deviation_percent real, down_value real, down_deviation real,"
-                           f"down_deviation_percent real, variation real, measure_id int,"
+                           f"(id integer primary key autoincrement, point real, frequency real, up_value real, "
+                           f"down_value real, measure_id int,"
                            f"foreign key (measure_id) references {self.measure_db_tables.measures_table}(id))")
+
+            # Таблицы соответствий системы прибора и типа сигнала
+            cursor.execute(f"CREATE TABLE IF NOT EXISTS {self.measure_db_tables.system_table} "
+                           f"(id integer primary key, name text unique)")
+
+            systems_table = [(system, cfg.enum_to_device_system[system]) for system in cfg.DeviceSystem]
+            cursor.executemany(f"insert or ignore into {self.measure_db_tables.system_table} "
+                               f"(id, name) values (?, ?)", systems_table)
+
+            cursor.execute(f"CREATE TABLE IF NOT EXISTS {self.measure_db_tables.signal_type_table} "
+                           f"(id integer primary key, name text unique)")
+
+            signal_types = [(signal_type, clb.enum_to_signal_type_short[signal_type]) for signal_type in clb.SignalType]
+            cursor.executemany(f"insert or ignore into {self.measure_db_tables.signal_type_table} "
+                               f"(id, name) values (?, ?)", signal_types)
+
         return connection
 
     def show_start_window(self):
@@ -103,7 +121,8 @@ class MainWindow(QtWidgets.QMainWindow):
             if self.active_window is not None:
                 self.active_window.close()
 
-            self.active_window = StartWindow(self.db_name, self.measure_db_tables, self.settings, self)
+            self.active_window = StartWindow(self.db_connection, self.db_name, self.measure_db_tables,
+                                             self.settings, self)
             self.setCentralWidget(self.active_window)
             self.active_window.source_mode_chosen.connect(self.open_source_mode_window)
             self.active_window.no_template_mode_chosen.connect(self.open_config_no_template_mode)

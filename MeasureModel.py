@@ -13,20 +13,17 @@ class PointData:
         UP = 0
         DOWN = 1
 
-    def __init__(self, a_point=0., a_frequency=0., a_value=0., a_prev_value=0, a_normalize_value=0):
+    def __init__(self, a_point=0., a_frequency=0., a_value=0., a_normalize_value=0, a_approach_side=ApproachSide.UP):
         self.point = a_point
         self.frequency = a_frequency
         self.value = a_value
-        self.prev_value = a_prev_value
-        self.approach_side = self.ApproachSide.UP
+        self.approach_side = a_approach_side
         self.normalize_value = a_normalize_value
 
     def __str__(self):
         return f"Point: {self.point}\n" \
             f"Frequency: {self.frequency}" \
             f"Value: {self.value}\n" \
-            f"Prev value: {self.prev_value}\n" \
-            f"Prev value: {self.prev_value}\n" \
             f"Side: {self.approach_side.name}" \
             f"Normalize: {self.normalize_value}"
 
@@ -70,7 +67,7 @@ class MeasureModel(QAbstractTableModel):
         PointData.ApproachSide.UP: Column.UP_DEVIATION_PERCENT
     }
 
-    def __init__(self, a_normalize_value, a_error_limit, a_signal_type, a_parent=None):
+    def __init__(self, a_normalize_value, a_error_limit, a_signal_type, a_init_points=None, a_parent=None):
         super().__init__(a_parent)
 
         self.__row_count = 0
@@ -86,13 +83,23 @@ class MeasureModel(QAbstractTableModel):
         self.__good_color = QColor(0, 255, 0, 127)
         self.__bad_color = QColor(255, 0, 0, 127)
 
+        if a_init_points is not None:
+            # Формат a_init_points - кортеж, который формируется в self.exportPoints
+            for init_point in a_init_points:
+                self.appendPoint(PointData(a_point=init_point[0], a_frequency=init_point[1], a_value=init_point[2],
+                                           a_approach_side=PointData.ApproachSide.UP))
+
+                self.appendPoint(PointData(a_point=init_point[0], a_frequency=init_point[1], a_value=init_point[3],
+                                           a_approach_side=PointData.ApproachSide.DOWN))
+
     def appendPoint(self, a_point_data: PointData) -> int:
         row_idx = self.__find_point(a_point_data.point, a_point_data.frequency)
         point_row = self.rowCount() if row_idx is None else row_idx
 
         if point_row == self.rowCount():
             # Добавляемой точки еще нет в списке
-            point_data = [a_point_data.point, a_point_data.frequency, 0, 0, 0, 0, 0, 0, 0]
+            point_data = [clb.bound_amplitude(a_point_data.point, self.signal_type),
+                          clb.bound_frequency(a_point_data.frequency, self.signal_type), 0, 0, 0, 0, 0, 0, 0]
             assert len(point_data) == self.Column.COUNT, "Размер point_data не соответствует количеству колонок таблицы"
 
             new_row = self.rowCount()
@@ -112,7 +119,10 @@ class MeasureModel(QAbstractTableModel):
             return self.__points[a_row_idx][self.Column.POINT]
 
     def exportPoints(self):
-        return tuple(self.__points)
+        exported_points = [(row[MeasureModel.Column.POINT], row[MeasureModel.Column.FREQUENCY],
+                            row[MeasureModel.Column.UP_VALUE], row[MeasureModel.Column.DOWN_VALUE])
+                           for row in self.__points]
+        return exported_points
 
     def isPointGood(self, a_point: float, a_freqyency: float, a_approach_side: PointData.ApproachSide) -> bool:
         """
@@ -206,6 +216,8 @@ class MeasureModel(QAbstractTableModel):
             value: float = self.__points[index.row()][index.column()]
             if index.column() not in self.__raw_columns:
                 value = self.value_to_user(value)
+            else:
+                value = utils.float_to_string(value)
             return value
 
     def setData(self, index: QModelIndex, value: str, role=Qt.EditRole):
@@ -252,7 +264,8 @@ class MeasureModel(QAbstractTableModel):
         del self.__points[a_row_indexes[0]:a_row_indexes[-1] + 1]
         self.endRemoveRows()
 
-    def getText(self, index: QModelIndex):
+    @staticmethod
+    def getText(index: QModelIndex):
         if index.isValid():
             return index.data()
         else:

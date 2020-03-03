@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file './ui/edit_template_parameters_form.ui'
+# Form implementation generated from reading ui file './ui/edit_measure_parameters_form.ui'
 #
 # Created by: PyQt5 UI code generator 5.13.1
 #

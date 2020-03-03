@@ -1,21 +1,19 @@
 from sqlite3 import Connection
 
 from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtCore import pyqtSignal, pyqtSlot
 
-from ui.py.edit_template_parameters_form import Ui_Dialog as EditTemplateParamsForm
+from ui.py.edit_measure_parameters_form import Ui_Dialog as EditMeasureParamsForm
 from marks_widget import MarksWidget
 from db_measures import MeasureParams, MeasureTables
 from settings_ini_parser import Settings
-import utils
 
 
-class EditTemplateParamsDialog(QtWidgets.QDialog):
+class EditMeasureParamsDialog(QtWidgets.QDialog):
     def __init__(self, a_settings: Settings, a_measure_config: MeasureParams, a_db_connection: Connection,
                  a_db_tables: MeasureTables, a_parent=None):
         super().__init__(a_parent)
 
-        self.ui = EditTemplateParamsForm()
+        self.ui = EditMeasureParamsForm()
         self.ui.setupUi(self)
 
         self.settings = a_settings
@@ -25,13 +23,16 @@ class EditTemplateParamsDialog(QtWidgets.QDialog):
 
         assert a_measure_config.id != 0, "Measure id must not be zero!"
         self.marks_widget = MarksWidget(self.settings, a_db_connection, a_db_tables,
-                                        a_measure_id=self.measure_config.id, a_parent=self)
+                                        a_measure_id=self.measure_config.id, a_parent=None)
         self.ui.marks_widget_layout.addWidget(self.marks_widget)
 
         self.set_up_params_to_ui()
 
         self.ui.accept_button.clicked.connect(self.save_pressed)
         self.ui.reject_button.clicked.connect(self.reject)
+
+    def __del__(self):
+        print("edit parameters deleted")
 
     def set_up_params_to_ui(self):
         self.ui.user_name_edit.setText(self.measure_config.user)
@@ -45,9 +46,13 @@ class EditTemplateParamsDialog(QtWidgets.QDialog):
         self.ui.system_combobox.setCurrentIndex(self.measure_config.device_system)
         self.ui.comment_edit.setText(self.measure_config.comment)
 
+        self.ui.signal_type_combobox.setCurrentIndex(self.measure_config.signal_type)
+        self.ui.class_spinbox.setValue(self.measure_config.device_class)
+        self.ui.etalon_edit.setText(self.measure_config.etalon_device)
+
     def save_pressed(self):
+        self.save()
         if self.marks_widget.save():
-            self.save()
             self.close()
 
     def save(self):
@@ -60,6 +65,8 @@ class EditTemplateParamsDialog(QtWidgets.QDialog):
         self.measure_config.organisation = self.ui.organisation_edit.text()
         self.measure_config.device_system = self.ui.system_combobox.currentIndex()
         self.measure_config.comment = self.ui.comment_edit.text()
+        self.measure_config.etalon_device = self.ui.etalon_edit.text()
+        self.measure_config.device_class = self.ui.class_spinbox.value()
 
     def closeEvent(self, a_event: QtGui.QCloseEvent) -> None:
         self.settings.save_geometry(self.__class__.__name__, self.saveGeometry())

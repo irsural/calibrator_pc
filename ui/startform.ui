@@ -166,6 +166,9 @@
    </item>
    <item>
     <widget class="QTableView" name="measures_table">
+     <property name="contextMenuPolicy">
+      <enum>Qt::CustomContextMenu</enum>
+     </property>
      <property name="styleSheet">
       <string notr="true">selection-color: rgb(0, 0, 0);
 selection-background-color: rgb(170, 170, 255);</string>

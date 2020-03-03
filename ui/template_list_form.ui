@@ -69,16 +69,16 @@
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout_4">
         <item>
-         <widget class="QPushButton" name="edit_template_button">
+         <widget class="QPushButton" name="duplicate_template_button">
           <property name="text">
-           <string>Edit</string>
+           <string>Copy</string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QPushButton" name="duplicate_template_button">
+         <widget class="QPushButton" name="edit_template_button">
           <property name="text">
-           <string>Copy</string>
+           <string>Edit</string>
           </property>
          </widget>
         </item>

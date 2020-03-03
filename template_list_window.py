@@ -59,6 +59,9 @@ class TemplateListWindow(QtWidgets.QDialog):
         self.ui.template_name_edit.textChanged.connect(self.template_name_changed)
         self.ui.filter_edit.textChanged.connect(self.filter_templates)
 
+    def __del__(self):
+        print("templates list deleted")
+
     @pyqtSlot(QtCore.QPoint)
     def show_context_menu(self, a_pos: QtCore.QPoint):
         menu = QtWidgets.QMenu()
@@ -113,6 +116,7 @@ class TemplateListWindow(QtWidgets.QDialog):
 
         self.points_table.reset(a_template_params.points)
 
+    # noinspection DuplicatedCode
     def fill_template_info_to_db(self):
         self.current_template.organisation = self.ui.organisation_edit.text()
         self.current_template.etalon_device = self.ui.etalon_device_edit.text()
@@ -240,6 +244,7 @@ class PointsDataTable:
         self.units = clb.signal_type_to_units[self.signal_type]
         self.value_to_user = utils.value_to_user_with_units(self.units)
 
+        # noinspection PyUnresolvedReferences
         self.table.itemChanged.connect(self.set_value_to_user)
         # Нужен, чтобы лишний раз не писать в БД точек, если они не менялись при изменении шаблона
         self.points_were_edited = False

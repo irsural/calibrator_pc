@@ -88,6 +88,7 @@ class Ui_Form(object):
         self.horizontalLayout.addWidget(self.template_mode_button)
         self.verticalLayout.addLayout(self.horizontalLayout)
         self.measures_table = QtWidgets.QTableView(Form)
+        self.measures_table.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.measures_table.setStyleSheet("selection-color: rgb(0, 0, 0);\n"
 "selection-background-color: rgb(170, 170, 255);")
         self.measures_table.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)

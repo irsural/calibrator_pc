@@ -10,7 +10,8 @@ from constants import DeviceSystem
 import calibrator_constants as clb
 from constants import Point
 
-MeasureTables = namedtuple("MeasureDB", ["marks_table", "mark_values_table", "measures_table", "results_table"])
+MeasureTables = namedtuple("MeasureDB", ["marks_table", "mark_values_table", "measures_table", "results_table",
+                                         "system_table", "signal_type_table"])
 
 
 class MeasureColumn(IntEnum):
@@ -34,16 +35,17 @@ MEASURE_COLUMN_TO_NAME = {
     MeasureColumn.DATETIME: "Дата / Время",
     MeasureColumn.DEVICE_NAME: "Наименование\nприбора",
     MeasureColumn.SERIAL_NUMBER: "Заводской\nномер",
-    MeasureColumn.SIGNAL_TYPE: "Тип сигнала",
+    MeasureColumn.SIGNAL_TYPE: "Род\nтока",
     MeasureColumn.DEVICE_CLASS: "Класс",
     MeasureColumn.COMMENT: "Комментарий",
     MeasureColumn.OWNER: "Организация\nвладелец",
     MeasureColumn.DEVICE_SYSTEM: "Система",
     MeasureColumn.USER: "Поверитель",
     MeasureColumn.ORGANISATION: "Организация\nповеритель",
-    MeasureColumn.ETALON_DEVICE: "Эталон",
+    MeasureColumn.ETALON_DEVICE: "Средство\nповерки",
     MeasureColumn.DEVICE_CREATOR: "Изготовитель"
 }
+
 
 class MeasureParams:
     def __init__(self, a_id=0, a_organisation="", a_etalon_device="", a_device_name="",
@@ -75,10 +77,10 @@ class MeasureParams:
         elif a_points:
             self.upper_bound = max(a_points, key=lambda p: p.amplitude).amplitude
         else:
-            self.a_upper_bound = 0
+            self.upper_bound = 0
 
-        self.a_upper_bound = clb.bound_amplitude(self.upper_bound, self.signal_type)
-        self.lower_bound = -self.a_upper_bound if a_lower_bound is None else \
+        self.upper_bound = clb.bound_amplitude(self.upper_bound, self.signal_type)
+        self.lower_bound = -self.upper_bound if a_lower_bound is None else \
             clb.bound_amplitude(a_lower_bound, self.signal_type)
 
     @classmethod
@@ -123,13 +125,31 @@ class MeasuresDB:
                                 f"where default_value != ''")
         return measure_id
 
-    def get(self, a_id: str):
-        if a_id in self.ids:
-            return MeasureParams(a_id)
-        else:
-            return None
+    def get(self, a_id: int):
+        self.cursor.execute(f"select point, frequency, up_value, down_value from {self.results_table} "
+                            f"where measure_id={a_id}")
+        points: list = self.cursor.fetchall()
 
-    def save(self, a_params: MeasureParams, points_data: Tuple[List]):
+        self.cursor.execute(f"select * from {self.measure_table} where id={a_id}")
+        measure_data = self.cursor.fetchone()
+        date, time = measure_data[MeasureColumn.DATETIME].split(' ')
+
+        return MeasureParams(a_id=measure_data[MeasureColumn.ID],
+                             a_date=date,
+                             a_time=time,
+                             a_device_name=measure_data[MeasureColumn.DEVICE_NAME],
+                             a_serial_num=measure_data[MeasureColumn.SERIAL_NUMBER],
+                             a_signal_type=measure_data[MeasureColumn.SIGNAL_TYPE],
+                             a_device_class=measure_data[MeasureColumn.DEVICE_CLASS],
+                             a_comment=measure_data[MeasureColumn.COMMENT],
+                             a_owner=measure_data[MeasureColumn.OWNER],
+                             a_device_system=measure_data[MeasureColumn.DEVICE_SYSTEM],
+                             a_user=measure_data[MeasureColumn.USER],
+                             a_organisation=measure_data[MeasureColumn.ORGANISATION],
+                             a_etalon_device=measure_data[MeasureColumn.ETALON_DEVICE],
+                             a_device_creator=measure_data[MeasureColumn.DEVICE_CREATOR]), points
+
+    def save(self, a_params: MeasureParams, points_data: List[List] = None):
         assert self.is_measure_exist(a_params.id), "Row for saved measure must exist!"
         with self.connection:
             self.cursor.execute(f"update {self.measure_table} set organisation = ?, etalon_device = ?,"
@@ -140,18 +160,16 @@ class MeasuresDB:
                                  a_params.device_creator, a_params.device_system, a_params.signal_type,
                                  a_params.device_class, a_params.serial_num, a_params.comment, a_params.owner,
                                  a_params.user, ' '.join([a_params.date, a_params.time])))
+            if points_data is not None:
+                self.cursor.executemany(f"insert into {self.results_table} (point, frequency, up_value, down_value, "
+                                        f"measure_id) values (?, ?, ?, ?, {a_params.id})", points_data)
 
-            self.cursor.executemany(f"insert into {self.results_table} (point, frequency, up_value, up_deviation, "
-                                    f"up_deviation_percent, down_value, down_deviation, down_deviation_percent, "
-                                    f"variation, measure_id) values (?, ?, ?, ?, ?, ?, ?, ?, ?, {a_params.id})",
-                                    points_data)
-
-    def delete(self, a_params: MeasureParams):
-        assert self.is_measure_exist(a_params.id), "deleted id must exist!"
+    def delete(self, a_id: int):
+        assert self.is_measure_exist(a_id), "deleted id must exist!"
         with self.connection:
-            self.cursor.execute(f"delete from {self.mark_values_table} where measure_id={a_params.id}")
-            self.cursor.execute(f"delete from {self.results_table} where measure_id={a_params.id}")
-            self.cursor.execute(f"delete from {self.measure_table} where id={a_params.id}")
+            self.cursor.execute(f"delete from {self.mark_values_table} where measure_id={a_id}")
+            self.cursor.execute(f"delete from {self.results_table} where measure_id={a_id}")
+            self.cursor.execute(f"delete from {self.measure_table} where id={a_id}")
 
     def is_measure_exist(self, a_id: int):
         self.cursor.execute(f"SELECT EXISTS(SELECT 1 FROM {self.measure_table} WHERE id='{a_id}')")

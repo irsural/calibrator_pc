@@ -1,5 +1,5 @@
-import sqlite3
 from enum import IntEnum
+import sqlite3
 
 from PyQt5 import QtCore, QtWidgets, QtGui
 from PyQt5.QtCore import pyqtSignal
@@ -129,7 +129,15 @@ class MarksWidget(QtWidgets.QWidget):
         item_flags = self.ui.marks_table.item(a_row, self.MarkColumns.NAME).flags()
         return not (item_flags & QtCore.Qt.ItemIsEditable)
 
-    def table_to_list(self):
+    def get_marks_map(self):
+        """
+        :return: Кортеж (метка, значение)
+        """
+        return [(self.ui.marks_table.item(row, MarksWidget.MarkColumns.TAG).text(),
+                 self.ui.marks_table.item(row, MarksWidget.MarkColumns.VALUE).text())
+                for row in range(self.ui.marks_table.rowCount())]
+
+    def __table_to_list(self):
         items = []
         for row in range(self.ui.marks_table.rowCount()):
             row_data = (self.ui.marks_table.item(row, self.MarkColumns.NAME).text(),
@@ -145,7 +153,7 @@ class MarksWidget(QtWidgets.QWidget):
     def save(self):
         try:
             if self.items_changed:
-                items = self.table_to_list()
+                items = self.__table_to_list()
                 with self.connection:
                     self.cursor.executemany(f"delete from {self.marks_table} where name = ?", self.deleted_names)
                     self.cursor.executemany(f"delete from {self.mark_values_table} where mark_name = ?",

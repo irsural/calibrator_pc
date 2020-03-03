@@ -1,4 +1,3 @@
-from collections import namedtuple
 import enum
 
 from utils import bound
@@ -65,6 +64,13 @@ enum_to_signal_type = {
     SignalType.ACV: "Переменное напряжение",
     SignalType.DCI: "Постоянный ток",
     SignalType.DCV: "Постоянное напряжение"
+}
+
+enum_to_signal_type_short = {
+    SignalType.ACI: "I~",
+    SignalType.ACV: "U~",
+    SignalType.DCI: "I=",
+    SignalType.DCV: "U="
 }
 
 signal_type_to_units = {
