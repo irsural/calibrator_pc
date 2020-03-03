@@ -228,15 +228,6 @@ class MeasureWindow(QtWidgets.QWidget):
         self.amplitude_edit_text_changed()
         self.update_current_point(self.calibrator.amplitude)
 
-    def set_amplitude_soft(self):
-        try:
-            if self.soft_approach_points:
-                self.set_amplitude(self.soft_approach_points.pop(0))
-            else:
-                self.soft_approach_timer.stop()
-        except AssertionError as err:
-            print(err)
-
     def set_frequency(self, a_frequency):
         self.calibrator.frequency = a_frequency
         current_frequency = 0 if clb.is_dc_signal[self.measure_config.signal_type] else self.calibrator.frequency
@@ -336,39 +327,49 @@ class MeasureWindow(QtWidgets.QWidget):
         rows = self.measure_view.get_selected_rows()
         if rows:
             row_idx = rows[0].row()
-            measured_up = self.measure_view.is_point_measured(row_idx, PointData.ApproachSide.UP)
-            measured_down = self.measure_view.is_point_measured(row_idx, PointData.ApproachSide.DOWN)
             target_amplitude = utils.parse_input(self.measure_view.get_point_by_row(row_idx))
 
-            if measured_down == measured_up:
-                # Точка измерена полностью либо совсем не измерена, подходим с ближайшей стороны
-                if self.calibrator.amplitude > target_amplitude:
-                    target_amplitude = utils.increase_by_percent(target_amplitude, self.settings.start_deviation,
-                                                                 a_normalize_value=self.measure_config.upper_bound)
-                else:
-                    target_amplitude = utils.decrease_by_percent(target_amplitude, self.settings.start_deviation,
-                                                                 a_normalize_value=self.measure_config.upper_bound)
-            else:
-                if measured_up:
-                    target_amplitude = utils.decrease_by_percent(target_amplitude, self.settings.start_deviation,
-                                                                 a_normalize_value=self.measure_config.upper_bound)
-                else:
-                    target_amplitude = utils.increase_by_percent(target_amplitude, self.settings.start_deviation,
-                                                                 a_normalize_value=self.measure_config.upper_bound)
+            if target_amplitude != self.calibrator.amplitude:
+                measured_up = self.measure_view.is_point_measured(row_idx, PointData.ApproachSide.UP)
+                measured_down = self.measure_view.is_point_measured(row_idx, PointData.ApproachSide.DOWN)
 
-            target_amplitude = self.calibrator.limit_amplitude(target_amplitude, self.lowest_amplitude,
-                                                               self.highest_amplitude)
+                if measured_down == measured_up:
+                    # Точка измерена полностью либо совсем не измерена, подходим с ближайшей стороны
+                    if self.calibrator.amplitude > target_amplitude:
+                        change_value_foo = utils.increase_by_percent
+                    else:
+                        change_value_foo = utils.decrease_by_percent
+                else:
+                    if measured_up:
+                        change_value_foo = utils.decrease_by_percent
+                    else:
+                        change_value_foo = utils.increase_by_percent
 
-            if self.calibrator.signal_enable:
-                points_count = int((self.soft_approach_time_s * 1000) // self.next_soft_point_time_ms)
-                self.soft_approach_points = utils.calc_smooth_approach(a_from=self.calibrator.amplitude,
-                                                                       a_to=target_amplitude,
-                                                                       a_count=points_count,
-                                                                       a_dt=self.next_soft_point_time_ms,
-                                                                       sigma=0.001)
-                self.soft_approach_timer.start(self.next_soft_point_time_ms)
+                target_amplitude = change_value_foo(target_amplitude, self.settings.start_deviation,
+                                                    a_normalize_value=self.measure_config.upper_bound)
+
+                target_amplitude = self.calibrator.limit_amplitude(target_amplitude, self.lowest_amplitude,
+                                                                   self.highest_amplitude)
+                self.start_approach_to_point(target_amplitude)
+
+    def start_approach_to_point(self, a_point):
+        if self.calibrator.signal_enable:
+            points_count = int((self.soft_approach_time_s * 1000) // self.next_soft_point_time_ms)
+            self.soft_approach_points = utils.calc_smooth_approach(a_from=self.calibrator.amplitude, a_to=a_point,
+                                                                   a_count=points_count, sigma=0.001,
+                                                                   a_dt=self.next_soft_point_time_ms)
+            self.soft_approach_timer.start(self.next_soft_point_time_ms)
+        else:
+            self.set_amplitude(a_point)
+
+    def set_amplitude_soft(self):
+        try:
+            if self.soft_approach_points:
+                self.set_amplitude(self.soft_approach_points.pop(0))
             else:
-                self.set_amplitude(target_amplitude)
+                self.soft_approach_timer.stop()
+        except AssertionError as err:
+            print(err)
 
     def guess_point(self, a_point_value: float):
         if self.measure_config.minimal_discrete == 0:
