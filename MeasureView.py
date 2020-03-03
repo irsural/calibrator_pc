@@ -82,6 +82,9 @@ class MeasureView:
     def select_row(self, a_row: int):
         self.table.selectRow(a_row)
 
+    def set_device_class(self, a_class: float):
+        self.measure_model.set_device_class(a_class)
+
     def get_selected_rows(self):
         return self.table.selectionModel().selectedRows()
 

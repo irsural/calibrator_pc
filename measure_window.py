@@ -490,6 +490,8 @@ class MeasureWindow(QtWidgets.QWidget):
             edit_template_params_dialog = EditMeasureParamsDialog(self.settings, self.measure_config,
                                                                   self.db_connection, self.db_tables, self)
             edit_template_params_dialog.exec()
+
+            self.measure_view.set_device_class(self.measure_config.device_class)
         except AssertionError as err:
             utils.exception_handler(err)
 

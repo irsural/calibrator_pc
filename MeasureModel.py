@@ -113,7 +113,7 @@ class MeasureModel(QAbstractTableModel):
 
         value_column = self.__side_to_value_column[a_point_data.approach_side]
         self.setData(self.index(point_row, value_column), str(a_point_data.value))
-        self.__recalculate_parameters(point_row, a_point_data.approach_side, a_point_data.point, a_point_data.value)
+        self.__recalculate_parameters(point_row, a_point_data.approach_side)
         return point_row
 
     def getPointByRow(self, a_row_idx):
@@ -181,13 +181,15 @@ class MeasureModel(QAbstractTableModel):
         else:
             return QVariant(QBrush(QColor(Qt.white)))
 
-    def __recalculate_parameters(self, a_row_idx, a_approach_size: PointData.ApproachSide, a_point, a_value):
-        if a_point != 0 and a_value == 0:
+    def __recalculate_parameters(self, a_row_idx, a_approach_size: PointData.ApproachSide):
+        point = self.__points[a_row_idx][self.Column.POINT]
+        value = self.__points[a_row_idx][self.__side_to_value_column[a_approach_size]]
+        if point != 0 and value == 0:
             # Если точка добавлена в таблицу, но еще не измерена
             return
 
-        absolute_error = utils.absolute_error(a_point, a_value)
-        relative_error = utils.relative_error(a_point, a_value, self.normalize_value)
+        absolute_error = utils.absolute_error(point, value)
+        relative_error = utils.relative_error(point, value, self.normalize_value)
 
         self.setData(self.index(a_row_idx, self.__side_to_error_column[a_approach_size]), str(absolute_error))
         self.setData(self.index(a_row_idx, self.__side_to_error_percent_column[a_approach_size]), str(relative_error))
@@ -196,6 +198,17 @@ class MeasureModel(QAbstractTableModel):
         up_value = self.__points[a_row_idx][self.Column.UP_VALUE]
         if (down_value != 0) and (up_value != 0):
             self.setData(self.index(a_row_idx, self.Column.VARIATION), str(utils.variation(down_value, up_value)))
+
+    def set_device_class(self, a_class: float):
+        self.error_limit = a_class
+        for row in range(self.rowCount()):
+            self.__recalculate_parameters(row, PointData.ApproachSide.UP)
+            self.__recalculate_parameters(row, PointData.ApproachSide.DOWN)
+
+        self.dataChanged.emit(self.index(0, MeasureModel.Column.DOWN_VALUE),
+                              self.index(self.rowCount(), MeasureModel.Column.DOWN_VALUE))
+        self.dataChanged.emit(self.index(0, MeasureModel.Column.UP_VALUE),
+                              self.index(self.rowCount(), MeasureModel.Column.UP_VALUE))
 
     def rowCount(self, parent=QModelIndex()):
         return len(self.__points)
@@ -242,22 +255,19 @@ class MeasureModel(QAbstractTableModel):
 
             if index.column() in (self.Column.POINT, self.Column.DOWN_VALUE, self.Column.UP_VALUE):
                 if index.column() != self.Column.DOWN_VALUE:
-                    self.__recalculate_parameters(index.row(), PointData.ApproachSide.UP,
-                                                  self.__points[index.row()][self.Column.POINT],
-                                                  self.__points[index.row()][self.Column.UP_VALUE])
+                    self.__recalculate_parameters(index.row(), PointData.ApproachSide.UP)
 
                 if index.column() != self.Column.UP_VALUE:
-                    self.__recalculate_parameters(index.row(), PointData.ApproachSide.DOWN,
-                                                  self.__points[index.row()][self.Column.POINT],
-                                                  self.__points[index.row()][self.Column.DOWN_VALUE])
+                    self.__recalculate_parameters(index.row(), PointData.ApproachSide.DOWN)
 
                 if index.column() == self.Column.POINT:
                     # Это нужно, чтобы цвета ячеек Нижнее значение и Верхнее значение обновлялись сразу после изменения
                     # ячейки Поверяемая точка
-                    self.dataChanged.emit(self.index(index.row(), self.Column.UP_VALUE),
-                                          self.index(index.row(), self.Column.UP_VALUE))
-                    self.dataChanged.emit(self.index(index.row(), self.Column.DOWN_VALUE),
-                                          self.index(index.row(), self.Column.DOWN_VALUE))
+                    up_value_index = self.index(index.row(), self.Column.UP_VALUE)
+                    down_value_index = self.index(index.row(), self.Column.DOWN_VALUE)
+
+                    self.dataChanged.emit(up_value_index, up_value_index)
+                    self.dataChanged.emit(down_value_index, down_value_index)
 
             return True
         except ValueError:

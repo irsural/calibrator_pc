@@ -25,6 +25,7 @@ class CreateProtocolDialog(QtWidgets.QDialog):
 
         self.ui = CreateProtocolForm()
         self.ui.setupUi(self)
+        self.ui.default_button.setHidden(True)
 
         assert a_measure_id != 0, "Measure id must not be zero!"
 
@@ -56,6 +57,8 @@ class CreateProtocolDialog(QtWidgets.QDialog):
 
         self.ui.choose_protocol_template_button.clicked.connect(self.choose_template_pattern_file)
         self.ui.choose_save_folder_button.clicked.connect(self.choose_save_protocol_folder)
+
+        self.ui.class_spinbox.editingFinished.connect(self.change_device_class)
 
         self.ui.accept_button.clicked.connect(self.save_pressed)
         self.ui.reject_button.clicked.connect(self.reject)
@@ -179,6 +182,9 @@ class CreateProtocolDialog(QtWidgets.QDialog):
 
         self.settings.template_filepath = self.ui.template_protocol_edit.text()
         self.settings.save_folder = self.ui.save_folder_edit.text()
+
+    def change_device_class(self):
+        self.results_view.set_device_class(self.ui.class_spinbox.value())
 
     def get_src_dst_path(self) -> Union[Tuple[str, str], None]:
         src_file = self.ui.template_protocol_edit.text()

@@ -84,8 +84,8 @@ class MeasureParams:
 
     @classmethod
     def fromFastParams(cls, a_params: FastMeasureParams):
-        points = [MeasuredPoint(amplitude=float(p), frequency=float(f), up_value=0, down_value=0)
-                  for f in a_params.frequency for p in a_params.amplitudes]
+        points = [MeasuredPoint(amplitude=float(p), frequency=clb.bound_frequency(float(f), a_params.signal_type),
+                                up_value=0, down_value=0) for f in a_params.frequency for p in a_params.amplitudes]
 
         return cls(a_etalon_device="Калибратор N4-25", a_signal_type=a_params.signal_type,
                    a_minimal_discrete=a_params.minimal_discrete, a_device_class=a_params.accuracy_class,
