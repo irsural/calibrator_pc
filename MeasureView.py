@@ -1,7 +1,4 @@
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, QTimer, QModelIndex, Qt
-from PyQt5.QtWidgets import QMessageBox, QMenu
 from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtGui import QWheelEvent
 
 from custom_widgets.QTableDelegates import NonOverlappingDoubleClick
 from MeasureModel import MeasureModel, PointData
@@ -11,42 +8,82 @@ import qt_utils
 
 
 class MeasureView:
-    def __init__(self, a_table_view: QtWidgets.QTableView, a_measure_config: MeasureParams, a_normalize_value=None,
-                 a_init_points=None):
+    def __init__(self, a_table_view: QtWidgets.QTableView, a_measure_config: MeasureParams, a_normalize_value=0):
 
         self.table = a_table_view
         self.measure_config = a_measure_config
 
-        # ################################################################ РАССЧИТАТЬ НОРМИРУЮЩЕЕ ЗНАЧЕНЕ
-        self.normalize_value = 1 if a_normalize_value is None else a_normalize_value
+        if a_normalize_value != 0:
+            self.normalize_value = a_normalize_value
+        elif self.measure_config.points:
+            self.normalize_value = max(self.measure_config.points, key=lambda p: p.amplitude).amplitude
+        else:
+            self.normalize_value = 1
 
         self.measure_model = MeasureModel(a_normalize_value=self.normalize_value,
                                           a_error_limit=self.measure_config.device_class,
                                           a_signal_type=self.measure_config.signal_type,
-                                          a_init_points=a_init_points, a_parent=self)
+                                          a_init_points=self.measure_config.points, a_parent=self.table)
+
+        assert self.measure_config.points == self.measure_model.exportPoints(), \
+            f"Points were inited with errors:\n{self.measure_config.points}\n{self.measure_model.exportPoints()}"
 
         self.table.setModel(self.measure_model)
-        self.table.setItemDelegate(NonOverlappingDoubleClick(self))
+        self.table.setItemDelegate(NonOverlappingDoubleClick(self.table))
         self.table.customContextMenuRequested.connect(self.show_table_custom_menu)
-
         self.table.setColumnHidden(MeasureModel.Column.FREQUENCY, clb.is_dc_signal[self.measure_config.signal_type])
 
-        for point in self.measure_config.points:
-            self.measure_model.appendPoint(PointData(a_point=point.amplitude, a_frequency=point.frequency))
+        self.header_context = qt_utils.TableHeaderContextMenu(self.table, self.table)
 
-        self.header_context = qt_utils.TableHeaderContextMenu(self, self.ui.measure_table)
+    def __del__(self):
+        print("MeasureView deleted")
+
+    def close(self):
+        # Без этого header_context не уничтожится
+        self.header_context.delete_connections()
 
     def show_table_custom_menu(self, a_position: QtCore.QPoint):
-        menu = QMenu(self)
+        menu = QtWidgets.QMenu(self.table)
         copy_cell_act = menu.addAction("Копировать")
         copy_cell_act.triggered.connect(self.copy_cell_text_to_clipboard)
-        menu.popup(self.ui.measure_table.viewport().mapToGlobal(a_position))
-
-    def removeSelectedRows(self):
-        pass
-
+        menu.popup(self.table.viewport().mapToGlobal(a_position))
 
     def copy_cell_text_to_clipboard(self):
-        text = self.measure_model.getText(self.ui.measure_table.selectionModel().currentIndex())
+        text = self.measure_model.getText(self.table.selectionModel().currentIndex())
         if text:
             QtWidgets.QApplication.clipboard().setText(text)
+
+    def remove_selected(self, a_rows: list):
+        self.measure_model.removeSelected(a_rows)
+
+    def get_point_by_row(self, a_row: int):
+        return self.__get_cell_text(a_row, MeasureModel.Column.POINT)
+
+    def get_frequency_by_row(self, a_row: int):
+        return self.__get_cell_text(a_row, MeasureModel.Column.FREQUENCY)
+
+    def __get_cell_text(self, a_row: int, a_column: int):
+        index = self.measure_model.index(a_row, a_column)
+        return self.measure_model.getText(index)
+
+    def is_point_good(self, a_amplitude: float, a_frequency: float, a_approach_side: PointData.ApproachSide):
+        return self.measure_model.isPointGood(a_amplitude, a_frequency, a_approach_side)
+
+    def is_point_measured(self, a_row_idx, a_approach_side: PointData.ApproachSide):
+        return self.measure_model.isPointMeasured(a_row_idx, a_approach_side)
+
+    def append(self, a_point: PointData):
+        point_row = self.measure_model.appendPoint(a_point)
+        self.table.selectRow(point_row)
+
+    def view(self):
+        return self.table
+
+    def select_row(self, a_row: int):
+        self.table.selectRow(a_row)
+
+    def get_selected_rows(self):
+        return self.table.selectionModel().selectedRows()
+
+    def export_points(self):
+        return self.measure_model.exportPoints()

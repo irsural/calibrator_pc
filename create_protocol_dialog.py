@@ -6,8 +6,7 @@ import os
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 from ui.py.create_protocol_form import Ui_Dialog as CreateProtocolForm
-from custom_widgets.QTableDelegates import NonOverlappingDoubleClick
-from MeasureModel import MeasureModel as ResultsModel
+from MeasureView import MeasureView as ResultsView
 from db_measures import MeasureTables, MeasuresDB
 from settings_ini_parser import Settings
 from marks_widget import MarksWidget
@@ -45,25 +44,7 @@ class CreateProtocolDialog(QtWidgets.QDialog):
         self.ui.points_table.horizontalHeader().restoreState(self.settings.get_last_header_state(
             self.__class__.__name__))
 
-        normalize_value = max(self.measure_config.points, key=lambda p: p.amplitude).amplitude if \
-            self.measure_config.points else 0
-
-        self.results_model = ResultsModel(a_normalize_value=normalize_value,
-                                          a_error_limit=self.measure_config.device_class,
-                                          a_signal_type=self.measure_config.signal_type,
-                                          a_init_points=self.measure_config.points,
-                                          a_parent=self)
-
-        assert self.measure_config.points == self.results_model.exportPoints(), \
-            f"Points were inited with errors:\n{self.measure_config.points}\n{self.results_model.exportPoints()}"
-
-        self.ui.points_table.setModel(self.results_model)
-        self.ui.points_table.setItemDelegate(NonOverlappingDoubleClick(self))
-
-        self.ui.points_table.setColumnHidden(ResultsModel.Column.FREQUENCY,
-                                             clb.is_dc_signal[self.measure_config.signal_type])
-
-        self.header_context = qt_utils.TableHeaderContextMenu(self, self.ui.points_table)
+        self.results_view = ResultsView(self.ui.points_table, self.measure_config)
 
         self.connect_signals()
         self.ui.marks_and_points_tabwidget.setCurrentIndex(0)
@@ -73,23 +54,11 @@ class CreateProtocolDialog(QtWidgets.QDialog):
         for widgets in self.default_marks_widgets:
             widgets[0].customContextMenuRequested.connect(self.show_label_custom_menu)
 
-        self.ui.points_table.customContextMenuRequested.connect(self.show_table_custom_menu)
         self.ui.choose_protocol_template_button.clicked.connect(self.choose_template_pattern_file)
         self.ui.choose_save_folder_button.clicked.connect(self.choose_save_protocol_folder)
 
         self.ui.accept_button.clicked.connect(self.save_pressed)
         self.ui.reject_button.clicked.connect(self.reject)
-
-    def show_table_custom_menu(self, a_position: QtCore.QPoint):
-        menu = QtWidgets.QMenu(self)
-        copy_cell_act = menu.addAction("Копировать")
-        copy_cell_act.triggered.connect(self.copy_cell_text_to_clipboard)
-        menu.popup(self.ui.points_table.viewport().mapToGlobal(a_position))
-
-    def copy_cell_text_to_clipboard(self):
-        text = self.results_model.getText(self.ui.points_table.selectionModel().currentIndex())
-        if text:
-            QtWidgets.QApplication.clipboard().setText(text)
 
     # noinspection DuplicatedCode
     def get_default_marks_widgets(self):
@@ -270,8 +239,8 @@ class CreateProtocolDialog(QtWidgets.QDialog):
     def closeEvent(self, a_event: QtGui.QCloseEvent) -> None:
         self.settings.save_geometry(self.__class__.__name__, self.saveGeometry())
         self.settings.save_header_state(self.__class__.__name__, self.ui.points_table.horizontalHeader().saveState())
-        # Без этого диалог не уничтожится
-        self.header_context.delete_connections()
+
+        self.results_view.close()
         # Вызывается вручную, чтобы marks_widget сохранил состояние своего хэдера
         self.marks_widget.close()
         a_event.accept()
