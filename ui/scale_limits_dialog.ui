@@ -81,6 +81,9 @@
     <layout class="QHBoxLayout" name="horizontalLayout_3">
      <item>
       <widget class="QTableWidget" name="limits_table">
+       <property name="selectionBehavior">
+        <enum>QAbstractItemView::SelectRows</enum>
+       </property>
        <column>
         <property name="text">
          <string>Предел</string>

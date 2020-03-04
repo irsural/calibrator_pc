@@ -36,7 +36,7 @@ class OperationDB(IntEnum):
 
 class Scale:
     class Limit:
-        def __init__(self, a_limit: float, a_device_class: float, a_signal_type: SignalType):
+        def __init__(self, a_limit: float = 1, a_device_class: float = 1, a_signal_type: SignalType = SignalType.ACI):
             self.limit = a_limit
             self.signal_type = a_signal_type
             self.device_class = a_device_class

@@ -59,7 +59,7 @@ class ScalesWidget(QtWidgets.QWidget):
                                                a_optional_widget=config_scale_button)
 
             # Наверное это дерьмовая идея, но проще всего привязать Пределы к виджету
-            self.scale_limits[scale_list] = [cfg.Scale.Limit(1, 1, clb.SignalType.ACI)]
+            self.scale_limits[scale_list] = [cfg.Scale.Limit()]
 
             new_tab_index = self.ui.tabWidget.count() - 1
             self.ui.tabWidget.insertTab(new_tab_index, scale_list, str(self.ui.tabWidget.count()))

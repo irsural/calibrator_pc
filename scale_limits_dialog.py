@@ -23,9 +23,13 @@ class ScaleLimitsDialog(QtWidgets.QDialog):
         self.ui.setupUi(self)
 
         self.limits = a_limits
-        self.recover_params(self.limits)
 
         self.ui.limits_table.itemChanged.connect(self.set_value_to_user)
+
+        self.ui.add_limit_button.clicked.connect(self.add_limit)
+        self.ui.remove_limit_button.clicked.connect(self.remove_limit)
+
+        self.recover_params(self.limits)
 
         self.ui.accept_button.clicked.connect(self.accept)
         self.ui.reject_button.clicked.connect(self.reject)
@@ -50,28 +54,7 @@ class ScaleLimitsDialog(QtWidgets.QDialog):
 
     def recover_params(self, a_limits: List[Scale.Limit]):
         for limit in a_limits:
-            row_idx = self.ui.limits_table.rowCount()
-            self.ui.limits_table.insertRow(row_idx)
-
-            units = clb.signal_type_to_units[limit.signal_type]
-            self.ui.limits_table.setItem(row_idx, ScaleLimitsDialog.Column.LIMIT,
-                                         QtWidgets.QTableWidgetItem(utils.value_to_user_with_units(units)(limit.limit)))
-
-            class_spinbox = QtWidgets.QDoubleSpinBox(self)
-            class_spinbox.setDecimals(4)
-            class_spinbox.setMinimum(0.001)
-            class_spinbox.setMaximum(10)
-            class_spinbox.setSingleStep(0.05)
-            class_spinbox.setValue(limit.device_class)
-            self.ui.limits_table.setCellWidget(row_idx, ScaleLimitsDialog.Column.CLASS, class_spinbox)
-
-            signal_type_combobox = QtWidgets.QComboBox(self)
-            for s_t in clb.SignalType:
-                signal_type_combobox.addItem(clb.enum_to_signal_type_short[s_t])
-            signal_type_combobox.setCurrentIndex(limit.signal_type)
-            signal_type_combobox.setProperty("row_in_table", int(row_idx))
-            signal_type_combobox.currentIndexChanged.connect(self.signal_type_changed)
-            self.ui.limits_table.setCellWidget(row_idx, ScaleLimitsDialog.Column.SIGNAL_TYPE, signal_type_combobox)
+            self.add_limit_to_table(limit)
 
     def signal_type_changed(self, a_idx):
         sender_table_row = int(self.sender().property("row_in_table"))
@@ -92,6 +75,40 @@ class ScaleLimitsDialog(QtWidgets.QDialog):
             signal_type = self.ui.limits_table.cellWidget(row_idx, ScaleLimitsDialog.Column.SIGNAL_TYPE).currentIndex()
             scales.append(Scale.Limit(limit, limit_class, clb.SignalType(signal_type)))
         return scales
+
+    def add_limit_to_table(self, a_limit: Scale.Limit):
+        row_idx = self.ui.limits_table.rowCount()
+        self.ui.limits_table.insertRow(row_idx)
+
+        class_spinbox = QtWidgets.QDoubleSpinBox(self)
+        class_spinbox.setDecimals(4)
+        class_spinbox.setMinimum(0.001)
+        class_spinbox.setMaximum(10)
+        class_spinbox.setSingleStep(0.05)
+        class_spinbox.setValue(a_limit.device_class)
+        self.ui.limits_table.setCellWidget(row_idx, ScaleLimitsDialog.Column.CLASS, class_spinbox)
+
+        signal_type_combobox = QtWidgets.QComboBox(self)
+        for s_t in clb.SignalType:
+            signal_type_combobox.addItem(clb.enum_to_signal_type_short[s_t])
+        signal_type_combobox.setCurrentIndex(a_limit.signal_type)
+        signal_type_combobox.setProperty("row_in_table", int(row_idx))
+        signal_type_combobox.currentIndexChanged.connect(self.signal_type_changed)
+        self.ui.limits_table.setCellWidget(row_idx, ScaleLimitsDialog.Column.SIGNAL_TYPE, signal_type_combobox)
+
+        # Обязательно добалять после добавления комбобокса !!!
+        self.ui.limits_table.setItem(row_idx, ScaleLimitsDialog.Column.LIMIT,
+                                     QtWidgets.QTableWidgetItem(str(a_limit.limit)))
+
+    def add_limit(self):
+        self.add_limit_to_table(Scale.Limit())
+
+    def remove_limit(self):
+        if self.ui.limits_table.rowCount() > 1:
+            rows = self.ui.limits_table.selectionModel().selectedRows()
+            if rows:
+                for idx_model in reversed(rows):
+                    self.ui.limits_table.removeRow(idx_model.row())
 
     def exec_and_get_limits(self):
         if self.exec() == QtWidgets.QDialog.Accepted:
