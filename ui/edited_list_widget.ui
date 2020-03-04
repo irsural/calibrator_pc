@@ -34,16 +34,7 @@
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout_2">
      <item>
-      <widget class="QLabel" name="lsitname_label">
-       <property name="font">
-        <font>
-         <pointsize>10</pointsize>
-        </font>
-       </property>
-       <property name="text">
-        <string>List name</string>
-       </property>
-      </widget>
+      <layout class="QVBoxLayout" name="optional_widget_layout"/>
      </item>
      <item>
       <spacer name="horizontalSpacer">
@@ -106,6 +97,10 @@
       <font>
        <pointsize>13</pointsize>
       </font>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">selection-color: rgb(0, 0, 0);
+selection-background-color: rgb(170, 170, 255);</string>
      </property>
      <property name="editTriggers">
       <set>QAbstractItemView::DoubleClicked|QAbstractItemView::EditKeyPressed</set>

@@ -22,12 +22,9 @@ class Ui_Form(object):
         self.verticalLayout.setObjectName("verticalLayout")
         self.horizontalLayout_2 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_2.setObjectName("horizontalLayout_2")
-        self.lsitname_label = QtWidgets.QLabel(Form)
-        font = QtGui.QFont()
-        font.setPointSize(10)
-        self.lsitname_label.setFont(font)
-        self.lsitname_label.setObjectName("lsitname_label")
-        self.horizontalLayout_2.addWidget(self.lsitname_label)
+        self.optional_widget_layout = QtWidgets.QVBoxLayout()
+        self.optional_widget_layout.setObjectName("optional_widget_layout")
+        self.horizontalLayout_2.addLayout(self.optional_widget_layout)
         spacerItem = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
         self.horizontalLayout_2.addItem(spacerItem)
         self.add_list_item_button = QtWidgets.QPushButton(Form)
@@ -53,6 +50,8 @@ class Ui_Form(object):
         font = QtGui.QFont()
         font.setPointSize(13)
         self.list_widget.setFont(font)
+        self.list_widget.setStyleSheet("selection-color: rgb(0, 0, 0);\n"
+"selection-background-color: rgb(170, 170, 255);")
         self.list_widget.setEditTriggers(QtWidgets.QAbstractItemView.DoubleClicked|QtWidgets.QAbstractItemView.EditKeyPressed)
         self.list_widget.setDefaultDropAction(QtCore.Qt.MoveAction)
         self.list_widget.setAlternatingRowColors(True)
@@ -76,7 +75,6 @@ class Ui_Form(object):
     def retranslateUi(self, Form):
         _translate = QtCore.QCoreApplication.translate
         Form.setWindowTitle(_translate("Form", "Form"))
-        self.lsitname_label.setText(_translate("Form", "List name"))
         self.add_list_item_button.setText(_translate("Form", "+"))
         self.delete_list_item_button.setText(_translate("Form", "-"))
         self.list_widget.setSortingEnabled(False)

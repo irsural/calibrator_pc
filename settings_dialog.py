@@ -42,7 +42,8 @@ class SettingsDialog(QtWidgets.QDialog):
         self.ui.marks_layout.addWidget(self.marks_widget)
 
         self.edit_fixed_range_widget = EditedListWithUnits(self, "В", self.settings.fixed_step_list, clb.MIN_VOLTAGE,
-                                                           clb.MAX_VOLTAGE, a_list_name="Шаг")
+                                                           clb.MAX_VOLTAGE,
+                                                           a_optional_widget=QtWidgets.QLabel("Шаг", self))
         self.ui.fixed_range_groupbox.layout().addWidget(self.edit_fixed_range_widget)
 
         self.ui.exact_step_spinbox.setValue(self.settings.exact_step)
