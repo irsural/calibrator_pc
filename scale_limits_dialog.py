@@ -34,6 +34,9 @@ class ScaleLimitsDialog(QtWidgets.QDialog):
         self.ui.accept_button.clicked.connect(self.accept)
         self.ui.reject_button.clicked.connect(self.reject)
 
+    def __del__(self):
+        print("Scale Limits deleted")
+
     def set_value_to_user(self, a_item: QtWidgets.QTableWidgetItem):
         self.ui.limits_table.blockSignals(True)
         try:

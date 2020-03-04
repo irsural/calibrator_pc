@@ -41,6 +41,12 @@ class Scale:
             self.signal_type = a_signal_type
             self.device_class = a_device_class
 
+        def __str__(self):
+            return f"{self.limit}, {self.signal_type}, {self.device_class}"
+
     def __init__(self, a_scale_points: List[float] = None, a_limits: List[Limit] = None):
         self.points: List[float] = a_scale_points if a_scale_points is not None else []
         self.limits: List[Scale.Limit] = a_limits if a_limits is not None else []
+
+    def __str__(self):
+        return f"Points: {self.points}\nLimits: {[str(lim) for lim in self.limits]}"

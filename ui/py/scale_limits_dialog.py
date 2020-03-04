@@ -43,6 +43,8 @@ class Ui_Dialog(object):
         self.horizontalLayout_3 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_3.setObjectName("horizontalLayout_3")
         self.limits_table = QtWidgets.QTableWidget(Dialog)
+        self.limits_table.setStyleSheet("selection-color: rgb(0, 0, 0);\n"
+"selection-background-color: rgb(170, 170, 255);")
         self.limits_table.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
         self.limits_table.setObjectName("limits_table")
         self.limits_table.setColumnCount(3)

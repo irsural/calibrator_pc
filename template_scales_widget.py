@@ -1,22 +1,13 @@
-import ui_to_py
-ui_to_py.convert_ui("./ui", "./ui/py")
-ui_to_py.convert_resources("./resources", "./resources/py")
-
-from enum import IntEnum
-from typing import List, Union
+from typing import List
 import sys
 
-from PyQt5 import QtCore, QtWidgets, QtGui
-
+from PyQt5 import QtCore, QtWidgets
 
 from ui.py.template_scales_tabwidget import Ui_Form as ScalesWidgetForm
 from custom_widgets.EditListDialog import EditedListOnlyNumbers
 from scale_limits_dialog import ScaleLimitsDialog
 import constants as cfg
-import calibrator_constants as clb
-import qt_utils
 import utils
-
 
 
 class ScalesWidget(QtWidgets.QWidget):
@@ -89,16 +80,13 @@ class ScalesWidget(QtWidgets.QWidget):
                 self.tab_removed.emit(a_idx)
 
     def edit_scale_limits(self):
-        try:
-            current_widget = self.ui.tabWidget.currentWidget()
-            limits: List[cfg.Scale.Limit] = self.scale_limits[current_widget]
+        current_widget = self.ui.tabWidget.currentWidget()
+        limits: List[cfg.Scale.Limit] = self.scale_limits[current_widget]
 
-            scale_limits_dialog = ScaleLimitsDialog(limits)
-            new_limits = scale_limits_dialog.exec_and_get_limits()
-            if new_limits is not None:
-                self.scale_limits[current_widget] = new_limits
-        except Exception as err:
-            utils.exception_handler(err)
+        scale_limits_dialog = ScaleLimitsDialog(limits)
+        new_limits = scale_limits_dialog.exec_and_get_limits()
+        if new_limits is not None:
+            self.scale_limits[current_widget] = new_limits
 
     def get_scales(self) -> List[cfg.Scale]:
         scales = [self.get_scale_by_tab_idx(tab_idx) for tab_idx in range(self.ui.tabWidget.count() - 1)]
@@ -106,11 +94,7 @@ class ScalesWidget(QtWidgets.QWidget):
 
     def get_scale_by_tab_idx(self, a_tab_idx):
         scale_points_list: EditedListOnlyNumbers = self.ui.tabWidget.widget(a_tab_idx)
-
-        return cfg.Scale(a_scale_points=scale_points_list.get_list())
-
-    def closeEvent(self, a_event: QtGui.QCloseEvent) -> None:
-        pass
+        return cfg.Scale(a_scale_points=scale_points_list.get_list(), a_limits=self.scale_limits[scale_points_list])
 
 
 if __name__ == "__main__":

@@ -59,6 +59,8 @@ class Ui_Dialog(object):
         self.verticalLayout_2.addLayout(self.horizontalLayout_4)
         self.templates_list = QtWidgets.QListWidget(self.choose_templates_widget)
         self.templates_list.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        self.templates_list.setStyleSheet("selection-color: rgb(0, 0, 0);\n"
+"selection-background-color: rgb(170, 170, 255);")
         self.templates_list.setObjectName("templates_list")
         self.verticalLayout_2.addWidget(self.templates_list)
         self.choose_template_button = QtWidgets.QPushButton(self.choose_templates_widget)

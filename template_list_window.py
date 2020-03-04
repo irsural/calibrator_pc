@@ -25,7 +25,8 @@ class TemplateListWindow(QtWidgets.QDialog):
         self.ui.setupUi(self)
         self.ui.template_params_widget.setDisabled(True)
 
-        self.scales_widget = ScalesWidget(self)
+        # parent не передается намеренно, иначе scales_widget не удаляется из за чего не удаяется parent
+        self.scales_widget = ScalesWidget()
         self.ui.scales_layout.addWidget(self.scales_widget)
 
         self.settings = a_settings
@@ -237,6 +238,7 @@ class TemplateListWindow(QtWidgets.QDialog):
     def closeEvent(self, a_event: QtGui.QCloseEvent) -> None:
         self.settings.save_geometry(self.__class__.__name__, self.saveGeometry())
         # self.settings.save_header_state(self.__class__.__name__, self.points_table.get_header_state())
+        self.scales_widget.close()
         a_event.accept()
 
 
