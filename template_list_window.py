@@ -9,7 +9,7 @@ from custom_widgets.QTableDelegates import TableEditDoubleClick
 from db_templates import TemplateParams, TemplatesDB
 from settings_ini_parser import Settings
 import calibrator_constants as clb
-from constants import OperationDB, Point
+from constants import OperationDB, MeasuredPoint
 import qt_utils
 import utils
 
@@ -183,7 +183,7 @@ class TemplateListWindow(QtWidgets.QDialog):
                 QtWidgets.QMessageBox.critical(self, "Ошибка сохранения шаблона",
                                                "Шаблон с таким именем уже существует!", QtWidgets.QMessageBox.Ok)
         except Exception as err:
-            print(err)
+            utils.exception_handler(err)
 
     @pyqtSlot()
     def cancel_template_edit(self):
@@ -208,17 +208,22 @@ class TemplateListWindow(QtWidgets.QDialog):
 
     @pyqtSlot()
     def choose_template(self):
-        item = self.ui.templates_list.currentItem()
-        if item is not None:
-            variable_params_dialog = VariableTemplateFieldsDialog(self)
-            params: VariableTemplateParams = variable_params_dialog.exec_and_get_params()
+        try:
+            item = self.ui.templates_list.currentItem()
+            if item is not None:
+                variable_params_dialog = VariableTemplateFieldsDialog(self)
+                params: VariableTemplateParams = variable_params_dialog.exec_and_get_params()
+                if params is not None:
+                    if clb.is_dc_signal[self.current_template.signal_type]:
 
-            if params is not None:
-                if clb.is_dc_signal[self.current_template.signal_type]:
-                    self.current_template.points = [Point(a, 0) for a, f in self.current_template.points]
+                        self.current_template.points = \
+                            [MeasuredPoint(amplitude=a, frequency=0, up_value=0, down_value=0)
+                             for a, f, up_v, down_v in self.current_template.points]
 
-                self.config_ready.emit(self.current_template, params)
-                self.reject()
+                    self.config_ready.emit(self.current_template, params)
+                    self.reject()
+        except Exception as err:
+            utils.exception_handler(err)
 
     def filter_templates(self, a_text):
         for row in range(self.ui.templates_list.count()):
@@ -273,8 +278,11 @@ class PointsDataTable:
         points = []
         try:
             for row in range(self.table.rowCount()):
-                points.append(Point(amplitude=utils.parse_input(self.table.item(row, self.PointCols.AMPLITUDE).text()),
-                                    frequency=float(self.table.item(row, self.PointCols.FREQUENCY).text())))
+                points.append(MeasuredPoint(
+                    amplitude=utils.parse_input(self.table.item(row, self.PointCols.AMPLITUDE).text()),
+                    frequency=float(self.table.item(row, self.PointCols.FREQUENCY).text()),
+                    up_value=0,
+                    down_value=0))
         except ValueError as err:
             points.clear()
             print("get_points ValueError! ", err)

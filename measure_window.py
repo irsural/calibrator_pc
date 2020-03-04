@@ -1,16 +1,16 @@
 from sqlite3 import Connection
 from typing import List
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, QTimer, QModelIndex, Qt
-from PyQt5.QtWidgets import QMessageBox, QMenu
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, QTimer, Qt
+from PyQt5.QtWidgets import QMessageBox
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtGui import QWheelEvent
 
-from custom_widgets.QTableDelegates import NonOverlappingDoubleClick
 from edit_measure_parameters_dialog import EditMeasureParamsDialog
 from db_measures import MeasureParams, MeasureTables, MeasuresDB
 from ui.py.measure_form import Ui_main_widget as MeasureForm
-from MeasureModel import PointData, MeasureModel
+from MeasureModel import PointData
+from MeasureView import MeasureView
 from settings_ini_parser import Settings
 import calibrator_constants as clb
 import constants as cfg
@@ -75,25 +75,16 @@ class MeasureWindow(QtWidgets.QWidget):
         self.highest_amplitude = self.calibrator.limit_amplitude(self.highest_amplitude, self.lowest_amplitude,
                                                                  self.highest_amplitude)
 
-        self.measure_model = MeasureModel(self.current_point.normalize_value,
-                                          a_error_limit=self.measure_config.device_class,
-                                          a_signal_type=self.measure_config.signal_type,
-                                          a_parent=self)
-        self.ui.measure_table.setModel(self.measure_model)
-        self.ui.measure_table.setItemDelegate(NonOverlappingDoubleClick(self))
-        self.ui.measure_table.customContextMenuRequested.connect(self.show_table_custom_menu)
+        self.measure_view = MeasureView(self.ui.measure_table, self.measure_config, self.current_point.normalize_value)
 
         self.set_window_elements()
-
-        # Обязательно вызывать после set_window_elements иначе будет рассинхрон галочек хэдера и отображаемых колонок
-        self.header_context = qt_utils.TableHeaderContextMenu(self, self.ui.measure_table)
 
         self.fixed_step = 0
         self.fixed_step_list = self.settings.fixed_step_list
         self.fill_fixed_step_combobox()
         self.settings.fixed_step_changed.connect(self.fill_fixed_step_combobox)
 
-        # Вызывать после создания self.measure_model и после self.fill_fixed_step_combobox
+        # Вызывать после создания self.measure_view и после self.fill_fixed_step_combobox
         self.connect_signals()
 
         self.clb_check_timer = QTimer(self)
@@ -114,28 +105,12 @@ class MeasureWindow(QtWidgets.QWidget):
         self.warning_animation.setSpeed(500)
         self.warning_animation.finished.connect(self.ui.status_warning_label.hide)
 
-    def show_table_custom_menu(self, a_position: QtCore.QPoint):
-        menu = QMenu(self)
-        copy_cell_act = menu.addAction("Копировать")
-        copy_cell_act.triggered.connect(self.copy_cell_text_to_clipboard)
-        menu.popup(self.ui.measure_table.viewport().mapToGlobal(a_position))
-
-    def copy_cell_text_to_clipboard(self):
-        text = self.measure_model.getText(self.ui.measure_table.selectionModel().currentIndex())
-        if text:
-            QtWidgets.QApplication.clipboard().setText(text)
-
     def set_window_elements(self):
         self.ui.apply_frequency_button.setDisabled(clb.is_dc_signal[self.measure_config.signal_type])
         self.ui.frequency_edit.setDisabled(clb.is_dc_signal[self.measure_config.signal_type])
-        self.ui.measure_table.setColumnHidden(MeasureModel.Column.FREQUENCY,
-                                              clb.is_dc_signal[self.measure_config.signal_type])
 
         self.setWindowTitle(f"{clb.enum_to_signal_type[self.measure_config.signal_type]}. "
                             f"{self.measure_config.upper_bound} {self.units_text}.")
-
-        for point in self.measure_config.points:
-            self.measure_model.appendPoint(PointData(a_point=point.amplitude, a_frequency=point.frequency))
 
     def fill_fixed_step_combobox(self):
         values: List[float] = self.settings.fixed_step_list
@@ -156,7 +131,7 @@ class MeasureWindow(QtWidgets.QWidget):
         self.ui.save_point_button.clicked.connect(self.save_point)
         self.ui.go_to_point_button.clicked.connect(self.go_to_point)
         self.ui.delete_point_button.clicked.connect(self.delete_point)
-        self.remove_points.connect(self.measure_model.removeSelected)
+        self.remove_points.connect(self.measure_view.remove_selected)
 
         self.ui.rough_plus_button.clicked.connect(self.rough_plus_button_clicked)
         self.ui.rough_minus_button.clicked.connect(self.rough_minus_button_clicked)
@@ -218,15 +193,15 @@ class MeasureWindow(QtWidgets.QWidget):
             if self.calibrator.signal_type != self.measure_config.signal_type:
                 self.calibrator.signal_type = self.measure_config.signal_type
 
-    def keyPressEvent(self, event: QtGui.QKeyEvent):
-        if self.ui.measure_table.hasFocus():
-            key = event.key()
-            if key == Qt.Key_Return or key == Qt.Key_Enter:
-                rows: List[QModelIndex] = self.get_selected_rows()
-                if rows:
-                    self.ui.measure_table.edit(rows[0])
-        else:
-            event.accept()
+    # def keyPressEvent(self, event: QtGui.QKeyEvent):
+    #     if self.ui.measure_table.hasFocus():
+    #         key = event.key()
+    #         if key == Qt.Key_Return or key == Qt.Key_Enter:
+    #             rows: List[QModelIndex] = self.get_selected_rows()
+    #             if rows:
+    #                 self.ui.measure_table.edit(rows[0])
+    #     else:
+    #         event.accept()
 
     def wheelEvent(self, event: QWheelEvent):
         if not (self.ui.measure_table.underMouse() and self.settings.disable_scroll_on_table):
@@ -252,15 +227,6 @@ class MeasureWindow(QtWidgets.QWidget):
 
         self.amplitude_edit_text_changed()
         self.update_current_point(self.calibrator.amplitude)
-
-    def set_amplitude_soft(self):
-        try:
-            if self.soft_approach_points:
-                self.set_amplitude(self.soft_approach_points.pop(0))
-            else:
-                self.soft_approach_timer.stop()
-        except AssertionError as err:
-            print(err)
 
     def set_frequency(self, a_frequency):
         self.calibrator.frequency = a_frequency
@@ -325,8 +291,9 @@ class MeasureWindow(QtWidgets.QWidget):
     def save_point(self):
         if self.clb_state != clb.State.WAITING_SIGNAL:
             try:
-                if self.measure_model.isPointGood(self.current_point.point, self.current_point.frequency,
-                                                  self.current_point.approach_side):
+                if self.measure_view.is_point_good(self.current_point.point, self.current_point.frequency,
+                                                   self.current_point.approach_side):
+
                     side_text = "СНИЗУ" if self.current_point.approach_side == PointData.ApproachSide.DOWN \
                         else "СВЕРХУ"
 
@@ -339,20 +306,17 @@ class MeasureWindow(QtWidgets.QWidget):
                                                  f"Перезаписать значение {side_text} для точки {point_text}?",
                                                  QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
                     if reply == QMessageBox.Yes:
-                        self.update_table(self.current_point)
+                        self.measure_view.append(self.current_point)
                 else:
                     if self.clb_state == clb.State.READY:
-                        self.update_table(self.current_point)
+                        self.measure_view.append(self.current_point)
                     else:
-                        self.update_table(PointData(a_point=self.current_point.point))
+                        self.measure_view.append(PointData(a_point=self.current_point.point,
+                                                           a_frequency=self.current_point.frequency))
             except AssertionError as err:
                 print(err)
         else:
             self.clb_not_ready_warning()
-
-    def update_table(self, a_point: PointData):
-        point_row = self.measure_model.appendPoint(a_point)
-        self.ui.measure_table.selectRow(point_row)
 
     def clb_not_ready_warning(self):
         QtWidgets.QApplication.beep()
@@ -360,43 +324,52 @@ class MeasureWindow(QtWidgets.QWidget):
         self.warning_animation.start()
 
     def go_to_point(self):
-        rows = self.get_selected_rows()
+        rows = self.measure_view.get_selected_rows()
         if rows:
             row_idx = rows[0].row()
-            measured_up = self.measure_model.isPointMeasured(row_idx, PointData.ApproachSide.UP)
-            measured_down = self.measure_model.isPointMeasured(row_idx, PointData.ApproachSide.DOWN)
+            target_amplitude = utils.parse_input(self.measure_view.get_point_by_row(row_idx))
 
-            target_amplitude = self.measure_model.getPointByRow(row_idx)
+            if target_amplitude != self.calibrator.amplitude:
+                measured_up = self.measure_view.is_point_measured(row_idx, PointData.ApproachSide.UP)
+                measured_down = self.measure_view.is_point_measured(row_idx, PointData.ApproachSide.DOWN)
 
-            if measured_down == measured_up:
-                # Точка измерена полностью либо совсем не измерена, подходим с ближайшей стороны
-                if self.calibrator.amplitude > target_amplitude:
-                    target_amplitude = utils.increase_by_percent(target_amplitude, self.settings.start_deviation,
-                                                                 a_normalize_value=self.measure_config.upper_bound)
+                if measured_down == measured_up:
+                    # Точка измерена полностью либо совсем не измерена, подходим с ближайшей стороны
+                    if self.calibrator.amplitude > target_amplitude:
+                        change_value_foo = utils.increase_by_percent
+                    else:
+                        change_value_foo = utils.decrease_by_percent
                 else:
-                    target_amplitude = utils.decrease_by_percent(target_amplitude, self.settings.start_deviation,
-                                                                 a_normalize_value=self.measure_config.upper_bound)
-            else:
-                if measured_up:
-                    target_amplitude = utils.decrease_by_percent(target_amplitude, self.settings.start_deviation,
-                                                                 a_normalize_value=self.measure_config.upper_bound)
-                else:
-                    target_amplitude = utils.increase_by_percent(target_amplitude, self.settings.start_deviation,
-                                                                 a_normalize_value=self.measure_config.upper_bound)
+                    if measured_up:
+                        change_value_foo = utils.decrease_by_percent
+                    else:
+                        change_value_foo = utils.increase_by_percent
 
-            target_amplitude = self.calibrator.limit_amplitude(target_amplitude, self.lowest_amplitude,
-                                                               self.highest_amplitude)
+                target_amplitude = change_value_foo(target_amplitude, self.settings.start_deviation,
+                                                    a_normalize_value=self.measure_config.upper_bound)
 
-            if self.calibrator.signal_enable:
-                points_count = int((self.soft_approach_time_s * 1000) // self.next_soft_point_time_ms)
-                self.soft_approach_points = utils.calc_smooth_approach(a_from=self.calibrator.amplitude,
-                                                                       a_to=target_amplitude,
-                                                                       a_count=points_count,
-                                                                       a_dt=self.next_soft_point_time_ms,
-                                                                       sigma=0.001)
-                self.soft_approach_timer.start(self.next_soft_point_time_ms)
+                target_amplitude = self.calibrator.limit_amplitude(target_amplitude, self.lowest_amplitude,
+                                                                   self.highest_amplitude)
+                self.start_approach_to_point(target_amplitude)
+
+    def start_approach_to_point(self, a_point):
+        if self.calibrator.signal_enable:
+            points_count = int((self.soft_approach_time_s * 1000) // self.next_soft_point_time_ms)
+            self.soft_approach_points = utils.calc_smooth_approach(a_from=self.calibrator.amplitude, a_to=a_point,
+                                                                   a_count=points_count, sigma=0.001,
+                                                                   a_dt=self.next_soft_point_time_ms)
+            self.soft_approach_timer.start(self.next_soft_point_time_ms)
+        else:
+            self.set_amplitude(a_point)
+
+    def set_amplitude_soft(self):
+        try:
+            if self.soft_approach_points:
+                self.set_amplitude(self.soft_approach_points.pop(0))
             else:
-                self.set_amplitude(target_amplitude)
+                self.soft_approach_timer.stop()
+        except AssertionError as err:
+            print(err)
 
     def guess_point(self, a_point_value: float):
         if self.measure_config.minimal_discrete == 0:
@@ -405,15 +378,15 @@ class MeasureWindow(QtWidgets.QWidget):
             return round(a_point_value / self.measure_config.minimal_discrete) * self.measure_config.minimal_discrete
 
     def delete_point(self):
-        rows = self.get_selected_rows()
+        rows = self.measure_view.get_selected_rows()
         if rows:
             row_indexes = []
             deleted_points = ""
             for index_model in rows:
-                point_str = self.get_table_item_by_index(index_model.row(), MeasureModel.Column.POINT)
+                point_str = self.measure_view.get_point_by_row(index_model.row())
                 deleted_points += f"\n{point_str}"
                 if clb.is_ac_signal[self.measure_config.signal_type]:
-                    freq = self.get_table_item_by_index(index_model.row(), MeasureModel.Column.FREQUENCY)
+                    freq = self.measure_view.get_frequency_by_row(index_model.row())
                     deleted_points += f" : {utils.float_to_string(float(freq))} Гц"
 
                 row_indexes.append(index_model.row())
@@ -422,14 +395,6 @@ class MeasureWindow(QtWidgets.QWidget):
                                          deleted_points, QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
             if reply == QMessageBox.Yes:
                 self.remove_points.emit(row_indexes)
-
-    def get_selected_rows(self) -> List[QModelIndex]:
-        return self.ui.measure_table.selectionModel().selectedRows()
-
-    def get_table_item_by_index(self, a_row: int, a_column: int):
-        index = self.measure_model.index(a_row, a_column)
-        data = self.measure_model.data(index)
-        return str(data)
 
     @pyqtSlot()
     def amplitude_edit_text_changed(self):
@@ -514,10 +479,6 @@ class MeasureWindow(QtWidgets.QWidget):
         except ValueError:
             self.fixed_step = 0
 
-    @pyqtSlot(bool, int)
-    def hide_selected_table_column(self, a_state, a_column):
-        self.ui.measure_table.setColumnHidden(a_column, not a_state)
-
     @pyqtSlot()
     def check_fixed_range(self):
         if self.calibrator.mode == clb.Mode.FIXED_RANGE and self.calibrator.amplitude == self.highest_amplitude:
@@ -529,6 +490,8 @@ class MeasureWindow(QtWidgets.QWidget):
             edit_template_params_dialog = EditMeasureParamsDialog(self.settings, self.measure_config,
                                                                   self.db_connection, self.db_tables, self)
             edit_template_params_dialog.exec()
+
+            self.measure_view.set_device_class(self.measure_config.device_class)
         except AssertionError as err:
             utils.exception_handler(err)
 
@@ -539,14 +502,13 @@ class MeasureWindow(QtWidgets.QWidget):
             if reply == QMessageBox.Yes:
                 self.calibrator.signal_enable = False
                 if self.started:
-                    self.measures_db.save(self.measure_config, self.measure_model.exportPoints())
+                    self.measure_config.points = self.measure_view.export_points()
+                    self.measures_db.save(self.measure_config, True)
                 else:
                     self.measures_db.delete(self.measure_config.id)
 
                 self.save_settings()
-
-                # Без этого диалог не уничтожится
-                self.header_context.delete_connections()
+                self.measure_view.close()
 
                 self.close_confirmed.emit()
         except AssertionError as err:

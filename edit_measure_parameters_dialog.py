@@ -15,6 +15,7 @@ class EditMeasureParamsDialog(QtWidgets.QDialog):
 
         self.ui = EditMeasureParamsForm()
         self.ui.setupUi(self)
+        self.ui.default_button.setHidden(True)
 
         self.settings = a_settings
         self.restoreGeometry(self.settings.get_last_geometry(self.__class__.__name__))

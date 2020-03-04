@@ -6,9 +6,8 @@ import sqlite3
 from variable_template_fields_dialog import VariableTemplateParams
 from new_fast_measure_dialog import FastMeasureParams
 from db_templates import TemplateParams
-from constants import DeviceSystem
+from constants import DeviceSystem, MeasuredPoint
 import calibrator_constants as clb
-from constants import Point
 
 MeasureTables = namedtuple("MeasureDB", ["marks_table", "mark_values_table", "measures_table", "results_table",
                                          "system_table", "signal_type_table"])
@@ -51,7 +50,7 @@ class MeasureParams:
     def __init__(self, a_id=0, a_organisation="", a_etalon_device="", a_device_name="",
                  a_device_creator="", a_device_system=DeviceSystem.MAGNETOELECTRIC, a_signal_type=clb.SignalType.ACI,
                  a_device_class=0.05, a_owner="", a_user="", a_serial_num="", a_date="", a_time="", a_comment="",
-                 a_minimal_discrete=0., a_upper_bound=None, a_lower_bound=None, a_points: List[Point] = None):
+                 a_minimal_discrete=0., a_upper_bound=None, a_lower_bound=None, a_points: List[MeasuredPoint] = None):
         self.id = a_id
         self.organisation = a_organisation
         self.etalon_device = a_etalon_device
@@ -67,7 +66,7 @@ class MeasureParams:
         self.date = a_date
         self.time = a_time
 
-        self.points: List[Point] = a_points if a_points is not None else []
+        self.points: List[MeasuredPoint] = a_points if a_points is not None else []
 
         self.comment = a_comment
         self.minimal_discrete = a_minimal_discrete
@@ -85,8 +84,8 @@ class MeasureParams:
 
     @classmethod
     def fromFastParams(cls, a_params: FastMeasureParams):
-        points = [Point(amplitude=float(p), frequency=float(f))
-                  for f in a_params.frequency for p in a_params.amplitudes]
+        points = [MeasuredPoint(amplitude=float(p), frequency=clb.bound_frequency(float(f), a_params.signal_type),
+                                up_value=0, down_value=0) for f in a_params.frequency for p in a_params.amplitudes]
 
         return cls(a_etalon_device="Калибратор N4-25", a_signal_type=a_params.signal_type,
                    a_minimal_discrete=a_params.minimal_discrete, a_device_class=a_params.accuracy_class,
@@ -95,12 +94,10 @@ class MeasureParams:
 
     @classmethod
     def fromTemplate(cls, a_params: TemplateParams, a_var_params: VariableTemplateParams):
-        points = [Point(amplitude=float(p), frequency=float(f)) for p, f in a_params.points]
-
         return cls(a_organisation=a_params.organisation, a_etalon_device=a_params.etalon_device,
                    a_device_name=a_params.device_name, a_device_creator=a_params.device_creator,
                    a_device_system=a_params.device_system, a_signal_type=a_params.signal_type,
-                   a_device_class=a_params.device_class, a_points=points, a_owner=a_var_params.owner,
+                   a_device_class=a_params.device_class, a_points=a_params.points, a_owner=a_var_params.owner,
                    a_user=a_var_params.user_name, a_date=a_var_params.date, a_time=a_var_params.time,
                    a_serial_num=a_var_params.serial_num)
 
@@ -125,7 +122,7 @@ class MeasuresDB:
                                 f"where default_value != ''")
         return measure_id
 
-    def get(self, a_id: int):
+    def get(self, a_id: int) -> MeasureParams:
         self.cursor.execute(f"select point, frequency, up_value, down_value from {self.results_table} "
                             f"where measure_id={a_id}")
         points: list = self.cursor.fetchall()
@@ -147,9 +144,11 @@ class MeasuresDB:
                              a_user=measure_data[MeasureColumn.USER],
                              a_organisation=measure_data[MeasureColumn.ORGANISATION],
                              a_etalon_device=measure_data[MeasureColumn.ETALON_DEVICE],
-                             a_device_creator=measure_data[MeasureColumn.DEVICE_CREATOR]), points
+                             a_device_creator=measure_data[MeasureColumn.DEVICE_CREATOR],
+                             a_points=[MeasuredPoint(amplitude=a, frequency=f, up_value=up_v, down_value=down_v)
+                                       for a, f, up_v, down_v in points])
 
-    def save(self, a_params: MeasureParams, points_data: List[List] = None):
+    def save(self, a_params: MeasureParams, a_save_points: bool):
         assert self.is_measure_exist(a_params.id), "Row for saved measure must exist!"
         with self.connection:
             self.cursor.execute(f"update {self.measure_table} set organisation = ?, etalon_device = ?,"
@@ -160,9 +159,9 @@ class MeasuresDB:
                                  a_params.device_creator, a_params.device_system, a_params.signal_type,
                                  a_params.device_class, a_params.serial_num, a_params.comment, a_params.owner,
                                  a_params.user, ' '.join([a_params.date, a_params.time])))
-            if points_data is not None:
+            if a_save_points:
                 self.cursor.executemany(f"insert into {self.results_table} (point, frequency, up_value, down_value, "
-                                        f"measure_id) values (?, ?, ?, ?, {a_params.id})", points_data)
+                                        f"measure_id) values (?, ?, ?, ?, {a_params.id})", a_params.points)
 
     def delete(self, a_id: int):
         assert self.is_measure_exist(a_id), "deleted id must exist!"

@@ -4,6 +4,7 @@ from typing import List
 from PyQt5.QtCore import QAbstractTableModel, QModelIndex, Qt, QVariant, pyqtSlot
 from PyQt5.QtGui import QBrush, QColor
 
+from constants import MeasuredPoint
 import calibrator_constants as clb
 import utils
 
@@ -67,7 +68,8 @@ class MeasureModel(QAbstractTableModel):
         PointData.ApproachSide.UP: Column.UP_DEVIATION_PERCENT
     }
 
-    def __init__(self, a_normalize_value, a_error_limit, a_signal_type, a_init_points=None, a_parent=None):
+    def __init__(self, a_normalize_value, a_error_limit, a_signal_type, a_init_points: List[MeasuredPoint],
+                 a_parent=None):
         super().__init__(a_parent)
 
         self.__row_count = 0
@@ -83,13 +85,15 @@ class MeasureModel(QAbstractTableModel):
         self.__good_color = QColor(0, 255, 0, 127)
         self.__bad_color = QColor(255, 0, 0, 127)
 
-        if a_init_points is not None:
+        assert a_init_points is not None, "a_init_points must not be None!"
+
+        if a_init_points:
             # Формат a_init_points - кортеж, который формируется в self.exportPoints
-            for init_point in a_init_points:
-                self.appendPoint(PointData(a_point=init_point[0], a_frequency=init_point[1], a_value=init_point[2],
+            for a, f, up_v, down_v in a_init_points:
+                self.appendPoint(PointData(a_point=a, a_frequency=f, a_value=up_v,
                                            a_approach_side=PointData.ApproachSide.UP))
 
-                self.appendPoint(PointData(a_point=init_point[0], a_frequency=init_point[1], a_value=init_point[3],
+                self.appendPoint(PointData(a_point=a, a_frequency=f, a_value=down_v,
                                            a_approach_side=PointData.ApproachSide.DOWN))
 
     def appendPoint(self, a_point_data: PointData) -> int:
@@ -109,7 +113,7 @@ class MeasureModel(QAbstractTableModel):
 
         value_column = self.__side_to_value_column[a_point_data.approach_side]
         self.setData(self.index(point_row, value_column), str(a_point_data.value))
-        self.__recalculate_parameters(point_row, a_point_data.approach_side, a_point_data.point, a_point_data.value)
+        self.__recalculate_parameters(point_row, a_point_data.approach_side)
         return point_row
 
     def getPointByRow(self, a_row_idx):
@@ -118,22 +122,24 @@ class MeasureModel(QAbstractTableModel):
         else:
             return self.__points[a_row_idx][self.Column.POINT]
 
-    def exportPoints(self):
-        exported_points = [(row[MeasureModel.Column.POINT], row[MeasureModel.Column.FREQUENCY],
-                            row[MeasureModel.Column.UP_VALUE], row[MeasureModel.Column.DOWN_VALUE])
+    def exportPoints(self) -> List[MeasuredPoint]:
+        exported_points = [MeasuredPoint(amplitude=row[MeasureModel.Column.POINT],
+                                         frequency=row[MeasureModel.Column.FREQUENCY],
+                                         up_value=row[MeasureModel.Column.UP_VALUE],
+                                         down_value=row[MeasureModel.Column.DOWN_VALUE])
                            for row in self.__points]
         return exported_points
 
-    def isPointGood(self, a_point: float, a_freqyency: float, a_approach_side: PointData.ApproachSide) -> bool:
+    def isPointGood(self, a_point: float, a_frequency: float, a_approach_side: PointData.ApproachSide) -> bool:
         """
         Проверяет, есть ли точка в массиве, если точка есть, то проверяет ее состояние (входит в погрешность или нет)
         Если точки нет, или она не входит в погрешность, возвращает False, иначе возвращает True
-        :param a_freqyency: Частота точки
+        :param a_frequency: Частота точки
         :param a_approach_side: Сторона подхода к точке
         :param a_point: Значение точки
         :return: bool
         """
-        row_idx = self.__find_point(a_point, a_freqyency)
+        row_idx = self.__find_point(a_point, a_frequency)
         if row_idx is None:
             return False
         else:
@@ -175,13 +181,15 @@ class MeasureModel(QAbstractTableModel):
         else:
             return QVariant(QBrush(QColor(Qt.white)))
 
-    def __recalculate_parameters(self, a_row_idx, a_approach_size: PointData.ApproachSide, a_point, a_value):
-        if a_point != 0 and a_value == 0:
+    def __recalculate_parameters(self, a_row_idx, a_approach_size: PointData.ApproachSide):
+        point = self.__points[a_row_idx][self.Column.POINT]
+        value = self.__points[a_row_idx][self.__side_to_value_column[a_approach_size]]
+        if point != 0 and value == 0:
             # Если точка добавлена в таблицу, но еще не измерена
             return
 
-        absolute_error = utils.absolute_error(a_point, a_value)
-        relative_error = utils.relative_error(a_point, a_value, self.normalize_value)
+        absolute_error = utils.absolute_error(point, value)
+        relative_error = utils.relative_error(point, value, self.normalize_value)
 
         self.setData(self.index(a_row_idx, self.__side_to_error_column[a_approach_size]), str(absolute_error))
         self.setData(self.index(a_row_idx, self.__side_to_error_percent_column[a_approach_size]), str(relative_error))
@@ -190,6 +198,17 @@ class MeasureModel(QAbstractTableModel):
         up_value = self.__points[a_row_idx][self.Column.UP_VALUE]
         if (down_value != 0) and (up_value != 0):
             self.setData(self.index(a_row_idx, self.Column.VARIATION), str(utils.variation(down_value, up_value)))
+
+    def set_device_class(self, a_class: float):
+        self.error_limit = a_class
+        for row in range(self.rowCount()):
+            self.__recalculate_parameters(row, PointData.ApproachSide.UP)
+            self.__recalculate_parameters(row, PointData.ApproachSide.DOWN)
+
+        self.dataChanged.emit(self.index(0, MeasureModel.Column.DOWN_VALUE),
+                              self.index(self.rowCount(), MeasureModel.Column.DOWN_VALUE))
+        self.dataChanged.emit(self.index(0, MeasureModel.Column.UP_VALUE),
+                              self.index(self.rowCount(), MeasureModel.Column.UP_VALUE))
 
     def rowCount(self, parent=QModelIndex()):
         return len(self.__points)
@@ -236,22 +255,19 @@ class MeasureModel(QAbstractTableModel):
 
             if index.column() in (self.Column.POINT, self.Column.DOWN_VALUE, self.Column.UP_VALUE):
                 if index.column() != self.Column.DOWN_VALUE:
-                    self.__recalculate_parameters(index.row(), PointData.ApproachSide.UP,
-                                                  self.__points[index.row()][self.Column.POINT],
-                                                  self.__points[index.row()][self.Column.UP_VALUE])
+                    self.__recalculate_parameters(index.row(), PointData.ApproachSide.UP)
 
                 if index.column() != self.Column.UP_VALUE:
-                    self.__recalculate_parameters(index.row(), PointData.ApproachSide.DOWN,
-                                                  self.__points[index.row()][self.Column.POINT],
-                                                  self.__points[index.row()][self.Column.DOWN_VALUE])
+                    self.__recalculate_parameters(index.row(), PointData.ApproachSide.DOWN)
 
                 if index.column() == self.Column.POINT:
                     # Это нужно, чтобы цвета ячеек Нижнее значение и Верхнее значение обновлялись сразу после изменения
                     # ячейки Поверяемая точка
-                    self.dataChanged.emit(self.index(index.row(), self.Column.UP_VALUE),
-                                          self.index(index.row(), self.Column.UP_VALUE))
-                    self.dataChanged.emit(self.index(index.row(), self.Column.DOWN_VALUE),
-                                          self.index(index.row(), self.Column.DOWN_VALUE))
+                    up_value_index = self.index(index.row(), self.Column.UP_VALUE)
+                    down_value_index = self.index(index.row(), self.Column.DOWN_VALUE)
+
+                    self.dataChanged.emit(up_value_index, up_value_index)
+                    self.dataChanged.emit(down_value_index, down_value_index)
 
             return True
         except ValueError:
