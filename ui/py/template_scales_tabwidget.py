@@ -26,9 +26,11 @@ class Ui_Form(object):
 "    margin-right: 2px;\n"
 "    margin-left:0px;\n"
 "}\n"
-"QTabWidget::pane \n"
-"{ \n"
-"    border: 0; \n"
+"\n"
+"QTabWidget::pane {\n"
+"    margin-left: 10px;\n"
+"    margin-right: 10px;\n"
+"    margin-bottom: 10px;\n"
 "}")
         self.tabWidget.setDocumentMode(False)
         self.tabWidget.setTabsClosable(True)

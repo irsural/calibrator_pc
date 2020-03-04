@@ -1,5 +1,8 @@
 from enum import IntEnum
 from collections import namedtuple
+from typing import List
+
+from calibrator_constants import SignalType
 
 COPY_ICON_PATH = "./resources/icons/copy.png"
 PLAY_ICON_PATH = "./resources/icons/play.png"
@@ -29,3 +32,15 @@ enum_to_device_system = {
 class OperationDB(IntEnum):
     ADD = 0
     EDIT = 1
+
+
+class Scale:
+    class Limit:
+        def __init__(self, a_limit: float, a_device_class: float, a_signal_type: SignalType):
+            self.limit = a_limit
+            self.signal_type = a_signal_type
+            self.device_class = a_device_class
+
+    def __init__(self, a_scale_points: List[float] = None, a_limits: List[Limit] = None):
+        self.points: List[float] = a_scale_points if a_scale_points is not None else []
+        self.limits: List[Scale.Limit] = a_limits if a_limits is not None else []

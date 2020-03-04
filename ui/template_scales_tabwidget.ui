@@ -39,9 +39,11 @@
 	margin-right: 2px;
 	margin-left:0px;
 }
-QTabWidget::pane 
-{ 
-	border: 0; 
+
+QTabWidget::pane {
+	margin-left: 10px;
+	margin-right: 10px;
+	margin-bottom: 10px;
 }</string>
      </property>
      <property name="currentIndex">

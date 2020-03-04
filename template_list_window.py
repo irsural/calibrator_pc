@@ -6,10 +6,11 @@ from PyQt5.QtCore import pyqtSignal, pyqtSlot
 from variable_template_fields_dialog import VariableTemplateFieldsDialog, VariableTemplateParams
 from ui.py.template_list_form import Ui_Dialog as TemplateListForm
 from custom_widgets.QTableDelegates import TableEditDoubleClick
+from template_scales_widget import ScalesWidget
 from db_templates import TemplateParams, TemplatesDB
+from constants import OperationDB, MeasuredPoint
 from settings_ini_parser import Settings
 import calibrator_constants as clb
-from constants import OperationDB, MeasuredPoint
 import qt_utils
 import utils
 
@@ -24,6 +25,9 @@ class TemplateListWindow(QtWidgets.QDialog):
         self.ui.setupUi(self)
         self.ui.template_params_widget.setDisabled(True)
 
+        self.scales_widget = ScalesWidget(self)
+        self.ui.scales_layout.addWidget(self.scales_widget)
+
         self.settings = a_settings
         self.restoreGeometry(self.settings.get_last_geometry(self.__class__.__name__))
 
@@ -35,12 +39,12 @@ class TemplateListWindow(QtWidgets.QDialog):
         for name in self.templates_db:
             self.ui.templates_list.addItem(name)
 
-        self.points_table = PointsDataTable(self.ui.signal_type_combobox.currentIndex(), self.ui.points_table)
-        self.points_table.restore_header_state(self.settings.get_last_header_state(self.__class__.__name__))
+        self.points_table = PointsDataTable(self.ui.signal_type_combobox.currentIndex(), None)#, self.ui.points_table)
+        # self.points_table.restore_header_state(self.settings.get_last_header_state(self.__class__.__name__))
 
-        self.ui.signal_type_combobox.currentIndexChanged.connect(self.points_table.set_signal_type)
-        self.ui.add_point_button.clicked.connect(self.points_table.append_point)
-        self.ui.remove_point_button.clicked.connect(self.points_table.delete_selected_points)
+        # self.ui.signal_type_combobox.currentIndexChanged.connect(self.points_table.set_signal_type)
+        # self.ui.add_point_button.clicked.connect(self.points_table.append_point)
+        # self.ui.remove_point_button.clicked.connect(self.points_table.delete_selected_points)
 
         self.ui.add_template_button.clicked.connect(self.create_new_template)
         self.ui.edit_template_button.clicked.connect(self.edit_template)
@@ -114,7 +118,7 @@ class TemplateListWindow(QtWidgets.QDialog):
         self.ui.signal_type_combobox.setCurrentIndex(a_template_params.signal_type)
         self.ui.class_spinbox.setValue(a_template_params.device_class)
 
-        self.points_table.reset(a_template_params.points)
+        # self.points_table.reset(a_template_params.points)
 
     # noinspection DuplicatedCode
     def fill_template_info_to_db(self):
@@ -126,7 +130,7 @@ class TemplateListWindow(QtWidgets.QDialog):
         self.current_template.signal_type = self.ui.signal_type_combobox.currentIndex()
         self.current_template.device_class = self.ui.class_spinbox.value()
 
-        self.current_template.points = self.points_table.get_points()
+        # self.current_template.points = self.points_table.get_points()
 
     @pyqtSlot()
     def create_new_template(self, a_template_params=None):
@@ -165,7 +169,7 @@ class TemplateListWindow(QtWidgets.QDialog):
         self.prev_template_name = self.current_template.name
         self.activate_edit_template()
 
-        self.points_table.clear_points_edited_state()
+        # self.points_table.clear_points_edited_state()
 
     @pyqtSlot()
     def save_template(self):
@@ -232,7 +236,7 @@ class TemplateListWindow(QtWidgets.QDialog):
 
     def closeEvent(self, a_event: QtGui.QCloseEvent) -> None:
         self.settings.save_geometry(self.__class__.__name__, self.saveGeometry())
-        self.settings.save_header_state(self.__class__.__name__, self.points_table.get_header_state())
+        # self.settings.save_header_state(self.__class__.__name__, self.points_table.get_header_state())
         a_event.accept()
 
 
@@ -242,6 +246,7 @@ class PointsDataTable:
         FREQUENCY = 1
 
     def __init__(self, a_signal_type: clb.SignalType, a_table_widget: QtWidgets.QTableWidget):
+        return
         self.table: QtWidgets.QTableWidget = a_table_widget
         self.table.setItemDelegate(TableEditDoubleClick(self.table))
 

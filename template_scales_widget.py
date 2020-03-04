@@ -3,6 +3,7 @@ ui_to_py.convert_ui("./ui", "./ui/py")
 ui_to_py.convert_resources("./resources", "./resources/py")
 
 from enum import IntEnum
+from typing import List, Union
 import sys
 
 from PyQt5 import QtCore, QtWidgets, QtGui
@@ -10,9 +11,12 @@ from PyQt5 import QtCore, QtWidgets, QtGui
 
 from ui.py.template_scales_tabwidget import Ui_Form as ScalesWidgetForm
 from custom_widgets.EditListDialog import EditedListOnlyNumbers
+from scale_limits_dialog import ScaleLimitsDialog
+import constants as cfg
 import calibrator_constants as clb
 import qt_utils
 import utils
+
 
 
 class ScalesWidget(QtWidgets.QWidget):
@@ -25,6 +29,8 @@ class ScalesWidget(QtWidgets.QWidget):
         self.ui = ScalesWidgetForm()
         self.ui.setupUi(self)
         self.parent = a_parent
+
+        self.scale_limits: dict = {}
 
         self.set_up_tab_widget()
         self.add_new_tab()
@@ -47,10 +53,13 @@ class ScalesWidget(QtWidgets.QWidget):
 
     def add_new_tab(self, a_init_items=()):
         try:
-            config_scale_button = QtWidgets.QPushButton("Пределы шкалы", self)
+            config_scale_button = QtWidgets.QPushButton("Пределы", self)
             config_scale_button.clicked.connect(self.edit_scale_limits)
             scale_list = EditedListOnlyNumbers(parent=self, a_init_items=a_init_items,
                                                a_optional_widget=config_scale_button)
+
+            # Наверное это дерьмовая идея, но проще всего привязать Пределы к виджету
+            self.scale_limits[scale_list] = [cfg.Scale.Limit(1, 1, clb.SignalType.ACI)]
 
             new_tab_index = self.ui.tabWidget.count() - 1
             self.ui.tabWidget.insertTab(new_tab_index, scale_list, str(self.ui.tabWidget.count()))
@@ -80,7 +89,25 @@ class ScalesWidget(QtWidgets.QWidget):
                 self.tab_removed.emit(a_idx)
 
     def edit_scale_limits(self):
-        print(self.ui.tabWidget.currentIndex())
+        try:
+            current_widget = self.ui.tabWidget.currentWidget()
+            limits: List[cfg.Scale.Limit] = self.scale_limits[current_widget]
+
+            scale_limits_dialog = ScaleLimitsDialog(limits)
+            new_limits = scale_limits_dialog.exec_and_get_limits()
+            if new_limits is not None:
+                self.scale_limits[current_widget] = new_limits
+        except Exception as err:
+            utils.exception_handler(err)
+
+    def get_scales(self) -> List[cfg.Scale]:
+        scales = [self.get_scale_by_tab_idx(tab_idx) for tab_idx in range(self.ui.tabWidget.count() - 1)]
+        return scales
+
+    def get_scale_by_tab_idx(self, a_tab_idx):
+        scale_points_list: EditedListOnlyNumbers = self.ui.tabWidget.widget(a_tab_idx)
+
+        return cfg.Scale(a_scale_points=scale_points_list.get_list())
 
     def closeEvent(self, a_event: QtGui.QCloseEvent) -> None:
         pass
@@ -91,5 +118,3 @@ if __name__ == "__main__":
     w = ScalesWidget()
     w.show()
     sys.exit(app.exec())
-
-
