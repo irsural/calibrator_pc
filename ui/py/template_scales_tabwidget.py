@@ -18,7 +18,7 @@ class Ui_Form(object):
         font.setPointSize(10)
         Form.setFont(font)
         self.verticalLayout = QtWidgets.QVBoxLayout(Form)
-        self.verticalLayout.setContentsMargins(0, 0, 0, 0)
+        self.verticalLayout.setContentsMargins(0, 5, 0, 0)
         self.verticalLayout.setObjectName("verticalLayout")
         self.tabWidget = QtWidgets.QTabWidget(Form)
         self.tabWidget.setStyleSheet("QTabBar::tab::last\n"
