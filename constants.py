@@ -36,8 +36,10 @@ class OperationDB(IntEnum):
 
 class Scale:
     class Limit:
-        def __init__(self, a_limit: float = 1, a_device_class: float = 1, a_signal_type: SignalType = SignalType.ACI,
-                     a_frequency: str = ""):
+        def __init__(self, a_id, a_number, a_limit: float = 1, a_device_class: float = 1,
+                     a_signal_type: SignalType = SignalType.ACI, a_frequency: str = ""):
+            self.id = a_id
+            self.number = a_number
             self.limit = a_limit
             self.signal_type = a_signal_type
             self.device_class = a_device_class
@@ -52,7 +54,8 @@ class Scale:
         def __str__(self):
             return f"{self.limit}, {self.signal_type}, {self.device_class}"
 
-    def __init__(self, a_scale_points: List[float] = None, a_limits: List[Limit] = None):
+    def __init__(self, a_id, a_scale_points: List[float] = None, a_limits: List[Limit] = None):
+        self.id = a_id
         self.points: List[float] = a_scale_points if a_scale_points is not None else []
         self.limits: List[Scale.Limit] = a_limits if a_limits is not None else []
 

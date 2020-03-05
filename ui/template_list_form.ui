@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>544</width>
-    <height>382</height>
+    <width>535</width>
+    <height>335</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -180,61 +180,7 @@ selection-background-color: rgb(170, 170, 255);</string>
              <property name="bottomMargin">
               <number>0</number>
              </property>
-             <item row="5" column="0" colspan="2">
-              <widget class="QLabel" name="label_7">
-               <property name="text">
-                <string>Средство поверки</string>
-               </property>
-              </widget>
-             </item>
-             <item row="2" column="0" colspan="2">
-              <widget class="QLineEdit" name="template_name_edit"/>
-             </item>
-             <item row="14" column="1">
-              <widget class="QLabel" name="label">
-               <property name="text">
-                <string>Класс</string>
-               </property>
-              </widget>
-             </item>
-             <item row="12" column="0" colspan="2">
-              <widget class="QLabel" name="label_2">
-               <property name="text">
-                <string>Система прибора</string>
-               </property>
-              </widget>
-             </item>
-             <item row="8" column="0" colspan="2">
-              <widget class="QLineEdit" name="device_name_edit"/>
-             </item>
-             <item row="11" column="0" colspan="2">
-              <widget class="QLineEdit" name="device_creator_edit"/>
-             </item>
-             <item row="3" column="0" colspan="2">
-              <widget class="QLabel" name="label_13">
-               <property name="text">
-                <string>Организация-поверитель</string>
-               </property>
-              </widget>
-             </item>
-             <item row="4" column="0" colspan="2">
-              <widget class="QLineEdit" name="organisation_edit">
-               <property name="text">
-                <string/>
-               </property>
-               <property name="readOnly">
-                <bool>false</bool>
-               </property>
-              </widget>
-             </item>
-             <item row="7" column="0" colspan="2">
-              <widget class="QLabel" name="label_4">
-               <property name="text">
-                <string>Наименование прибора</string>
-               </property>
-              </widget>
-             </item>
-             <item row="13" column="0" colspan="2">
+             <item row="9" column="0" colspan="2">
               <widget class="QComboBox" name="device_system_combobox">
                <item>
                 <property name="text">
@@ -253,67 +199,14 @@ selection-background-color: rgb(170, 170, 255);</string>
                </item>
               </widget>
              </item>
-             <item row="14" column="0">
-              <widget class="QLabel" name="label_8">
+             <item row="4" column="0" colspan="2">
+              <widget class="QLineEdit" name="device_name_edit"/>
+             </item>
+             <item row="3" column="0" colspan="2">
+              <widget class="QLabel" name="label_4">
                <property name="text">
-                <string>Род тока</string>
+                <string>Наименование прибора</string>
                </property>
-              </widget>
-             </item>
-             <item row="10" column="0" colspan="2">
-              <widget class="QLabel" name="label_5">
-               <property name="text">
-                <string>Изготовитель прибора</string>
-               </property>
-              </widget>
-             </item>
-             <item row="15" column="1">
-              <widget class="QDoubleSpinBox" name="class_spinbox">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="decimals">
-                <number>4</number>
-               </property>
-               <property name="minimum">
-                <double>0.001000000000000</double>
-               </property>
-               <property name="maximum">
-                <double>10.000000000000000</double>
-               </property>
-               <property name="singleStep">
-                <double>0.050000000000000</double>
-               </property>
-               <property name="value">
-                <double>1.500000000000000</double>
-               </property>
-              </widget>
-             </item>
-             <item row="15" column="0">
-              <widget class="QComboBox" name="signal_type_combobox">
-               <item>
-                <property name="text">
-                 <string>I~</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>U~</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>I=</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>U=</string>
-                </property>
-               </item>
               </widget>
              </item>
              <item row="1" column="0" colspan="2">
@@ -324,14 +217,37 @@ selection-background-color: rgb(170, 170, 255);</string>
               </widget>
              </item>
              <item row="6" column="0" colspan="2">
-              <widget class="QLineEdit" name="etalon_device_edit">
+              <widget class="QLabel" name="label_5">
                <property name="text">
-                <string>Калибратор N4-25</string>
-               </property>
-               <property name="readOnly">
-                <bool>false</bool>
+                <string>Изготовитель прибора</string>
                </property>
               </widget>
+             </item>
+             <item row="2" column="0" colspan="2">
+              <widget class="QLineEdit" name="template_name_edit"/>
+             </item>
+             <item row="8" column="0" colspan="2">
+              <widget class="QLabel" name="label_2">
+               <property name="text">
+                <string>Система прибора</string>
+               </property>
+              </widget>
+             </item>
+             <item row="7" column="0" colspan="2">
+              <widget class="QLineEdit" name="device_creator_edit"/>
+             </item>
+             <item row="10" column="0" colspan="2">
+              <spacer name="verticalSpacer">
+               <property name="orientation">
+                <enum>Qt::Vertical</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>20</width>
+                 <height>40</height>
+                </size>
+               </property>
+              </spacer>
              </item>
             </layout>
            </widget>
@@ -449,13 +365,9 @@ selection-background-color: rgb(170, 170, 255);</string>
   <tabstop>filter_edit</tabstop>
   <tabstop>templates_list</tabstop>
   <tabstop>template_name_edit</tabstop>
-  <tabstop>organisation_edit</tabstop>
-  <tabstop>etalon_device_edit</tabstop>
   <tabstop>device_name_edit</tabstop>
   <tabstop>device_creator_edit</tabstop>
   <tabstop>device_system_combobox</tabstop>
-  <tabstop>signal_type_combobox</tabstop>
-  <tabstop>class_spinbox</tabstop>
   <tabstop>choose_template_button</tabstop>
   <tabstop>save_template_button</tabstop>
   <tabstop>cancel_edit_template_button</tabstop>

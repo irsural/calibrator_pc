@@ -21,7 +21,7 @@ class ScalesWidget(QtWidgets.QWidget):
         self.ui.setupUi(self)
         self.parent = a_parent
 
-        self.scale_limits: dict = {}
+        # self.scale_limits: dict = {}
 
         self.set_up_tab_widget()
         self.add_new_tab()
@@ -42,6 +42,9 @@ class ScalesWidget(QtWidgets.QWidget):
     def plus_button_clicked(self):
         self.add_new_tab()
 
+    def append_scale(self, a_scale: cfg.Scale):
+        self.add_new_tab(a_scale.points)
+
     def add_new_tab(self, a_init_items=()):
         try:
             config_scale_button = QtWidgets.QPushButton("Пределы", self)
@@ -49,8 +52,7 @@ class ScalesWidget(QtWidgets.QWidget):
             scale_list = EditedListOnlyNumbers(parent=self, a_init_items=a_init_items,
                                                a_optional_widget=config_scale_button)
 
-            # Наверное это дерьмовая идея, но проще всего привязать Пределы к виджету
-            self.scale_limits[scale_list] = [cfg.Scale.Limit()]
+            # self.scale_limits[scale_list] = [cfg.Scale.Limit()]
 
             new_tab_index = self.ui.tabWidget.count() - 1
             self.ui.tabWidget.insertTab(new_tab_index, scale_list, str(self.ui.tabWidget.count()))
