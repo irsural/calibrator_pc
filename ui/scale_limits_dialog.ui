@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>343</width>
+    <width>437</width>
     <height>262</height>
    </rect>
   </property>
@@ -88,6 +88,9 @@ selection-background-color: rgb(170, 170, 255);</string>
        <property name="selectionBehavior">
         <enum>QAbstractItemView::SelectRows</enum>
        </property>
+       <attribute name="horizontalHeaderStretchLastSection">
+        <bool>true</bool>
+       </attribute>
        <column>
         <property name="text">
          <string>Предел</string>
@@ -103,6 +106,11 @@ selection-background-color: rgb(170, 170, 255);</string>
         <property name="text">
          <string>Тип
 сигнала</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>Частота, Гц</string>
         </property>
        </column>
       </widget>

@@ -159,6 +159,14 @@ class OkCancelDialog(QtWidgets.QDialog):
         self.ui = OkCancelForm()
         self.ui.setupUi(self)
         self.setWindowTitle(a_title)
+        self.main_widget = None
 
         self.ui.accept_button.clicked.connect(self.accept)
         self.ui.cancel_button.clicked.connect(self.reject)
+
+    def set_main_widget(self, a_widget: QtWidgets.QWidget):
+        self.main_widget = a_widget
+        self.ui.main_widget_layout.addWidget(self.main_widget)
+
+    def get_main_widget(self):
+        return self.main_widget

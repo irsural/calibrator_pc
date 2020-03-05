@@ -2,7 +2,7 @@ from enum import IntEnum
 from collections import namedtuple
 from typing import List
 
-from calibrator_constants import SignalType
+from calibrator_constants import SignalType, is_dc_signal
 
 COPY_ICON_PATH = "./resources/icons/copy.png"
 PLAY_ICON_PATH = "./resources/icons/play.png"
@@ -36,10 +36,18 @@ class OperationDB(IntEnum):
 
 class Scale:
     class Limit:
-        def __init__(self, a_limit: float = 1, a_device_class: float = 1, a_signal_type: SignalType = SignalType.ACI):
+        def __init__(self, a_limit: float = 1, a_device_class: float = 1, a_signal_type: SignalType = SignalType.ACI,
+                     a_frequency: str = ""):
             self.limit = a_limit
             self.signal_type = a_signal_type
             self.device_class = a_device_class
+
+            if a_frequency is not None:
+                self.frequency = a_frequency
+            elif is_dc_signal[a_signal_type]:
+                self.frequency = "0"
+            else:
+                self.frequency = "50"
 
         def __str__(self):
             return f"{self.limit}, {self.signal_type}, {self.device_class}"

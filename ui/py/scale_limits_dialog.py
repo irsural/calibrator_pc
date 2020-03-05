@@ -13,7 +13,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_Dialog(object):
     def setupUi(self, Dialog):
         Dialog.setObjectName("Dialog")
-        Dialog.resize(343, 262)
+        Dialog.resize(437, 262)
         self.verticalLayout = QtWidgets.QVBoxLayout(Dialog)
         self.verticalLayout.setObjectName("verticalLayout")
         self.horizontalLayout_2 = QtWidgets.QHBoxLayout()
@@ -47,7 +47,7 @@ class Ui_Dialog(object):
 "selection-background-color: rgb(170, 170, 255);")
         self.limits_table.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
         self.limits_table.setObjectName("limits_table")
-        self.limits_table.setColumnCount(3)
+        self.limits_table.setColumnCount(4)
         self.limits_table.setRowCount(0)
         item = QtWidgets.QTableWidgetItem()
         self.limits_table.setHorizontalHeaderItem(0, item)
@@ -55,6 +55,9 @@ class Ui_Dialog(object):
         self.limits_table.setHorizontalHeaderItem(1, item)
         item = QtWidgets.QTableWidgetItem()
         self.limits_table.setHorizontalHeaderItem(2, item)
+        item = QtWidgets.QTableWidgetItem()
+        self.limits_table.setHorizontalHeaderItem(3, item)
+        self.limits_table.horizontalHeader().setStretchLastSection(True)
         self.horizontalLayout_3.addWidget(self.limits_table)
         self.verticalLayout.addLayout(self.horizontalLayout_3)
         self.horizontalLayout = QtWidgets.QHBoxLayout()
@@ -85,5 +88,7 @@ class Ui_Dialog(object):
         item = self.limits_table.horizontalHeaderItem(2)
         item.setText(_translate("Dialog", "Тип\n"
 "сигнала"))
+        item = self.limits_table.horizontalHeaderItem(3)
+        item.setText(_translate("Dialog", "Частота, Гц"))
         self.accept_button.setText(_translate("Dialog", "Принять"))
         self.reject_button.setText(_translate("Dialog", "Отмена"))

@@ -55,7 +55,6 @@ class ScalesWidget(QtWidgets.QWidget):
             new_tab_index = self.ui.tabWidget.count() - 1
             self.ui.tabWidget.insertTab(new_tab_index, scale_list, str(self.ui.tabWidget.count()))
             self.ui.tabWidget.setCurrentIndex(new_tab_index)
-            self.tab_added.emit()
         except Exception as err:
             utils.exception_handler(err)
 
@@ -76,8 +75,6 @@ class ScalesWidget(QtWidgets.QWidget):
                     actual_tab_name = str(tab_idx + 1)
                     if self.ui.tabWidget.tabText(tab_idx) != actual_tab_name:
                         self.ui.tabWidget.setTabText(tab_idx, actual_tab_name)
-
-                self.tab_removed.emit(a_idx)
 
     def edit_scale_limits(self):
         current_widget = self.ui.tabWidget.currentWidget()

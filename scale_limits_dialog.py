@@ -4,10 +4,53 @@ from enum import IntEnum
 from PyQt5 import QtCore, QtWidgets
 
 from ui.py.scale_limits_dialog import Ui_Dialog as ScaleLimitsForm
+from custom_widgets.EditListDialog import OkCancelDialog, EditedListOnlyNumbers
 from constants import Scale
 import calibrator_constants as clb
 
 import utils
+
+
+class FrequencyWidget(QtWidgets.QWidget):
+    def __init__(self, a_parent, a_init_frequency: str):
+        super().__init__(a_parent)
+        self.main_layout = QtWidgets.QHBoxLayout(self)
+        self.main_layout.setContentsMargins(0, 0, 0, 0)
+        self.main_layout.setSpacing(0)
+        self.edit = QtWidgets.QLineEdit(a_init_frequency, self)
+        self.edit.setReadOnly(True)
+        self.edit.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        self.edit_button = QtWidgets.QPushButton("...", self)
+        self.edit_button.setFixedWidth(30)
+        self.edit_button.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        self.main_layout.addWidget(self.edit, 0)
+        self.main_layout.addWidget(self.edit_button, 0)
+        self.setLayout(self.main_layout)
+
+        self.edit_button.clicked.connect(self.open_edit_frequency_dialog)
+
+    def open_edit_frequency_dialog(self):
+        frequency_text = self.edit.text()
+        current_frequency = frequency_text.split(';') if frequency_text else []
+        edit_frequency_dialog = OkCancelDialog(self, "Редактирование частот поверки")
+
+        edit_frequency_widget = EditedListOnlyNumbers(edit_frequency_dialog, tuple(current_frequency),
+                                                      clb.MIN_FREQUENCY, clb.MAX_FREQUENCY,
+                                                      QtWidgets.QLabel("Частота, Гц", self))
+        edit_frequency_dialog.set_main_widget(edit_frequency_widget)
+
+        edit_frequency_dialog.ui.main_widget_layout.addWidget(edit_frequency_widget)
+        edit_frequency_dialog.accepted.connect(self.frequency_editing_finished)
+        edit_frequency_dialog.exec()
+
+    def frequency_editing_finished(self):
+        # noinspection PyUnresolvedReferences
+        edit_widget: EditedListOnlyNumbers = self.sender().get_main_widget()
+        frequency_list = edit_widget.get_list()
+        self.edit.setText(";".join(frequency_list))
+
+    def get_frequency_text(self):
+        return self.edit.text()
 
 
 class ScaleLimitsDialog(QtWidgets.QDialog):
@@ -15,6 +58,7 @@ class ScaleLimitsDialog(QtWidgets.QDialog):
         LIMIT = 0
         CLASS = 1
         SIGNAL_TYPE = 2
+        FREQUENCY = 3
 
     def __init__(self, a_limits: List[Scale.Limit], a_parent=None):
         super().__init__(a_parent)
@@ -71,13 +115,19 @@ class ScaleLimitsDialog(QtWidgets.QDialog):
         row_limit_item.setText(value_str)
 
     def extract_params(self) -> List[Scale.Limit]:
-        scales = []
-        for row_idx in range(self.ui.limits_table.rowCount()):
-            limit = utils.parse_input(self.ui.limits_table.item(row_idx, ScaleLimitsDialog.Column.LIMIT).text())
-            limit_class = self.ui.limits_table.cellWidget(row_idx, ScaleLimitsDialog.Column.CLASS).value()
-            signal_type = self.ui.limits_table.cellWidget(row_idx, ScaleLimitsDialog.Column.SIGNAL_TYPE).currentIndex()
-            scales.append(Scale.Limit(limit, limit_class, clb.SignalType(signal_type)))
-        return scales
+        try:
+            scales = []
+            for row_idx in range(self.ui.limits_table.rowCount()):
+                limit = utils.parse_input(self.ui.limits_table.item(row_idx, ScaleLimitsDialog.Column.LIMIT).text())
+                limit_class = self.ui.limits_table.cellWidget(row_idx, ScaleLimitsDialog.Column.CLASS).value()
+                signal_type = self.ui.limits_table.cellWidget(row_idx, ScaleLimitsDialog.Column.SIGNAL_TYPE).currentIndex()
+                frequency = \
+                    self.ui.limits_table.cellWidget(row_idx, ScaleLimitsDialog.Column.FREQUENCY).get_frequency_text()
+
+                scales.append(Scale.Limit(limit, limit_class, clb.SignalType(signal_type), frequency))
+            return scales
+        except Exception as err:
+            utils.exception_handler(err)
 
     def add_limit_to_table(self, a_limit: Scale.Limit):
         row_idx = self.ui.limits_table.rowCount()
@@ -102,6 +152,9 @@ class ScaleLimitsDialog(QtWidgets.QDialog):
         # Обязательно добалять после добавления комбобокса !!!
         self.ui.limits_table.setItem(row_idx, ScaleLimitsDialog.Column.LIMIT,
                                      QtWidgets.QTableWidgetItem(str(a_limit.limit)))
+
+        self.ui.limits_table.setCellWidget(row_idx, ScaleLimitsDialog.Column.FREQUENCY,
+                                           FrequencyWidget(self, a_limit.frequency))
 
     def add_limit(self):
         self.add_limit_to_table(Scale.Limit())
