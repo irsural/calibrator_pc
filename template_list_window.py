@@ -1,16 +1,10 @@
-from enum import IntEnum
-
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 from variable_template_fields_dialog import VariableTemplateFieldsDialog, VariableTemplateParams
 from ui.py.template_list_form import Ui_Dialog as TemplateListForm
-from custom_widgets.QTableDelegates import TableEditDoubleClick
 from template_scales_widget import ScalesWidget
 from db_templates import TemplateParams, TemplatesDB
-from constants import OperationDB, MeasuredPoint
 from settings_ini_parser import Settings
-import calibrator_constants as clb
-import qt_utils
 import utils
 
 
@@ -24,17 +18,17 @@ class TemplateListWindow(QtWidgets.QDialog):
         self.ui.setupUi(self)
         self.ui.template_params_widget.setDisabled(True)
 
+        self.templates_db = TemplatesDB("templates.db")
+
         # parent не передается намеренно, иначе scales_widget не удаляется из за чего не удаяется parent
-        self.scales_widget = ScalesWidget()
+        self.scales_widget = ScalesWidget(self.templates_db)
         self.ui.scales_layout.addWidget(self.scales_widget)
 
         self.settings = a_settings
         self.restoreGeometry(self.settings.get_last_geometry(self.__class__.__name__))
 
-        self.templates_db = TemplatesDB("templates.db")
-
         self.current_template: TemplateParams = TemplateParams()
-        # for template_id, name in self.templates_db:
+
         for template_id, name in self.templates_db:
             list_item = QtWidgets.QListWidgetItem(name)
             list_item.setData(QtCore.Qt.UserRole, template_id)
@@ -93,7 +87,8 @@ class TemplateListWindow(QtWidgets.QDialog):
     def template_changed(self, a_current: QtWidgets.QListWidgetItem):
         try:
             if a_current is not None:
-                self.current_template: TemplateParams = self.templates_db.get(a_current.data(QtCore.Qt.UserRole))
+                new_template_id = a_current.data(QtCore.Qt.UserRole)
+                self.current_template: TemplateParams = self.templates_db.get(new_template_id)
                 assert self.current_template is not None, "database operation 'get' has failed!"
                 self.fill_template_info_to_ui(self.current_template)
         except AssertionError as err:
@@ -105,31 +100,38 @@ class TemplateListWindow(QtWidgets.QDialog):
         self.ui.device_creator_edit.setText(a_template_params.device_creator)
         self.ui.device_system_combobox.setCurrentIndex(a_template_params.device_system)
 
-        for scale in a_template_params.scales:
-            self.scales_widget.append_scale(scale)
+        self.scales_widget.reset(a_template_params.id, a_template_params.scales)
 
     def add_template_clicked(self):
         self.create_new_template()
 
     def create_new_template(self, a_template_params=None):
-        self.current_template = a_template_params if \
-            a_template_params is not None else TemplateParams(a_name="Новый шаблон")
+        try:
+            # Чтобы не вызывалась template_changed, где читается БД
+            self.ui.templates_list.blockSignals(True)
 
-        copy_number = 0
-        source_template_name = self.current_template.name
-        while self.templates_db.is_name_exist(self.current_template.name):
-            copy_number += 1
-            self.current_template.name = f"{source_template_name}_{copy_number}"
+            self.current_template = a_template_params if \
+                a_template_params is not None else TemplateParams(a_name="Новый шаблон")
 
-        new_id = self.templates_db.new(self.current_template)
-        self.current_template.id = new_id
+            copy_number = 0
+            source_template_name = self.current_template.name
+            while self.templates_db.is_name_exist(self.current_template.name):
+                copy_number += 1
+                self.current_template.name = f"{source_template_name}_{copy_number}"
 
-        new_item = QtWidgets.QListWidgetItem(self.current_template.name, self.ui.templates_list)
-        new_item.setData(QtCore.Qt.UserRole, self.current_template.id)
+            self.templates_db.new(self.current_template)
 
-        self.ui.templates_list.setCurrentItem(new_item)
+            new_item = QtWidgets.QListWidgetItem(self.current_template.name, self.ui.templates_list)
+            new_item.setData(QtCore.Qt.UserRole, self.current_template.id)
 
-        self.activate_edit_template()
+            self.ui.templates_list.setCurrentItem(new_item)
+            self.fill_template_info_to_ui(self.current_template)
+
+            self.activate_edit_template()
+
+            self.ui.templates_list.blockSignals(False)
+        except Exception as err:
+            utils.exception_handler(err)
 
     def duplicate_template(self):
         try:
@@ -167,13 +169,12 @@ class TemplateListWindow(QtWidgets.QDialog):
     def delete_current_template(self):
         try:
             deleted_item = self.ui.templates_list.currentItem()
-            deleted_id: int = deleted_item.data(QtCore.Qt.UserRole)
             reply = QtWidgets.QMessageBox.question(self, "Подтвердите действие", f"Вы действительно хотите удалить "
                                                    f"шаблон '{deleted_item.text()}'?", QtWidgets.QMessageBox.Yes |
                                                    QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)
             if reply == QtWidgets.QMessageBox.Yes:
+                self.templates_db.delete(self.current_template)
                 self.ui.templates_list.takeItem(self.ui.templates_list.currentRow())
-                self.templates_db.delete(deleted_id)
         except Exception as err:
             print(err)
 
