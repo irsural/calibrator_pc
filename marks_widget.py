@@ -7,7 +7,6 @@ from PyQt5.QtCore import pyqtSignal
 
 from ui.py.marks_widget import Ui_marks_widget as MarksWidgetForm
 from settings_ini_parser import Settings
-from db_measures import MeasureTables
 import qt_utils
 import utils
 
@@ -29,8 +28,7 @@ class MarksWidget(QtWidgets.QWidget):
         VALUE = 2
         COUNT = 3
 
-    def __init__(self, a_settings: Settings, a_db_connection: sqlite3.Connection, a_db_tables: MeasureTables,
-                 a_measure_id=None, a_parent=None):
+    def __init__(self, a_settings: Settings, a_db_connection: sqlite3.Connection, a_measure_id=None, a_parent=None):
         """
         Виджет, который управляет дополнительными параметрами измерений
         :param a_db_connection: Соединение с базой данных, в которой содержится таблица a_db_table_name
@@ -54,8 +52,6 @@ class MarksWidget(QtWidgets.QWidget):
         self.connection = a_db_connection
         self.cursor = self.connection.cursor()
 
-        self.marks_table = a_db_tables.marks_table
-        self.mark_values_table = a_db_tables.mark_values_table
         self.default_mode = True if a_measure_id is None else False
         self.measure_id = a_measure_id
 
@@ -76,7 +72,7 @@ class MarksWidget(QtWidgets.QWidget):
     def fill_table_from_db(self):
         qt_utils.qtablewidget_clear(self.ui.marks_table)
         if self.default_mode:
-            self.cursor.execute(f"select name, tag, default_value from {self.marks_table}")
+            self.cursor.execute(f"select name, tag, default_value from marks")
         else:
             # Вероятно, это дерьмовый запрос и его можно написать лучше
             self.cursor.execute(f"select m.name, m.tag, v.value from marks m "
@@ -90,6 +86,7 @@ class MarksWidget(QtWidgets.QWidget):
             for column, text in enumerate(row_data):
                 item = QtWidgets.QTableWidgetItem(text)
                 if column in (self.MarkColumns.NAME, self.MarkColumns.TAG):
+                    # noinspection PyTypeChecker
                     item.setFlags(item.flags() ^ QtCore.Qt.ItemIsEditable)
                     item.setBackground(QtCore.Qt.lightGray)
                 self.ui.marks_table.setItem(row, column, item)
@@ -155,28 +152,28 @@ class MarksWidget(QtWidgets.QWidget):
             if self.items_changed:
                 items = self.__table_to_list()
                 with self.connection:
-                    self.cursor.executemany(f"delete from {self.marks_table} where name = ?", self.deleted_names)
-                    self.cursor.executemany(f"delete from {self.mark_values_table} where mark_name = ?",
+                    self.cursor.executemany(f"delete from marks where name = ?", self.deleted_names)
+                    self.cursor.executemany(f"delete from mark_values where mark_name = ?",
                                             self.deleted_names)
                     for row, data in items:
                         row_exist = self.is_row_in_db(row)
                         if self.default_mode:
                             if row_exist:
                                 # Значания по умолчанию обновляем только в режиме "по умолчанию"
-                                self.cursor.execute(f"update {self.marks_table} set default_value = ? where name = ?",
+                                self.cursor.execute(f"update marks set default_value = ? where name = ?",
                                                     (data[self.MarkColumns.VALUE], data[self.MarkColumns.NAME]))
                             else:
-                                self.cursor.execute(f"insert into {self.marks_table} (name, tag, default_value) "
+                                self.cursor.execute(f"insert into marks (name, tag, default_value) "
                                                     f"values (?,?,?)", data)
                         else:
                             if not row_exist:
                                 # В режиме не "по умолчанию" значания по умолчанию оставляем пустыми
-                                self.cursor.execute(f"insert into {self.marks_table} (name, tag, default_value) "
+                                self.cursor.execute(f"insert into marks (name, tag, default_value) "
                                                     f"values (?,?,?)",
                                                     (data[self.MarkColumns.NAME], data[self.MarkColumns.TAG], ""))
                             if data[self.MarkColumns.VALUE]:
                                 # Если значение не пусто, добавляем его в таблицу значений
-                                self.cursor.execute(f"insert into {self.mark_values_table} "
+                                self.cursor.execute(f"insert into mark_values "
                                                     f"(value, mark_name, measure_id) values(?,?,?)"
                                                     f"on conflict (mark_name, measure_id) do update set value = ?",
                                                     (data[self.MarkColumns.VALUE],
@@ -184,7 +181,7 @@ class MarksWidget(QtWidgets.QWidget):
                                                      self.measure_id,
                                                      data[self.MarkColumns.VALUE]))
                             else:
-                                self.cursor.execute(f"delete from {self.mark_values_table} "
+                                self.cursor.execute(f"delete from mark_values "
                                                     f"where mark_name = ? and measure_id = ?",
                                                     (data[self.MarkColumns.NAME], self.measure_id))
                 self.fill_table_from_db()
@@ -204,7 +201,6 @@ class MarksWidget(QtWidgets.QWidget):
         menu.popup(self.ui.marks_table.viewport().mapToGlobal(a_position))
 
     def copy_cell_text_to_clipboard(self):
-        # text = self.marks_table.getText(self.ui.marks_table.selectionModel().currentIndex())
         text = self.ui.marks_table.currentItem().text()
         QtWidgets.QApplication.clipboard().setText(text)
 

@@ -1,8 +1,7 @@
 from typing import List, Iterable
 import sqlite3
 
-import calibrator_constants as clb
-from constants import DeviceSystem, MeasuredPoint, Scale
+from constants import DeviceSystem, Scale
 import utils
 
 

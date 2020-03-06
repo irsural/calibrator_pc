@@ -8,9 +8,7 @@ import re
 from odf import text as odf_text, teletype
 from odf import table as odf_table
 from odf.opendocument import load as odf_load
-from odf.element import Element
 from zipfile import BadZipFile
-import odf
 import numpy as np
 
 

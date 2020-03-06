@@ -107,8 +107,8 @@ class Settings(QtCore.QObject):
                                                    self.MOUSE_INVERSION_KEY: self.MOUSE_INVERSION_DEFAULT,
                                                    self.DISABLE_SCROLL_ON_TABLE_KEY:
                                                        self.DISABLE_SCROLL_ON_TABLE_DEFAULT}
-            self.settings[self.PROTOCOL_SECTION] = {self.TEMPLATE_FILEPATH_KEY: self.TEMPLATE_FILEPATH_DEFAULT,
-                                                    self.SAVE_FOLDER_KEY: self.SAVE_FOLDER_DEFAULT}
+            self.settings[self.PROTOCOL_SECTION] = {self.TEMPLATE_FILEPATH_KEY: "",
+                                                    self.SAVE_FOLDER_KEY: ""}
             utils.save_settings(self.CONFIG_PATH, self.settings)
         else:
             self.settings.read(self.CONFIG_PATH)

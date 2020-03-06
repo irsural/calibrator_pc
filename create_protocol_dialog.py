@@ -7,20 +7,18 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 
 from ui.py.create_protocol_form import Ui_Dialog as CreateProtocolForm
 from MeasureView import MeasureView as ResultsView
-from db_measures import MeasureTables, MeasuresDB
+from db_measures import MeasuresDB
 from settings_ini_parser import Settings
 from marks_widget import MarksWidget
 import calibrator_constants as clb
 import constants as cfg
-import qt_utils
 import utils
 
 
 class CreateProtocolDialog(QtWidgets.QDialog):
     GET_MARK_RE = re_compile(r"%.*__")
 
-    def __init__(self, a_settings: Settings, a_measure_id: int, a_db_connection: Connection,
-                 a_db_tables: MeasureTables, a_parent=None):
+    def __init__(self, a_settings: Settings, a_measure_id: int, a_db_connection: Connection, a_parent=None):
         super().__init__(a_parent)
 
         self.ui = CreateProtocolForm()
@@ -32,11 +30,10 @@ class CreateProtocolDialog(QtWidgets.QDialog):
         self.settings = a_settings
         self.restoreGeometry(self.settings.get_last_geometry(self.__class__.__name__))
 
-        self.measure_db = MeasuresDB(a_db_connection, a_db_tables)
+        self.measure_db = MeasuresDB(a_db_connection)
         self.measure_config = self.measure_db.get(a_measure_id)
 
-        self.marks_widget = MarksWidget(self.settings, a_db_connection, a_db_tables,
-                                        a_measure_id=self.measure_config.id)
+        self.marks_widget = MarksWidget(self.settings, a_db_connection, a_measure_id=self.measure_config.id)
         self.ui.marks_widget_layout.addWidget(self.marks_widget)
 
         self.default_marks_widgets = self.get_default_marks_widgets()
@@ -98,13 +95,8 @@ class CreateProtocolDialog(QtWidgets.QDialog):
         self.ui.device_creator_edit.setText(self.measure_config.device_creator)
         self.ui.date_edit.setDate(QtCore.QDate.fromString(self.measure_config.date, "dd.MM.yyyy"))
 
-        self.ui.organisation_edit.setText(self.measure_config.organisation)
         self.ui.system_combobox.setCurrentIndex(self.measure_config.device_system)
         self.ui.comment_edit.setText(self.measure_config.comment)
-
-        self.ui.signal_type_combobox.setCurrentIndex(self.measure_config.signal_type)
-        self.ui.class_spinbox.setValue(self.measure_config.device_class)
-        self.ui.etalon_edit.setText(self.measure_config.etalon_device)
 
         self.ui.template_protocol_edit.setText(self.settings.template_filepath)
         self.ui.save_folder_edit.setText(self.settings.save_folder)
@@ -222,8 +214,6 @@ class CreateProtocolDialog(QtWidgets.QDialog):
             for widgets in self.default_marks_widgets:
                 marks_map.append((self.extract_mark_from_label(widgets[0]),
                                   self.extract_value_from_widget(widgets[1])))
-
-                # self.results_model.
 
             if utils.replace_text_in_odt(src_file, dst_file, marks_map, ((1,2,3,4,5,6,7), (7,6,5,4,3,2,1))):
                 QtWidgets.QMessageBox.information(self, "Успех", "Протокол успешно сгенерирован")

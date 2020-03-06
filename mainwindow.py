@@ -5,16 +5,15 @@ from PyQt5.QtCore import pyqtSlot, pyqtSignal
 from PyQt5 import QtWidgets, QtCore, QtGui
 
 from new_fast_measure_dialog import NewFastMeasureDialog, FastMeasureParams
-from variable_template_fields_dialog import VariableTemplateParams
 from template_list_window import TemplateParams, TemplateListWindow
-from db_measures import MeasureParams, MeasureTables
+from variable_template_fields_dialog import VariableTemplateParams
+from settings_ini_parser import Settings, BadIniException
 from ui.py.mainwindow import Ui_MainWindow as MainForm
-from measure_window import MeasureWindow
+from db_measures import MeasureParams, MeasuresDB
 from source_mode_window import SourceModeWindow
 from settings_dialog import SettingsDialog
-from settings_ini_parser import Settings, BadIniException
+from measure_window import MeasureWindow
 from startwindow import StartWindow
-import constants as cfg
 import calibrator_constants as clb
 import clb_dll
 import utils
@@ -40,11 +39,8 @@ class MainWindow(QtWidgets.QMainWindow):
             QtWidgets.QMessageBox.critical(self, "Ошибка", 'Файл конфигурации поврежден. Пожалуйста, '
                                                            'удалите файл "settings.ini" и запустите программу заново')
         if ini_ok:
-            self.measure_db_tables = MeasureTables(marks_table="marks", mark_values_table="mark_values",
-                                                   measures_table="measures", results_table="results",
-                                                   system_table="system", signal_type_table="signal_type")
             self.db_name = "measures.db"
-            self.db_connection = self.create_db(self.db_name)
+            self.db_connection = MeasuresDB.create_db(self.db_name)
             self.show_start_window()
             self.show()
 
@@ -74,55 +70,13 @@ class MainWindow(QtWidgets.QMainWindow):
         if hasattr(self, "display_db_connection"):
             self.db_connection.close()
 
-    def create_db(self, a_db_name: str):
-        connection = sqlite3.connect(a_db_name)
-        cursor = connection.cursor()
-        with connection:
-            cursor.execute(f"CREATE TABLE IF NOT EXISTS {self.measure_db_tables.marks_table} "
-                           f"(name text primary key, tag text unique, default_value text)")
-
-            cursor.execute(f"CREATE TABLE IF NOT EXISTS {self.measure_db_tables.measures_table} "
-                           f"(id integer primary key autoincrement, datetime text, device_name text, "
-                           f"serial_number text, signal_type integer, device_class real, comment text, owner text, "
-                           f"device_system integer, user text, organisation text, etalon_device text, "
-                           f"device_creator text)")
-
-            cursor.execute(f"CREATE TABLE IF NOT EXISTS {self.measure_db_tables.mark_values_table} "
-                           f"(id integer primary key autoincrement, value text, mark_name text,  measure_id int, "
-                           f"unique (mark_name, measure_id), "
-                           f"foreign key (mark_name) references {self.measure_db_tables.marks_table}(name),"
-                           f"foreign key (measure_id) references {self.measure_db_tables.measures_table}(id))")
-
-            cursor.execute(f"CREATE TABLE IF NOT EXISTS {self.measure_db_tables.results_table} "
-                           f"(id integer primary key autoincrement, point real, frequency real, up_value real, "
-                           f"down_value real, measure_id int,"
-                           f"foreign key (measure_id) references {self.measure_db_tables.measures_table}(id))")
-
-            # Таблицы соответствий системы прибора и типа сигнала
-            cursor.execute(f"CREATE TABLE IF NOT EXISTS {self.measure_db_tables.system_table} "
-                           f"(id integer primary key, name text unique)")
-
-            systems_table = [(system, cfg.enum_to_device_system[system]) for system in cfg.DeviceSystem]
-            cursor.executemany(f"insert or ignore into {self.measure_db_tables.system_table} "
-                               f"(id, name) values (?, ?)", systems_table)
-
-            cursor.execute(f"CREATE TABLE IF NOT EXISTS {self.measure_db_tables.signal_type_table} "
-                           f"(id integer primary key, name text unique)")
-
-            signal_types = [(signal_type, clb.enum_to_signal_type_short[signal_type]) for signal_type in clb.SignalType]
-            cursor.executemany(f"insert or ignore into {self.measure_db_tables.signal_type_table} "
-                               f"(id, name) values (?, ?)", signal_types)
-
-        return connection
-
     def show_start_window(self):
         try:
             self.hide()
             if self.active_window is not None:
                 self.active_window.close()
 
-            self.active_window = StartWindow(self.db_connection, self.db_name, self.measure_db_tables,
-                                             self.settings, self)
+            self.active_window = StartWindow(self.db_connection, self.db_name, self.settings, self)
             self.setCentralWidget(self.active_window)
             self.active_window.source_mode_chosen.connect(self.open_source_mode_window)
             self.active_window.no_template_mode_chosen.connect(self.open_config_no_template_mode)
@@ -209,7 +163,6 @@ class MainWindow(QtWidgets.QMainWindow):
             self.change_window(MeasureWindow(a_calibrator=self.calibrator,
                                              a_measure_config=measure_config,
                                              a_db_connection=self.db_connection,
-                                             a_db_tables=self.measure_db_tables,
                                              a_settings=self.settings,
                                              a_parent=self))
         except Exception as err:
@@ -233,7 +186,6 @@ class MainWindow(QtWidgets.QMainWindow):
             self.change_window(MeasureWindow(a_calibrator=self.calibrator,
                                              a_measure_config=measure_config,
                                              a_db_connection=self.db_connection,
-                                             a_db_tables=self.measure_db_tables,
                                              a_settings=self.settings,
                                              a_parent=self))
         except Exception as err:
@@ -244,7 +196,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def open_settings(self):
         try:
-            settings_dialog = SettingsDialog(self.settings, self.db_connection, self.measure_db_tables, self)
+            settings_dialog = SettingsDialog(self.settings, self.db_connection, self)
             settings_dialog.exec()
         except Exception as err:
             utils.exception_handler(err)

@@ -4,7 +4,7 @@ from PyQt5.QtCore import pyqtSignal
 from PyQt5 import QtGui, QtWidgets, QtCore, QtSql
 
 from ui.py.startform import Ui_Form as StartForm
-from db_measures import MeasureTables, MeasureColumn, MEASURE_COLUMN_TO_NAME, MeasuresDB
+from db_measures import MeasureColumn, MEASURE_COLUMN_TO_NAME, MeasuresDB
 from custom_widgets.QTableDelegates import NonOverlappingDoubleClick
 from create_protocol_dialog import CreateProtocolDialog
 from settings_ini_parser import Settings
@@ -17,15 +17,13 @@ class StartWindow(QtWidgets.QWidget):
     no_template_mode_chosen = pyqtSignal()
     template_mode_chosen = pyqtSignal()
 
-    def __init__(self, a_control_db_connection: Connection, a_db_name: str, a_db_tables: MeasureTables,
-                 a_settings: Settings, a_parent=None):
+    def __init__(self, a_control_db_connection: Connection, a_db_name: str, a_settings: Settings, a_parent=None):
         """
         Для отображения таблицы измерений используется QSqlRelationalTableModel (это сильно упрощает жизнь)
         При этом для остальных операций (добавление, удаление) используется другое соединение sqlite3.Connection
         Соединения могут быть подключены к БД параллельно
         :param a_control_db_connection: Соединения для управления БД
         :param a_db_name: Имя файла БД
-        :param a_db_tables: Названия таблиц БД
         :param a_settings: Настройки в ini
         :param a_parent: Widget parent
         """
@@ -36,7 +34,6 @@ class StartWindow(QtWidgets.QWidget):
         self.parent = a_parent
 
         self.settings = a_settings
-        self.db_tables = a_db_tables
 
         self.setWindowTitle("Калибратор N4-25")
 
@@ -55,21 +52,21 @@ class StartWindow(QtWidgets.QWidget):
         self.display_db_connection = QtSql.QSqlDatabase.addDatabase("QSQLITE")
         self.display_db_model = QtSql.QSqlRelationalTableModel(self)
         self.sort_proxy_model = QtCore.QSortFilterProxyModel(self)
-        self.header_context = self.config_measure_table(a_db_name, a_db_tables)
+        self.header_context = self.config_measure_table(a_db_name)
 
         self.control_db_connection = a_control_db_connection
-        self.measure_db = MeasuresDB(a_control_db_connection, a_db_tables)
+        self.measure_db = MeasuresDB(a_control_db_connection)
 
-    def config_measure_table(self, a_db_name: str, a_tables: MeasureTables):
+    def config_measure_table(self, a_db_name: str):
         self.display_db_connection.setDatabaseName(a_db_name)
         res = self.display_db_connection.open()
         assert res, f"Can't open database {a_db_name}!"
 
-        self.display_db_model.setTable(a_tables.measures_table)
+        self.display_db_model.setTable("measures")
         self.display_db_model.setRelation(MeasureColumn.DEVICE_SYSTEM,
-                                          QtSql.QSqlRelation(a_tables.system_table, "id", "name"))
+                                          QtSql.QSqlRelation("system", "id", "name"))
         self.display_db_model.setRelation(MeasureColumn.SIGNAL_TYPE,
-                                          QtSql.QSqlRelation(a_tables.signal_type_table, "id", "name"))
+                                          QtSql.QSqlRelation("signal_type", "id", "name"))
 
         for column in range(self.display_db_model.columnCount()):
             self.display_db_model.setHeaderData(column, QtCore.Qt.Horizontal, MEASURE_COLUMN_TO_NAME[column])
@@ -104,8 +101,7 @@ class StartWindow(QtWidgets.QWidget):
         try:
             measure_id = self.get_selected_id()
             assert measure_id is not None, "measure id must not be None!"
-            create_protocol_dialog = CreateProtocolDialog(self.settings, measure_id, self.control_db_connection,
-                                                          self.db_tables, self)
+            create_protocol_dialog = CreateProtocolDialog(self.settings, measure_id, self.control_db_connection, self)
             create_protocol_dialog.exec()
             self.update_table()
         except Exception as err:

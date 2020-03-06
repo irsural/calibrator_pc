@@ -7,7 +7,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtGui import QWheelEvent
 
 from edit_measure_parameters_dialog import EditMeasureParamsDialog
-from db_measures import MeasureParams, MeasureTables, MeasuresDB
+from db_measures import MeasureParams, MeasuresDB
 from ui.py.measure_form import Ui_main_widget as MeasureForm
 from MeasureModel import PointData
 from MeasureView import MeasureView
@@ -24,7 +24,7 @@ class MeasureWindow(QtWidgets.QWidget):
     close_confirmed = pyqtSignal()
 
     def __init__(self, a_calibrator: clb_dll.ClbDrv, a_measure_config: MeasureParams, a_db_connection: Connection,
-                 a_db_tables: MeasureTables, a_settings: Settings, a_parent=None):
+                 a_settings: Settings, a_parent=None):
         super().__init__(a_parent)
 
         self.ui = MeasureForm()
@@ -45,9 +45,8 @@ class MeasureWindow(QtWidgets.QWidget):
             self.__class__.__name__))
 
         self.db_connection = a_db_connection
-        self.db_tables = a_db_tables
 
-        self.measures_db = MeasuresDB(self.db_connection, self.db_tables)
+        self.measures_db = MeasuresDB(self.db_connection)
         self.measure_config: MeasureParams = a_measure_config
         self.measure_config.id = self.measures_db.create()
         self.measure_config.time = QtCore.QTime.currentTime().toString("H:mm:ss")
@@ -488,7 +487,7 @@ class MeasureWindow(QtWidgets.QWidget):
     def update_config(self):
         try:
             edit_template_params_dialog = EditMeasureParamsDialog(self.settings, self.measure_config,
-                                                                  self.db_connection, self.db_tables, self)
+                                                                  self.db_connection, self)
             edit_template_params_dialog.exec()
 
             self.measure_view.set_device_class(self.measure_config.device_class)

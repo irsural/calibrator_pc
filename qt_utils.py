@@ -1,5 +1,4 @@
 from math import isclose
-import inspect
 
 from PyQt5 import QtCore, QtWidgets, QtGui
 

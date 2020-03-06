@@ -6,10 +6,8 @@ from PyQt5.QtCore import pyqtSignal
 from custom_widgets.EditListDialog import EditedListWithUnits
 from ui.py.settings_form import Ui_Dialog as SettingsForm
 from settings_ini_parser import Settings
-from db_measures import MeasureTables
 from marks_widget import MarksWidget
 import calibrator_constants as clb
-import utils
 
 
 class SettingsDialog(QtWidgets.QDialog):
@@ -24,8 +22,7 @@ class SettingsDialog(QtWidgets.QDialog):
 
     fixed_range_changed = pyqtSignal()
 
-    def __init__(self, a_settings: Settings, a_db_connection: Connection, a_db_tables: MeasureTables,
-                 a_parent=None):
+    def __init__(self, a_settings: Settings, a_db_connection: Connection, a_parent=None):
         super().__init__(a_parent)
 
         self.ui = SettingsForm()
@@ -38,7 +35,7 @@ class SettingsDialog(QtWidgets.QDialog):
         self.ui.save_button.clicked.connect(self.save)
         self.ui.cancel_button.clicked.connect(self.close)
 
-        self.marks_widget = MarksWidget(self.settings, a_db_connection, a_db_tables, a_parent=None)
+        self.marks_widget = MarksWidget(self.settings, a_db_connection, a_parent=None)
         self.ui.marks_layout.addWidget(self.marks_widget)
 
         self.edit_fixed_range_widget = EditedListWithUnits(self, "В", self.settings.fixed_step_list, clb.MIN_VOLTAGE,
