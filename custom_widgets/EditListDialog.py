@@ -12,13 +12,19 @@ import utils
 
 
 class EditedListWidget(QtWidgets.QWidget):
-    def __init__(self, parent=None, a_init_items=(), a_min_value=None, a_max_value=None, a_optional_widget=None):
+    def __init__(self, parent=None, a_init_items=(), a_min_value=None, a_max_value=None, a_optional_widget=None,
+                 a_list_header=""):
         super().__init__(parent)
 
         self.ui = EditedListForm()
         self.ui.setupUi(self)
         if a_optional_widget is not None:
             self.ui.optional_widget_layout.addWidget(a_optional_widget)
+
+        if not a_list_header:
+            self.ui.list_header.hide()
+        else:
+            self.ui.list_header.setText(a_list_header)
 
         self.min_value = a_min_value if a_min_value is not None else float_info.min
         self.max_value = a_max_value if a_max_value is not None else float_info.max
@@ -96,9 +102,9 @@ class QRegExpDelegator(QtWidgets.QItemDelegate):
 
 class EditedListOnlyNumbers(EditedListWidget):
     def __init__(self, parent=None, a_init_items: Iterable[float] = (), a_min_value=None, a_max_value=None,
-                 a_optional_widget=None):
+                 a_optional_widget=None, a_list_header=""):
         str_items = (str(item) for item in a_init_items)
-        super().__init__(parent, str_items, a_min_value, a_max_value, a_optional_widget)
+        super().__init__(parent, str_items, a_min_value, a_max_value, a_optional_widget, a_list_header)
 
         delegator = QRegExpDelegator(self, utils.find_number_re.pattern)
         delegator.editing_finished.connect(self.item_editing_finished)

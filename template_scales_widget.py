@@ -66,7 +66,8 @@ class ScalesWidget(QtWidgets.QWidget):
             config_scale_button = QtWidgets.QPushButton("Пределы", self)
             config_scale_button.clicked.connect(self.edit_scale_limits)
             scale_list = EditedListOnlyNumbers(parent=self, a_init_items=(p for p in a_scale.points),
-                                               a_optional_widget=config_scale_button)
+                                               a_optional_widget=config_scale_button,
+                                               a_list_header="Числовые отметки шкалы, деление")
 
             self.ui.tabWidget.insertTab(new_tab_index, scale_list, str(self.ui.tabWidget.count()))
             self.ui.tabWidget.setCurrentIndex(new_tab_index)

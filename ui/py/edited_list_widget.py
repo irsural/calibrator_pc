@@ -13,7 +13,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_Form(object):
     def setupUi(self, Form):
         Form.setObjectName("Form")
-        Form.resize(242, 288)
+        Form.resize(218, 288)
         font = QtGui.QFont()
         font.setPointSize(10)
         Form.setFont(font)
@@ -48,6 +48,11 @@ class Ui_Form(object):
         self.delete_list_item_button.setObjectName("delete_list_item_button")
         self.horizontalLayout_2.addWidget(self.delete_list_item_button)
         self.verticalLayout.addLayout(self.horizontalLayout_2)
+        self.list_header = QtWidgets.QLabel(Form)
+        self.list_header.setText("")
+        self.list_header.setWordWrap(True)
+        self.list_header.setObjectName("list_header")
+        self.verticalLayout.addWidget(self.list_header)
         self.list_widget = QtWidgets.QListWidget(Form)
         font = QtGui.QFont()
         font.setPointSize(13)
