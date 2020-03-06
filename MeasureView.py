@@ -2,13 +2,13 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 
 from custom_widgets.QTableDelegates import NonOverlappingDoubleClick
 from MeasureModel import MeasureModel, PointData
-from db_measures import MeasureParams
+from db_measures import Measure
 import calibrator_constants as clb
 import qt_utils
 
 
 class MeasureView:
-    def __init__(self, a_table_view: QtWidgets.QTableView, a_measure_config: MeasureParams, a_normalize_value=0):
+    def __init__(self, a_table_view: QtWidgets.QTableView, a_measure_config: Measure, a_normalize_value=0):
 
         self.table = a_table_view
         self.measure_config = a_measure_config

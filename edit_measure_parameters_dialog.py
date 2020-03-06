@@ -4,12 +4,12 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 
 from ui.py.edit_measure_parameters_form import Ui_Dialog as EditMeasureParamsForm
 from marks_widget import MarksWidget
-from db_measures import MeasureParams
+from db_measures import Measure
 from settings_ini_parser import Settings
 
 
 class EditMeasureParamsDialog(QtWidgets.QDialog):
-    def __init__(self, a_settings: Settings, a_measure_config: MeasureParams, a_db_connection: Connection,
+    def __init__(self, a_settings: Settings, a_measure_config: Measure, a_db_connection: Connection,
                  a_parent=None):
         super().__init__(a_parent)
 

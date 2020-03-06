@@ -310,3 +310,12 @@ def __fill_odf_table(a_file, a_points):
                 # Без этого дерево нодов сломается
                 a_file.rebuild_caches(table_row.parentNode)
                 break
+
+
+def get_array_min_diff(a_array: list):
+    unique_array = list(dict.fromkeys(a_array))
+    min_diff = unique_array[-1] - unique_array[0]
+    for i in range(len(unique_array) - 1):
+        diff = unique_array[i + 1] - unique_array[i]
+        min_diff = diff if diff < min_diff else min_diff
+    return round(min_diff, 9)

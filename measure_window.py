@@ -7,7 +7,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtGui import QWheelEvent
 
 from edit_measure_parameters_dialog import EditMeasureParamsDialog
-from db_measures import MeasureParams, MeasuresDB
+from db_measures import Measure, MeasuresDB
 from ui.py.measure_form import Ui_main_widget as MeasureForm
 from MeasureModel import PointData
 from MeasureView import MeasureView
@@ -23,14 +23,14 @@ class MeasureWindow(QtWidgets.QWidget):
     remove_points = pyqtSignal(list)
     close_confirmed = pyqtSignal()
 
-    def __init__(self, a_calibrator: clb_dll.ClbDrv, a_measure_config: MeasureParams, a_db_connection: Connection,
+    def __init__(self, a_calibrator: clb_dll.ClbDrv, a_measure_config: Measure, a_db_connection: Connection,
                  a_settings: Settings, a_parent=None):
         super().__init__(a_parent)
 
         self.ui = MeasureForm()
         self.ui.setupUi(self)
         self.parent = a_parent
-
+        return
         self.warning_animation = None
         self.set_up_icons()
 
@@ -47,7 +47,7 @@ class MeasureWindow(QtWidgets.QWidget):
         self.db_connection = a_db_connection
 
         self.measures_db = MeasuresDB(self.db_connection)
-        self.measure_config: MeasureParams = a_measure_config
+        self.measure_config: Measure = a_measure_config
         self.measure_config.id = self.measures_db.create()
         self.measure_config.time = QtCore.QTime.currentTime().toString("H:mm:ss")
 

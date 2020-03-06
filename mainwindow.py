@@ -1,7 +1,5 @@
 from typing import Union
-import sqlite3
 
-from PyQt5.QtCore import pyqtSlot, pyqtSignal
 from PyQt5 import QtWidgets, QtCore, QtGui
 
 from new_fast_measure_dialog import NewFastMeasureDialog, FastMeasureParams
@@ -9,7 +7,7 @@ from template_list_window import TemplateParams, TemplateListWindow
 from variable_template_fields_dialog import VariableTemplateParams
 from settings_ini_parser import Settings, BadIniException
 from ui.py.mainwindow import Ui_MainWindow as MainForm
-from db_measures import MeasureParams, MeasuresDB
+from db_measures import Measure, MeasuresDB
 from source_mode_window import SourceModeWindow
 from settings_dialog import SettingsDialog
 from measure_window import MeasureWindow
@@ -20,8 +18,8 @@ import utils
 
 
 class MainWindow(QtWidgets.QMainWindow):
-    clb_list_changed = pyqtSignal([list])
-    usb_status_changed = pyqtSignal(clb.State)
+    clb_list_changed = QtCore.pyqtSignal([list])
+    usb_status_changed = QtCore.pyqtSignal(clb.State)
 
     def __init__(self):
         super().__init__()
@@ -85,7 +83,6 @@ class MainWindow(QtWidgets.QMainWindow):
         except Exception as err:
             utils.exception_handler(err)
 
-    @pyqtSlot()
     def usb_tick(self):
         self.usb_driver.tick()
 
@@ -129,7 +126,6 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.active_window.close_confirmed.connect(self.close_child_widget)
 
-    @pyqtSlot()
     def open_source_mode_window(self):
         try:
             self.hide()
@@ -138,7 +134,6 @@ class MainWindow(QtWidgets.QMainWindow):
         except Exception as err:
             utils.exception_handler(err)
 
-    @pyqtSlot()
     def open_config_no_template_mode(self):
         try:
             new_fast_measure_window = NewFastMeasureDialog(self.fast_config, self)
@@ -156,7 +151,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def start_fast_measure(self):
         try:
-            measure_config = MeasureParams.fromFastParams(self.fast_config)
+            measure_config = Measure.fromFastParams(self.fast_config)
 
             self.hide()
             self.active_window.close()
@@ -168,7 +163,6 @@ class MainWindow(QtWidgets.QMainWindow):
         except Exception as err:
             utils.exception_handler(err)
 
-    @pyqtSlot()
     def template_mode_chosen(self):
         try:
             template_list_dialog = TemplateListWindow(self.settings, self)
@@ -179,7 +173,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def start_template_measure(self, a_template_params: TemplateParams, a_variable_params: VariableTemplateParams):
         try:
-            measure_config = MeasureParams.fromTemplate(a_template_params, a_variable_params)
+            measure_config = Measure.fromTemplate(a_template_params, a_variable_params)
 
             self.hide()
             self.active_window.close()

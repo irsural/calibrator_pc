@@ -28,7 +28,7 @@ class FastMeasureParams:
         self.points_step = 0.1
         self.start_point_side = self.StartPoint.LOWER
         self.amplitudes = []
-        self.frequency = []
+        self.frequency: str = ""
 
 
 class NewFastMeasureDialog(QDialog):
@@ -158,7 +158,7 @@ class NewFastMeasureDialog(QDialog):
 
         self.ui.auto_calc_points_checkbox.setChecked(self.fast_params.auto_calc_points)
         self.ui.lower_bound_edit.setText(self.value_to_user(self.fast_params.lower_bound))
-        self.ui.frequency_edit.setText(";".join(self.fast_params.frequency))
+        self.ui.frequency_edit.setText(self.fast_params.frequency)
         self.ui.step_edit.setText(self.value_to_user(self.fast_params.points_step))
         start_point_upper_chosen = self.fast_params.start_point_side == FastMeasureParams.StartPoint.UPPER
         self.ui.start_point_up_radio.setChecked(start_point_upper_chosen)
@@ -174,8 +174,7 @@ class NewFastMeasureDialog(QDialog):
             self.fast_params.lower_bound = utils.parse_input(self.ui.lower_bound_edit.text())
             self.fast_params.points_step = utils.parse_input(self.ui.step_edit.text())
 
-            self.fast_params.frequency = [0] if clb.is_dc_signal[self.fast_params.signal_type] else \
-                self.ui.frequency_edit.text().split(';')
+            self.fast_params.frequency = self.ui.frequency_edit.text()
 
             self.fast_params.start_point_side = FastMeasureParams.StartPoint.UPPER if \
                 self.ui.start_point_up_radio.isChecked() else FastMeasureParams.StartPoint.LOWER
@@ -207,8 +206,6 @@ class NewFastMeasureDialog(QDialog):
 
         if input_status == self.InputStatus.ok:
             self.fast_params.amplitudes = [] if not self.fast_params.auto_calc_points else self.calc_points()
-            if self.fast_params.frequency[0] == "":
-                self.fast_params.frequency = [0]
 
             self.config_ready.emit(self.fast_params)
             self.done(QDialog.Accepted)
