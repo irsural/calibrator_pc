@@ -1,5 +1,4 @@
 from typing import List
-import sys
 
 from PyQt5 import QtCore, QtWidgets
 
@@ -98,7 +97,6 @@ class ScalesWidget(QtWidgets.QWidget):
                         actual_tab_name = str(actual_scale_number)
                         if self.ui.tabWidget.tabText(tab_idx) != actual_tab_name:
                             scale_id = self.scales_id[old_scale_number]
-                            # self.templates_db.update_scale_number(scale_id, actual_scale_number)
                             del self.scales_id[old_scale_number]
                             self.scales_id[actual_scale_number] = scale_id
 
@@ -107,13 +105,27 @@ class ScalesWidget(QtWidgets.QWidget):
             utils.exception_handler(err)
 
     def edit_scale_limits(self):
-        current_widget = self.ui.tabWidget.currentWidget()
-        limits: List[cfg.Scale.Limit] = self.scale_limits[current_widget]
+        try:
+            current_scale_number = self.ui.tabWidget.currentIndex() + 1
+            scale_id = self.scales_id[current_scale_number]
+            limits: List[cfg.Scale.Limit] = self.templates_db.get_limits(scale_id)
 
-        scale_limits_dialog = ScaleLimitsDialog(limits)
-        new_limits = scale_limits_dialog.exec_and_get_limits()
-        if new_limits is not None:
-            self.scale_limits[current_widget] = new_limits
+            scale_limits_dialog = ScaleLimitsDialog(limits, self)
+
+            new_limits, deleted_ids = scale_limits_dialog.exec_and_get_limits()
+            if new_limits is not None:
+                # Вносим изменения в базу, только если пользователь подтвердил ввод
+                self.templates_db.delete_limits(deleted_ids)
+                print(deleted_ids)
+                for limit in new_limits:
+                    if limit.id != 0:
+                        print("update", limit.id)
+                        self.templates_db.update_limit(limit)
+                    else:
+                        print("insert", limit.id)
+                        self.templates_db.new_limit(scale_id, limit)
+        except Exception as err:
+            utils.exception_handler(err)
 
     def get_scales(self) -> List[cfg.Scale]:
         scales = [self.get_scale_by_tab_idx(tab_idx) for tab_idx in range(self.ui.tabWidget.count() - 1)]
@@ -122,12 +134,6 @@ class ScalesWidget(QtWidgets.QWidget):
     def get_scale_by_tab_idx(self, a_tab_idx):
         scale_points_list: EditedListOnlyNumbers = self.ui.tabWidget.widget(a_tab_idx)
         scale_number = a_tab_idx + 1
+        # Пределы обновляются в базе сразу после изменения, их передавать не нужно
         return cfg.Scale(a_id=self.scales_id[scale_number], a_number=scale_number,
-                         a_scale_points=scale_points_list.get_list())#, a_limits=self.scale_limits[scale_points_list])
-
-
-if __name__ == "__main__":
-    app = QtWidgets.QApplication(sys.argv)
-    w = ScalesWidget()
-    w.show()
-    sys.exit(app.exec())
+                         a_scale_points=scale_points_list.get_list())

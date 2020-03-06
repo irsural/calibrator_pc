@@ -40,8 +40,8 @@ class Scale:
                      a_signal_type: SignalType = SignalType.ACI, a_frequency: str = ""):
             self.id = a_id
             self.limit = a_limit
-            self.signal_type = a_signal_type
             self.device_class = a_device_class
+            self.signal_type = a_signal_type
 
             if a_frequency is not None:
                 self.frequency = a_frequency

@@ -158,6 +158,7 @@ class TemplateListWindow(QtWidgets.QDialog):
             self.templates_db.save(self.current_template)
 
             self.activate_choose_template()
+            self.template_changed(self.ui.templates_list.currentItem())
         except Exception as err:
             utils.exception_handler(err)
 

@@ -273,7 +273,7 @@ class NewFastMeasureDialog(QDialog):
     @pyqtSlot()
     def frequency_editing_finished(self):
         frequency_list = self.edit_frequency_widget.get_list()
-        self.ui.frequency_edit.setText(";".join(str(f) for f in frequency_list))
+        self.ui.frequency_edit.setText(";".join(utils.float_to_string(f) for f in frequency_list))
 
     def set_units(self, a_units_str: str):
         self.value_to_user = utils.value_to_user_with_units(a_units_str)

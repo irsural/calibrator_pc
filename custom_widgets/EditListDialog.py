@@ -112,7 +112,7 @@ class EditedListOnlyNumbers(EditedListWidget):
     def get_list(self):
         out_list: List[float] = []
         for idx in range(self.ui.list_widget.count()):
-            item = float(self.ui.list_widget.item(idx).text())
+            item = float(self.ui.list_widget.item(idx).text().replace(',', '.'))
             if item not in out_list:
                 out_list.append(item)
         return out_list

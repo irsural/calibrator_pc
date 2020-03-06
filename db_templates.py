@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Iterable
 import sqlite3
 
 import calibrator_constants as clb
@@ -132,11 +132,7 @@ class TemplatesDB:
         scale.id = self.cursor.lastrowid
 
         for limit in scale.limits:
-            self.cursor.execute(
-                f"insert into {self.limits_tab} (scale_limit, signal_type, device_class, frequency, scale_id) "
-                f"values (?, ?, ?, ?, {scale.id})",
-                (limit.limit, limit.signal_type, limit.device_class, limit.frequency)
-            )
+            self.new_limit(scale.id, limit)
 
         return scale
 
@@ -145,8 +141,33 @@ class TemplatesDB:
 
         self.cursor.execute(f"delete from {self.scales_tab} where id in ({a_scale_id})")
 
-    def update_scale_number(self, a_scale_id, a_new_idx):
-        self.cursor.execute(f"update {self.scales_tab} set scale_number = {a_new_idx} where id = {a_scale_id}")
+    def new_limit(self, a_scale_id: int, a_limit: Scale.Limit = None):
+        limit = a_limit if a_limit is not None else Scale.Limit()
+
+        self.cursor.execute(
+            f"insert into {self.limits_tab} (scale_limit, device_class, signal_type, frequency, scale_id) "
+            f"values (?, ?, ?, ?, ?)", (limit.limit, limit.device_class, limit.signal_type, limit.frequency, a_scale_id)
+        )
+
+        limit.id = self.cursor.lastrowid
+
+        return limit
+
+    def update_limit(self, a_limit: Scale.Limit):
+        self.cursor.execute(
+            f"update {self.limits_tab} set scale_limit = ?, device_class = ?, signal_type = ?, frequency = ? "
+            f"where id = ?",
+            (a_limit.limit, a_limit.device_class, a_limit.signal_type, a_limit.frequency, a_limit.id)
+        )
+
+    def get_limits(self, a_scale_id):
+        self.cursor.execute(f"select * from {self.limits_tab} where scale_id = {a_scale_id}")
+        return [Scale.Limit(*rec[:-1]) for rec in self.cursor.fetchall()]
+
+    def delete_limits(self, a_deleted_ids: Iterable[int]):
+        self.cursor.execute(
+            f"delete from {self.limits_tab} where id in ({','.join(str(d_id) for d_id in a_deleted_ids)})"
+        )
 
     def is_name_exist(self, a_name: str):
         c = self.cursor.execute(f"SELECT EXISTS(SELECT 1 FROM {self.templates_tab} where name='{a_name}')")

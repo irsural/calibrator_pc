@@ -3,6 +3,7 @@ from enum import IntEnum
 
 from PyQt5 import QtCore, QtWidgets
 
+from custom_widgets.QTableDelegates import NonOverlappingDoubleClick
 from ui.py.scale_limits_dialog import Ui_Dialog as ScaleLimitsForm
 from custom_widgets.EditListDialog import OkCancelDialog, EditedListOnlyNumbers
 from constants import Scale
@@ -47,7 +48,7 @@ class FrequencyWidget(QtWidgets.QWidget):
         # noinspection PyUnresolvedReferences
         edit_widget: EditedListOnlyNumbers = self.sender().get_main_widget()
         frequency_list = edit_widget.get_list()
-        self.edit.setText(";".join(";".join(str(f) for f in frequency_list)))
+        self.edit.setText(";".join(utils.float_to_string(f) for f in frequency_list))
 
     def get_frequency_text(self):
         return self.edit.text()
@@ -59,15 +60,23 @@ class ScaleLimitsDialog(QtWidgets.QDialog):
         CLASS = 1
         SIGNAL_TYPE = 2
         FREQUENCY = 3
+        ID = 4
 
     def __init__(self, a_limits: List[Scale.Limit], a_parent=None):
         super().__init__(a_parent)
 
         self.ui = ScaleLimitsForm()
         self.ui.setupUi(self)
+        self.ui.limits_table.hideColumn(ScaleLimitsDialog.Column.ID)
+        self.ui.default_button.hide()
+
+        assert a_limits, "Every scale must have at least 1 limit !!!"
 
         self.limits = a_limits
+        self.deleted_ids = []
 
+        self.ui.limits_table.setItemDelegateForColumn(ScaleLimitsDialog.Column.LIMIT,
+                                                      NonOverlappingDoubleClick(self.ui.limits_table))
         self.ui.limits_table.itemChanged.connect(self.set_value_to_user)
 
         self.ui.add_limit_button.clicked.connect(self.add_limit)
@@ -104,27 +113,33 @@ class ScaleLimitsDialog(QtWidgets.QDialog):
             self.add_limit_to_table(limit)
 
     def signal_type_changed(self, a_idx):
-        sender_table_row = int(self.sender().property("row_in_table"))
-        row_limit_item = self.ui.limits_table.item(sender_table_row, ScaleLimitsDialog.Column.LIMIT)
+        try:
+            sender_table_row = self.ui.limits_table.currentRow()
+            row_limit_item = self.ui.limits_table.item(sender_table_row, ScaleLimitsDialog.Column.LIMIT)
 
-        value_f = utils.parse_input(row_limit_item.text())
-        signal_type = clb.SignalType(a_idx)
-        units = clb.signal_type_to_units[signal_type]
+            value_f = utils.parse_input(row_limit_item.text())
+            signal_type = clb.SignalType(a_idx)
+            units = clb.signal_type_to_units[signal_type]
 
-        value_str = utils.value_to_user_with_units(units)(value_f)
-        row_limit_item.setText(value_str)
+            value_str = utils.value_to_user_with_units(units)(value_f)
+            row_limit_item.setText(value_str)
+        except Exception as err:
+            utils.exception_handler(err)
 
     def extract_params(self) -> List[Scale.Limit]:
         try:
             scales = []
             for row_idx in range(self.ui.limits_table.rowCount()):
                 limit = utils.parse_input(self.ui.limits_table.item(row_idx, ScaleLimitsDialog.Column.LIMIT).text())
-                limit_class = self.ui.limits_table.cellWidget(row_idx, ScaleLimitsDialog.Column.CLASS).value()
-                signal_type = self.ui.limits_table.cellWidget(row_idx, ScaleLimitsDialog.Column.SIGNAL_TYPE).currentIndex()
+                device_class = self.ui.limits_table.cellWidget(row_idx, ScaleLimitsDialog.Column.CLASS).value()
+                signal_type = \
+                    self.ui.limits_table.cellWidget(row_idx, ScaleLimitsDialog.Column.SIGNAL_TYPE).currentIndex()
                 frequency = \
                     self.ui.limits_table.cellWidget(row_idx, ScaleLimitsDialog.Column.FREQUENCY).get_frequency_text()
+                limit_id = int(self.ui.limits_table.item(row_idx, ScaleLimitsDialog.Column.ID).text())
 
-                scales.append(Scale.Limit(limit, limit_class, clb.SignalType(signal_type), frequency))
+                scales.append(Scale.Limit(a_id=limit_id, a_limit=limit, a_device_class=device_class,
+                                          a_signal_type=clb.SignalType(signal_type), a_frequency=frequency))
             return scales
         except Exception as err:
             utils.exception_handler(err)
@@ -145,7 +160,6 @@ class ScaleLimitsDialog(QtWidgets.QDialog):
         for s_t in clb.SignalType:
             signal_type_combobox.addItem(clb.enum_to_signal_type_short[s_t])
         signal_type_combobox.setCurrentIndex(a_limit.signal_type)
-        signal_type_combobox.setProperty("row_in_table", int(row_idx))
         signal_type_combobox.currentIndexChanged.connect(self.signal_type_changed)
         self.ui.limits_table.setCellWidget(row_idx, ScaleLimitsDialog.Column.SIGNAL_TYPE, signal_type_combobox)
 
@@ -156,6 +170,8 @@ class ScaleLimitsDialog(QtWidgets.QDialog):
         self.ui.limits_table.setCellWidget(row_idx, ScaleLimitsDialog.Column.FREQUENCY,
                                            FrequencyWidget(self, a_limit.frequency))
 
+        self.ui.limits_table.setItem(row_idx, ScaleLimitsDialog.Column.ID, QtWidgets.QTableWidgetItem(str(a_limit.id)))
+
     def add_limit(self):
         self.add_limit_to_table(Scale.Limit())
 
@@ -164,10 +180,16 @@ class ScaleLimitsDialog(QtWidgets.QDialog):
             rows = self.ui.limits_table.selectionModel().selectedRows()
             if rows:
                 for idx_model in reversed(rows):
-                    self.ui.limits_table.removeRow(idx_model.row())
+                    print("deleted", idx_model.row())
+                    deleted_row = idx_model.row()
+                    deleted_id = int(self.ui.limits_table.item(deleted_row, ScaleLimitsDialog.Column.ID).text())
+                    self.ui.limits_table.removeRow(deleted_row)
+                    # Пределов с id == 0 и так нет в БД
+                    if deleted_id != 0:
+                        self.deleted_ids.append(deleted_id)
 
     def exec_and_get_limits(self):
         if self.exec() == QtWidgets.QDialog.Accepted:
-            return self.extract_params()
+            return self.extract_params(), self.deleted_ids
         else:
-            return None
+            return None, None
