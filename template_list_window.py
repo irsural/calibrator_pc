@@ -108,7 +108,7 @@ class TemplateListWindow(QtWidgets.QDialog):
     def create_new_template(self, a_template_params=None):
         try:
             # Чтобы не вызывалась template_changed, где читается БД
-            self.ui.templates_list.blockSignals(True)
+            # self.ui.templates_list.blockSignals(True)
 
             self.current_template = a_template_params if \
                 a_template_params is not None else TemplateParams(a_name="Новый шаблон")
@@ -125,11 +125,11 @@ class TemplateListWindow(QtWidgets.QDialog):
             new_item.setData(QtCore.Qt.UserRole, self.current_template.id)
 
             self.ui.templates_list.setCurrentItem(new_item)
-            self.fill_template_info_to_ui(self.current_template)
+            # self.fill_template_info_to_ui(self.current_template)
 
             self.activate_edit_template()
 
-            self.ui.templates_list.blockSignals(False)
+            # self.ui.templates_list.blockSignals(False)
         except Exception as err:
             utils.exception_handler(err)
 
@@ -148,13 +148,18 @@ class TemplateListWindow(QtWidgets.QDialog):
             self.activate_edit_template()
 
     def save_template(self):
-        self.current_template.device_name = self.ui.device_name_edit.text()
-        self.current_template.device_creator = self.ui.device_creator_edit.text()
-        self.current_template.device_system = self.ui.device_system_combobox.currentIndex()
+        try:
+            self.current_template.device_name = self.ui.device_name_edit.text()
+            self.current_template.device_creator = self.ui.device_creator_edit.text()
+            self.current_template.device_system = self.ui.device_system_combobox.currentIndex()
 
-        self.templates_db.save(self.current_template)
+            self.current_template.scales = self.scales_widget.get_scales()
 
-        self.activate_choose_template()
+            self.templates_db.save(self.current_template)
+
+            self.activate_choose_template()
+        except Exception as err:
+            utils.exception_handler(err)
 
     def cancel_template_edit(self):
         self.templates_db.cancel()

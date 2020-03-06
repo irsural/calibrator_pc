@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Iterable
 from sys import float_info
 from collections import OrderedDict
 
@@ -19,7 +19,6 @@ class EditedListWidget(QtWidgets.QWidget):
         self.ui.setupUi(self)
         if a_optional_widget is not None:
             self.ui.optional_widget_layout.addWidget(a_optional_widget)
-            # self.ui.lsitname_label.setText(a_list_name)
 
         self.min_value = a_min_value if a_min_value is not None else float_info.min
         self.max_value = a_max_value if a_max_value is not None else float_info.max
@@ -96,8 +95,10 @@ class QRegExpDelegator(QtWidgets.QItemDelegate):
 
 
 class EditedListOnlyNumbers(EditedListWidget):
-    def __init__(self, parent=None, a_init_items=(), a_min_value=None, a_max_value=None, a_optional_widget=None):
-        super().__init__(parent, a_init_items, a_min_value, a_max_value, a_optional_widget)
+    def __init__(self, parent=None, a_init_items: Iterable[float] = (), a_min_value=None, a_max_value=None,
+                 a_optional_widget=None):
+        str_items = (str(item) for item in a_init_items)
+        super().__init__(parent, str_items, a_min_value, a_max_value, a_optional_widget)
 
         delegator = QRegExpDelegator(self, utils.find_number_re.pattern)
         delegator.editing_finished.connect(self.item_editing_finished)
@@ -107,6 +108,14 @@ class EditedListOnlyNumbers(EditedListWidget):
         value = float(a_input.replace(",", "."))
         value = self.bound_input(value)
         return utils.float_to_string(value)
+
+    def get_list(self):
+        out_list: List[float] = []
+        for idx in range(self.ui.list_widget.count()):
+            item = float(self.ui.list_widget.item(idx).text())
+            if item not in out_list:
+                out_list.append(item)
+        return out_list
 
 
 class EditedListWithUnits(EditedListWidget):

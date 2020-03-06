@@ -47,7 +47,7 @@ class FrequencyWidget(QtWidgets.QWidget):
         # noinspection PyUnresolvedReferences
         edit_widget: EditedListOnlyNumbers = self.sender().get_main_widget()
         frequency_list = edit_widget.get_list()
-        self.edit.setText(";".join(frequency_list))
+        self.edit.setText(";".join(";".join(str(f) for f in frequency_list)))
 
     def get_frequency_text(self):
         return self.edit.text()

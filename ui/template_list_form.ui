@@ -142,7 +142,7 @@ selection-background-color: rgb(170, 170, 255);</string>
         <widget class="QWidget" name="info_layout" native="true">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-           <horstretch>1</horstretch>
+           <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
          </property>
@@ -162,7 +162,7 @@ selection-background-color: rgb(170, 170, 255);</string>
           <item>
            <widget class="QFrame" name="frame">
             <property name="sizePolicy">
-             <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>

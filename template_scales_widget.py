@@ -54,6 +54,7 @@ class ScalesWidget(QtWidgets.QWidget):
         self.scales_id.clear()
         for scale in a_scales:
             self.add_new_tab(self.template_id, scale)
+        self.ui.tabWidget.setCurrentIndex(0)
 
     def add_new_tab(self, a_template_id: int, a_scale: cfg.Scale = None):
         try:
@@ -65,14 +66,13 @@ class ScalesWidget(QtWidgets.QWidget):
 
             config_scale_button = QtWidgets.QPushButton("Пределы", self)
             config_scale_button.clicked.connect(self.edit_scale_limits)
-            scale_list = EditedListOnlyNumbers(parent=self, a_init_items=a_scale.points,
+            scale_list = EditedListOnlyNumbers(parent=self, a_init_items=(p for p in a_scale.points),
                                                a_optional_widget=config_scale_button)
 
             self.ui.tabWidget.insertTab(new_tab_index, scale_list, str(self.ui.tabWidget.count()))
             self.ui.tabWidget.setCurrentIndex(new_tab_index)
 
             self.scales_id[new_tab_index + 1] = a_scale.id
-            print(self.scales_id, a_scale.id)
 
         except Exception as err:
             utils.exception_handler(err)
@@ -90,7 +90,6 @@ class ScalesWidget(QtWidgets.QWidget):
                         self.ui.tabWidget.setCurrentIndex(self.ui.tabWidget.count() - 3)
                     self.ui.tabWidget.removeTab(a_idx)
                     self.templates_db.delete_scale(self.scales_id[a_idx + 1])
-                    print(f"deleted scale{self.scales_id[a_idx + 1]}")
 
                     # Последнюю вкладку с плюсиком не переименовываем
                     for tab_idx in range(self.ui.tabWidget.count() - 1):
@@ -99,7 +98,7 @@ class ScalesWidget(QtWidgets.QWidget):
                         actual_tab_name = str(actual_scale_number)
                         if self.ui.tabWidget.tabText(tab_idx) != actual_tab_name:
                             scale_id = self.scales_id[old_scale_number]
-                            self.templates_db.update_scale_number(scale_id, actual_scale_number)
+                            # self.templates_db.update_scale_number(scale_id, actual_scale_number)
                             del self.scales_id[old_scale_number]
                             self.scales_id[actual_scale_number] = scale_id
 
@@ -122,7 +121,9 @@ class ScalesWidget(QtWidgets.QWidget):
 
     def get_scale_by_tab_idx(self, a_tab_idx):
         scale_points_list: EditedListOnlyNumbers = self.ui.tabWidget.widget(a_tab_idx)
-        return cfg.Scale(a_scale_points=scale_points_list.get_list(), a_limits=self.scale_limits[scale_points_list])
+        scale_number = a_tab_idx + 1
+        return cfg.Scale(a_id=self.scales_id[scale_number], a_number=scale_number,
+                         a_scale_points=scale_points_list.get_list())#, a_limits=self.scale_limits[scale_points_list])
 
 
 if __name__ == "__main__":
