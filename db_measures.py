@@ -84,11 +84,10 @@ class Measure:
         if a_params.frequency:
             frequency_list = (float(f) for f in a_params.frequency.split(';'))
         else:
-            frequency_list = "0" if clb.is_dc_signal[limit.signal_type] else "50"
+            frequency_list = "0" if clb.is_dc_signal[a_params.signal_type] else "50"
 
         points = [MeasuredPoint(amplitude=float(p), frequency=clb.bound_frequency(float(f), a_params.signal_type),
                                 up_value=0, down_value=0) for f in frequency_list for p in a_params.amplitudes]
-        print(points)
         measure_case = Measure.Case(a_id=0, a_limit=a_params.upper_bound, a_class=a_params.accuracy_class,
                                     a_signal_type=a_params.signal_type, a_minimal_discrete=a_params.minimal_discrete,
                                     a_scale_coef=0, a_points=points)
@@ -112,7 +111,6 @@ class Measure:
                                         frequency=clb.bound_frequency(float(f), limit.signal_type),
                                         up_value=0, down_value=0)
                           for f in frequency_list for p in scale.points]
-                print(points)
 
                 measure_cases.append(Measure.Case(a_id=0, a_limit=limit.limit, a_class=limit.device_class,
                                                   a_signal_type=limit.signal_type, a_minimal_discrete=minimal_discrete,

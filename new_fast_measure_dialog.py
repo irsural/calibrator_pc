@@ -227,8 +227,8 @@ class NewFastMeasureDialog(QDialog):
             return self.InputStatus.voltage_too_big
         elif a_config.auto_calc_points and a_config.points_step == 0:
             return self.InputStatus.step_is_zero
-        elif clb.is_ac_signal[a_config.signal_type] and not a_config.frequency:
-            return self.InputStatus.no_frequency
+        # elif clb.is_ac_signal[a_config.signal_type] and not a_config.frequency:
+        #     return self.InputStatus.no_frequency
         else:
             return self.InputStatus.ok
 

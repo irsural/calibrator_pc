@@ -961,33 +961,43 @@
         <number>0</number>
        </property>
        <item>
-        <widget class="QTableView" name="measure_table">
-         <property name="enabled">
-          <bool>true</bool>
+        <layout class="QVBoxLayout" name="verticalLayout_5">
+         <property name="spacing">
+          <number>0</number>
          </property>
-         <property name="contextMenuPolicy">
-          <enum>Qt::CustomContextMenu</enum>
-         </property>
-         <property name="styleSheet">
-          <string notr="true">selection-color: rgb(0, 0, 0);
+         <item>
+          <layout class="QVBoxLayout" name="cases_bar_layout"/>
+         </item>
+         <item>
+          <widget class="QTableView" name="measure_table">
+           <property name="enabled">
+            <bool>true</bool>
+           </property>
+           <property name="contextMenuPolicy">
+            <enum>Qt::CustomContextMenu</enum>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">selection-color: rgb(0, 0, 0);
 selection-background-color: rgb(170, 170, 255);</string>
-         </property>
-         <property name="alternatingRowColors">
-          <bool>true</bool>
-         </property>
-         <property name="selectionMode">
-          <enum>QAbstractItemView::ContiguousSelection</enum>
-         </property>
-         <property name="selectionBehavior">
-          <enum>QAbstractItemView::SelectRows</enum>
-         </property>
-         <property name="textElideMode">
-          <enum>Qt::ElideLeft</enum>
-         </property>
-         <property name="sortingEnabled">
-          <bool>false</bool>
-         </property>
-        </widget>
+           </property>
+           <property name="alternatingRowColors">
+            <bool>true</bool>
+           </property>
+           <property name="selectionMode">
+            <enum>QAbstractItemView::ContiguousSelection</enum>
+           </property>
+           <property name="selectionBehavior">
+            <enum>QAbstractItemView::SelectRows</enum>
+           </property>
+           <property name="textElideMode">
+            <enum>Qt::ElideLeft</enum>
+           </property>
+           <property name="sortingEnabled">
+            <bool>false</bool>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </item>
        <item>
         <layout class="QVBoxLayout" name="verticalLayout">
@@ -1130,7 +1140,6 @@ selection-background-color: rgb(170, 170, 255);</string>
   <tabstop>apply_amplitude_button</tabstop>
   <tabstop>frequency_edit</tabstop>
   <tabstop>apply_frequency_button</tabstop>
-  <tabstop>measure_table</tabstop>
   <tabstop>save_point_button</tabstop>
   <tabstop>go_to_point_button</tabstop>
   <tabstop>delete_point_button</tabstop>

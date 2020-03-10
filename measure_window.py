@@ -11,6 +11,7 @@ from db_measures import Measure, MeasuresDB
 from ui.py.measure_form import Ui_main_widget as MeasureForm
 from MeasureModel import PointData
 from MeasureView import MeasureView
+from measure_cases_widget import MeasureCases
 from settings_ini_parser import Settings
 import calibrator_constants as clb
 import constants as cfg
@@ -30,7 +31,7 @@ class MeasureWindow(QtWidgets.QWidget):
         self.ui = MeasureForm()
         self.ui.setupUi(self)
         self.parent = a_parent
-        return
+
         self.warning_animation = None
         self.set_up_icons()
 
@@ -46,14 +47,6 @@ class MeasureWindow(QtWidgets.QWidget):
 
         self.db_connection = a_db_connection
 
-        self.measures_db = MeasuresDB(self.db_connection)
-        self.measure_config: Measure = a_measure_config
-        self.measure_config.id = self.measures_db.create()
-        self.measure_config.time = QtCore.QTime.currentTime().toString("H:mm:ss")
-
-        self.units_text = clb.signal_type_to_units[self.measure_config.signal_type]
-        self.value_to_user = utils.value_to_user_with_units(self.units_text)
-        self.current_point = PointData(a_normalize_value=self.measure_config.upper_bound)
         self.start_button_active = True
         self.soft_approach_points = []
         self.soft_approach_timer = QTimer()
@@ -64,17 +57,25 @@ class MeasureWindow(QtWidgets.QWidget):
         self.start_measure_timer = QTimer(self)
         self.started = False
 
+        self.measures_db = MeasuresDB(self.db_connection)
+        self.measure_config: Measure = a_measure_config
+        # self.measure_config = self.measures_db.new_measure(self.measure_config)
+
+        self.measure_manager = MeasureCases(self.measure_config.id, self.measures_db, self.ui.measure_table,
+                                            self.measure_config.cases)
+        self.ui.cases_bar_layout.addWidget(self.measure_manager.cases_bar)
+
+        self.units_text, self.value_to_user, self.current_point = self.update_case_params()
+
         self.calibrator = a_calibrator
         self.clb_state = clb.State.DISCONNECTED
-        self.calibrator.signal_type = self.measure_config.signal_type
+        self.calibrator.signal_type = self.measure_manager.current_case().signal_type
 
-        self.highest_amplitude = utils.increase_by_percent(self.measure_config.upper_bound,
-                                                           self.settings.start_deviation)
-        self.lowest_amplitude = -self.highest_amplitude if clb.is_dc_signal[self.measure_config.signal_type] else 0
-        self.highest_amplitude = self.calibrator.limit_amplitude(self.highest_amplitude, self.lowest_amplitude,
-                                                                 self.highest_amplitude)
-
-        self.measure_view = MeasureView(self.ui.measure_table, self.measure_config, self.current_point.normalize_value)
+        # self.highest_amplitude = utils.increase_by_percent(self.measure_config.upper_bound,
+        #                                                    self.settings.start_deviation)
+        # self.lowest_amplitude = -self.highest_amplitude if clb.is_dc_signal[self.measure_config.signal_type] else 0
+        # self.highest_amplitude = self.calibrator.limit_amplitude(self.highest_amplitude, self.lowest_amplitude,
+        #                                                          self.highest_amplitude)
 
         self.set_window_elements()
 
@@ -84,7 +85,7 @@ class MeasureWindow(QtWidgets.QWidget):
         self.settings.fixed_step_changed.connect(self.fill_fixed_step_combobox)
 
         # Вызывать после создания self.measure_view и после self.fill_fixed_step_combobox
-        self.connect_signals()
+        # self.connect_signals()
 
         self.clb_check_timer = QTimer(self)
         self.clb_check_timer.timeout.connect(self.sync_clb_parameters)
@@ -105,11 +106,18 @@ class MeasureWindow(QtWidgets.QWidget):
         self.warning_animation.finished.connect(self.ui.status_warning_label.hide)
 
     def set_window_elements(self):
-        self.ui.apply_frequency_button.setDisabled(clb.is_dc_signal[self.measure_config.signal_type])
-        self.ui.frequency_edit.setDisabled(clb.is_dc_signal[self.measure_config.signal_type])
+        self.ui.apply_frequency_button.setDisabled(clb.is_dc_signal[self.measure_manager.current_case().signal_type])
+        self.ui.frequency_edit.setDisabled(clb.is_dc_signal[self.measure_manager.current_case().signal_type])
 
-        self.setWindowTitle(f"{clb.enum_to_signal_type[self.measure_config.signal_type]}. "
-                            f"{self.measure_config.upper_bound} {self.units_text}.")
+        self.setWindowTitle(f"{clb.enum_to_signal_type[self.measure_manager.current_case().signal_type]}. "
+                            f"{self.measure_manager.current_case().limit} {self.units_text}.")
+
+    def update_case_params(self):
+        case = self.measure_manager.current_case()
+        units_text = clb.signal_type_to_units[case.signal_type]
+        value_to_user = utils.value_to_user_with_units(units_text)
+        current_point = PointData(a_normalize_value=case.limit)
+        return units_text, value_to_user, current_point
 
     def fill_fixed_step_combobox(self):
         values: List[float] = self.settings.fixed_step_list
@@ -130,7 +138,7 @@ class MeasureWindow(QtWidgets.QWidget):
         self.ui.save_point_button.clicked.connect(self.save_point)
         self.ui.go_to_point_button.clicked.connect(self.go_to_point)
         self.ui.delete_point_button.clicked.connect(self.delete_point)
-        self.remove_points.connect(self.measure_view.remove_selected)
+        self.remove_points.connect(self.measure_manager.remove_selected)
 
         self.ui.rough_plus_button.clicked.connect(self.rough_plus_button_clicked)
         self.ui.rough_minus_button.clicked.connect(self.rough_minus_button_clicked)
@@ -189,8 +197,8 @@ class MeasureWindow(QtWidgets.QWidget):
             self.ui.pause_button.setChecked(False)
 
         if self.calibrator.signal_type_changed():
-            if self.calibrator.signal_type != self.measure_config.signal_type:
-                self.calibrator.signal_type = self.measure_config.signal_type
+            if self.calibrator.signal_type != self.measure_manager.current_case().signal_type:
+                self.calibrator.signal_type = self.measure_manager.current_case().signal_type
 
     # def keyPressEvent(self, event: QtGui.QKeyEvent):
     #     if self.ui.measure_table.hasFocus():
@@ -229,15 +237,16 @@ class MeasureWindow(QtWidgets.QWidget):
 
     def set_frequency(self, a_frequency):
         self.calibrator.frequency = a_frequency
-        current_frequency = 0 if clb.is_dc_signal[self.measure_config.signal_type] else self.calibrator.frequency
+        current_frequency = 0 if clb.is_dc_signal[self.measure_manager.current_case().signal_type] else \
+            self.calibrator.frequency
         self.ui.frequency_edit.setText(utils.float_to_string(current_frequency))
 
         self.update_current_frequency(current_frequency)
 
     def tune_amplitude(self, a_step):
         self.set_amplitude(utils.relative_step_change(self.calibrator.amplitude, a_step,
-                                                      clb.signal_type_to_min_step[self.measure_config.signal_type],
-                                                      a_normalize_value=self.measure_config.upper_bound))
+            clb.signal_type_to_min_step[self.measure_manager.current_case().signal_type],
+            a_normalize_value=self.measure_manager.current_case().limit))
 
     def update_current_point(self, a_current_value: float):
         """
@@ -260,10 +269,10 @@ class MeasureWindow(QtWidgets.QWidget):
             message = f"Начать поверку?\n\n" \
                       f"На калибраторе будет включен сигнал и установлены следующие параметры:\n\n"\
                       f"Режим измерения: Фиксированный диапазон\n"\
-                      f"Тип сигнала: {clb.enum_to_signal_type[self.measure_config.signal_type]}\n"\
+                      f"Тип сигнала: {clb.enum_to_signal_type[self.measure_manager.current_case().signal_type]}\n"\
                       f"Амплитуда: {self.value_to_user(self.highest_amplitude)}"
 
-            if clb.is_ac_signal[self.measure_config.signal_type]:
+            if clb.is_ac_signal[self.measure_manager.current_case().signal_type]:
                 message += f"\nЧастота: {utils.float_to_string(self.calibrator.frequency)} Гц"
 
             reply = QMessageBox.question(self, "Подтвердите действие", message, QMessageBox.Yes | QMessageBox.No,
@@ -281,7 +290,7 @@ class MeasureWindow(QtWidgets.QWidget):
 
         self.set_amplitude(self.highest_amplitude)
         self.calibrator.mode = clb.Mode.FIXED_RANGE
-        self.calibrator.signal_type = self.measure_config.signal_type
+        self.calibrator.signal_type = self.measure_manager.current_case().signal_type
         self.started = True
 
         self.start_measure_timer.start(1100)
@@ -297,7 +306,7 @@ class MeasureWindow(QtWidgets.QWidget):
                         else "СВЕРХУ"
 
                     point_text = f"{self.value_to_user(self.current_point.point)}"
-                    if clb.is_ac_signal[self.measure_config.signal_type]:
+                    if clb.is_ac_signal[self.measure_manager.current_case().signal_type]:
                         point_text += f" : {utils.float_to_string(self.current_point.frequency)} Гц"
 
                     reply = QMessageBox.question(self, "Подтвердите действие", f"Значение {side_text} уже измерено "
@@ -345,7 +354,7 @@ class MeasureWindow(QtWidgets.QWidget):
                         change_value_foo = utils.increase_by_percent
 
                 target_amplitude = change_value_foo(target_amplitude, self.settings.start_deviation,
-                                                    a_normalize_value=self.measure_config.upper_bound)
+                                                    a_normalize_value=self.measure_manager.current_case().limit)
 
                 target_amplitude = self.calibrator.limit_amplitude(target_amplitude, self.lowest_amplitude,
                                                                    self.highest_amplitude)
@@ -371,10 +380,11 @@ class MeasureWindow(QtWidgets.QWidget):
             print(err)
 
     def guess_point(self, a_point_value: float):
-        if self.measure_config.minimal_discrete == 0:
+        if self.measure_manager.current_case().minimal_discrete == 0:
             return a_point_value
         else:
-            return round(a_point_value / self.measure_config.minimal_discrete) * self.measure_config.minimal_discrete
+            return round(a_point_value / self.measure_manager.current_case().minimal_discrete) * \
+                   self.measure_manager.current_case().minimal_discrete
 
     def delete_point(self):
         rows = self.measure_view.get_selected_rows()
@@ -384,7 +394,7 @@ class MeasureWindow(QtWidgets.QWidget):
             for index_model in rows:
                 point_str = self.measure_view.get_point_by_row(index_model.row())
                 deleted_points += f"\n{point_str}"
-                if clb.is_ac_signal[self.measure_config.signal_type]:
+                if clb.is_ac_signal[self.measure_manager.current_case().signal_type]:
                     freq = self.measure_view.get_frequency_by_row(index_model.row())
                     deleted_points += f" : {utils.float_to_string(float(freq))} Гц"
 
@@ -490,7 +500,7 @@ class MeasureWindow(QtWidgets.QWidget):
                                                                   self.db_connection, self)
             edit_template_params_dialog.exec()
 
-            self.measure_view.set_device_class(self.measure_config.device_class)
+            self.measure_view.set_device_class(self.measure_manager.current_case().device_class)
         except AssertionError as err:
             utils.exception_handler(err)
 

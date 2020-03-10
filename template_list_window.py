@@ -106,32 +106,22 @@ class TemplateListWindow(QtWidgets.QDialog):
         self.create_new_template()
 
     def create_new_template(self, a_template_params=None):
-        try:
-            # Чтобы не вызывалась template_changed, где читается БД
-            # self.ui.templates_list.blockSignals(True)
+        self.current_template = a_template_params if \
+            a_template_params is not None else TemplateParams(a_name="Новый шаблон")
 
-            self.current_template = a_template_params if \
-                a_template_params is not None else TemplateParams(a_name="Новый шаблон")
+        copy_number = 0
+        source_template_name = self.current_template.name
+        while self.templates_db.is_name_exist(self.current_template.name):
+            copy_number += 1
+            self.current_template.name = f"{source_template_name}_{copy_number}"
 
-            copy_number = 0
-            source_template_name = self.current_template.name
-            while self.templates_db.is_name_exist(self.current_template.name):
-                copy_number += 1
-                self.current_template.name = f"{source_template_name}_{copy_number}"
+        self.templates_db.new(self.current_template)
 
-            self.templates_db.new(self.current_template)
+        new_item = QtWidgets.QListWidgetItem(self.current_template.name, self.ui.templates_list)
+        new_item.setData(QtCore.Qt.UserRole, self.current_template.id)
 
-            new_item = QtWidgets.QListWidgetItem(self.current_template.name, self.ui.templates_list)
-            new_item.setData(QtCore.Qt.UserRole, self.current_template.id)
-
-            self.ui.templates_list.setCurrentItem(new_item)
-            # self.fill_template_info_to_ui(self.current_template)
-
-            self.activate_edit_template()
-
-            # self.ui.templates_list.blockSignals(False)
-        except Exception as err:
-            utils.exception_handler(err)
+        self.ui.templates_list.setCurrentItem(new_item)
+        self.activate_edit_template()
 
     def duplicate_template(self):
         try:
@@ -148,19 +138,16 @@ class TemplateListWindow(QtWidgets.QDialog):
             self.activate_edit_template()
 
     def save_template(self):
-        try:
-            self.current_template.device_name = self.ui.device_name_edit.text()
-            self.current_template.device_creator = self.ui.device_creator_edit.text()
-            self.current_template.device_system = self.ui.device_system_combobox.currentIndex()
+        self.current_template.device_name = self.ui.device_name_edit.text()
+        self.current_template.device_creator = self.ui.device_creator_edit.text()
+        self.current_template.device_system = self.ui.device_system_combobox.currentIndex()
 
-            self.current_template.scales = self.scales_widget.get_scales()
+        self.current_template.scales = self.scales_widget.get_scales()
 
-            self.templates_db.save(self.current_template)
+        self.templates_db.save(self.current_template)
 
-            self.activate_choose_template()
-            self.template_changed(self.ui.templates_list.currentItem())
-        except Exception as err:
-            utils.exception_handler(err)
+        self.activate_choose_template()
+        self.template_changed(self.ui.templates_list.currentItem())
 
     def cancel_template_edit(self):
         self.templates_db.cancel()
@@ -173,16 +160,13 @@ class TemplateListWindow(QtWidgets.QDialog):
             self.template_changed(self.ui.templates_list.currentItem())
 
     def delete_current_template(self):
-        try:
-            deleted_item = self.ui.templates_list.currentItem()
-            reply = QtWidgets.QMessageBox.question(self, "Подтвердите действие", f"Вы действительно хотите удалить "
-                                                   f"шаблон '{deleted_item.text()}'?", QtWidgets.QMessageBox.Yes |
-                                                   QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)
-            if reply == QtWidgets.QMessageBox.Yes:
-                self.templates_db.delete(self.current_template)
-                self.ui.templates_list.takeItem(self.ui.templates_list.currentRow())
-        except Exception as err:
-            print(err)
+        deleted_item = self.ui.templates_list.currentItem()
+        reply = QtWidgets.QMessageBox.question(self, "Подтвердите действие", f"Вы действительно хотите удалить "
+                                               f"шаблон '{deleted_item.text()}'?", QtWidgets.QMessageBox.Yes |
+                                               QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)
+        if reply == QtWidgets.QMessageBox.Yes:
+            self.templates_db.delete(self.current_template)
+            self.ui.templates_list.takeItem(self.ui.templates_list.currentRow())
 
     def choose_template(self):
         try:

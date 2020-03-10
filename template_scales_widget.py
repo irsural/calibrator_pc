@@ -42,7 +42,7 @@ class ScalesWidget(QtWidgets.QWidget):
         plus_button.clicked.connect(self.plus_button_clicked)
 
     def plus_button_clicked(self):
-        assert self.template_id != 0, "self.template_id must not be 0!"
+        assert self.template_id != 0, "self.measure_id must not be 0!"
         self.add_new_tab(self.template_id)
 
     def reset(self, a_template_id: int, a_scales: List[cfg.Scale]):

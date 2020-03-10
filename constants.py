@@ -8,6 +8,8 @@ COPY_ICON_PATH = "./resources/icons/copy.png"
 PLAY_ICON_PATH = "./resources/icons/play.png"
 PAUSE_ICON_PATH = "./resources/icons/pause.png"
 WARNING_GIF_PATH = "./resources/gif/warning.gif"
+CLOSE_ICON_PATH = "./resources/icons/close.png"
+SETTINGS_ICON_PATH = "./resources/icons/settings.png"
 
 FLOAT_EPSILON = 1e-9
 

@@ -1,3 +1,5 @@
+from typing import Union
+
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 from custom_widgets.QTableDelegates import NonOverlappingDoubleClick
@@ -8,35 +10,36 @@ import qt_utils
 
 
 class MeasureView:
-    def __init__(self, a_table_view: QtWidgets.QTableView, a_measure_config: Measure, a_normalize_value=0):
+    def __init__(self, a_table_view: QtWidgets.QTableView, a_measure_case: Measure.Case):
 
         self.table = a_table_view
-        self.measure_config = a_measure_config
+        self.measure_case: Union[Measure.Case, None] = None
+        self.measure_model: Union[MeasureModel, None] = None
 
-        if a_normalize_value != 0:
-            self.normalize_value = a_normalize_value
-        elif self.measure_config.points:
-            self.normalize_value = max(self.measure_config.points, key=lambda p: p.amplitude).amplitude
-        else:
-            self.normalize_value = 1
+        self.reset(a_measure_case)
 
-        self.measure_model = MeasureModel(a_normalize_value=self.normalize_value,
-                                          a_error_limit=self.measure_config.device_class,
-                                          a_signal_type=self.measure_config.signal_type,
-                                          a_init_points=self.measure_config.points, a_parent=self.table)
-
-        assert self.measure_config.points == self.measure_model.exportPoints(), \
-            f"Points were inited with errors:\n{self.measure_config.points}\n{self.measure_model.exportPoints()}"
-
-        self.table.setModel(self.measure_model)
         self.table.setItemDelegate(NonOverlappingDoubleClick(self.table))
         self.table.customContextMenuRequested.connect(self.show_table_custom_menu)
-        self.table.setColumnHidden(MeasureModel.Column.FREQUENCY, clb.is_dc_signal[self.measure_config.signal_type])
 
         self.header_context = qt_utils.TableHeaderContextMenu(self.table, self.table)
 
     def __del__(self):
         print("MeasureView deleted")
+
+    def reset(self, a_case: Measure.Case):
+        self.measure_case = a_case
+        assert a_case.limit != 0, "a_measure_case.limit must not be zero"
+
+        self.measure_model = MeasureModel(a_normalize_value=self.measure_case.limit,
+                                          a_error_limit=self.measure_case.device_class,
+                                          a_signal_type=self.measure_case.signal_type,
+                                          a_init_points=self.measure_case.points, a_parent=self.table)
+
+        assert self.measure_case.points == self.measure_model.exportPoints(), \
+            f"Points were inited with errors:\n{self.measure_case.points}\n{self.measure_model.exportPoints()}"
+
+        self.table.setModel(self.measure_model)
+        self.table.setColumnHidden(MeasureModel.Column.FREQUENCY, clb.is_dc_signal[self.measure_case.signal_type])
 
     def close(self):
         # Без этого header_context не уничтожится
