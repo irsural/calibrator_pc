@@ -20,6 +20,7 @@ import utils
 class MainWindow(QtWidgets.QMainWindow):
     clb_list_changed = QtCore.pyqtSignal([list])
     usb_status_changed = QtCore.pyqtSignal(clb.State)
+    signal_enable_changed = QtCore.pyqtSignal(bool)
 
     def __init__(self):
         super().__init__()
@@ -94,7 +95,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
         current_state = clb.State.DISCONNECTED
         if self.usb_state == clb_dll.UsbDrv.UsbState.CONNECTED:
-            self.calibrator.signal_enable_changed()
+            if self.calibrator.signal_enable_changed():
+                self.signal_enable_changed.emit(self.calibrator.signal_enable)
 
             if not self.calibrator.signal_enable:
                 current_state = clb.State.STOPPED
@@ -116,6 +118,9 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.usb_status_changed.connect(a_window.update_clb_status)
         self.usb_status_changed.emit(self.clb_state)
+
+        self.signal_enable_changed.connect(a_window.signal_enable_changed)
+        self.signal_enable_changed.emit(self.calibrator.signal_enable)
 
     def change_window(self, a_new_window):
         self.active_window = a_new_window

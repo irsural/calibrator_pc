@@ -84,7 +84,7 @@ class Measure:
         if a_params.frequency:
             frequency_list = (float(f) for f in a_params.frequency.split(';'))
         else:
-            frequency_list = "0" if clb.is_dc_signal[a_params.signal_type] else "50"
+            frequency_list = [0] if clb.is_dc_signal[a_params.signal_type] else [50]
 
         points = [MeasuredPoint(amplitude=float(p), frequency=clb.bound_frequency(float(f), a_params.signal_type),
                                 up_value=0, down_value=0) for f in frequency_list for p in a_params.amplitudes]
@@ -102,7 +102,7 @@ class Measure:
                 if limit.frequency:
                     frequency_list = (float(f) for f in limit.frequency.split(';'))
                 else:
-                    frequency_list = "0" if clb.is_dc_signal[limit.signal_type] else "50"
+                    frequency_list = [0] if clb.is_dc_signal[limit.signal_type] else [50]
 
                 scale_coef = limit.limit / max(scale.points)
                 minimal_discrete = round(utils.get_array_min_diff(sorted(scale.points)) * scale_coef, 9)

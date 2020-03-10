@@ -11,50 +11,16 @@ import constants as cfg
 import utils
 
 
-class SettingsCloseWidget(QtWidgets.QWidget):
-    settings_clicked = QtCore.pyqtSignal()
-    close_clicked = QtCore.pyqtSignal()
-
-    def __init__(self, a_parent=None):
-        super().__init__(a_parent)
-
-        self.settings_button = QtWidgets.QPushButton(self)
-        self.settings_button.setIcon(QtGui.QIcon(QtGui.QPixmap(cfg.SETTINGS_ICON_PATH)))
-        self.settings_button.setIconSize(QtCore.QSize(15, 15))
-        self.settings_button.setFlat(True)
-        self.settings_button.setFixedSize(15, 15)
-
-        self.close_button = QtWidgets.QPushButton(self)
-        self.close_button.setIcon(QtGui.QIcon(QtGui.QPixmap(cfg.CLOSE_ICON_PATH)))
-        self.close_button.setIconSize(QtCore.QSize(15, 15))
-        self.close_button.setFlat(True)
-        self.close_button.setFixedSize(15, 15)
-
-        self.layout = QtWidgets.QHBoxLayout(self)
-        self.layout.addWidget(self.settings_button)
-        self.layout.addWidget(self.close_button)
-        self.layout.setContentsMargins(5, 0, 0, 0)
-        self.layout.setSpacing(2)
-        self.setLayout(self.layout)
-
-        self.settings_button.clicked.connect(self.settings_clicked.emit)
-        self.close_button.clicked.connect(self.close_clicked.emit)
-
-
 class MeasureCases(QtWidgets.QWidget):
     case_added = QtCore.pyqtSignal()
     case_removed = QtCore.pyqtSignal(int)
-    current_case_changed = QtCore.pyqtSignal(int)
+    current_case_changed = QtCore.pyqtSignal()
 
     def __init__(self, a_measure_id, a_measures_db: MeasuresDB, a_case_table: QtWidgets.QTableView,
                  a_cases: List[Measure.Case], a_parent=None):
         super().__init__(a_parent)
 
         self.cases_bar = QtWidgets.QTabBar(self)
-        self.cases_bar.setStyleSheet(
-            "QTabBar::tab:last { margin-right: 2px; margin-left:0px; padding-left: 0; }\n"
-            "QTabBar::tab:selected { background: white; border: 1px solid #000000; border-bottom: 0; }\n"
-            "QTabBar::tab { padding-left: 6px; height: 30px }")
         self.set_up_tab_widget()
 
         assert a_cases, "Every measure must have at least 1 case!!!"
@@ -67,12 +33,22 @@ class MeasureCases(QtWidgets.QWidget):
 
         for case in self.cases:
             self.add_new_tab(case)
+
         self.select_case(0)
+        self.cases_bar.currentChanged.connect(self.select_case)
 
     def __del__(self):
         print("measure cases deleted")
 
+    def view(self):
+        return self.measure_view
+
     def set_up_tab_widget(self):
+        self.cases_bar.setStyleSheet(
+            "QTabBar::tab:last { margin-right: 2px; margin-left:0px; padding-left: 0; }\n"
+            "QTabBar::tab:selected { background: white; border: 1px solid #000000; border-bottom: 0; }\n"
+            "QTabBar::tab { padding-left: 6px; height: 30px }")
+
         self.cases_bar.setExpanding(False)
 
         plus_button = QtWidgets.QPushButton("+")
@@ -90,13 +66,13 @@ class MeasureCases(QtWidgets.QWidget):
     def select_case(self, a_idx):
         self.cases_bar.setCurrentIndex(a_idx)
         self.measure_view.reset(self.cases[a_idx])
+        self.current_case_changed.emit()
 
     def add_new_tab(self, a_case: Measure.Case = None):
         try:
             new_tab_index = self.cases_bar.count() - 1
 
             if a_case is None:
-                a_case = Measure.Case()
                 # a_case = self.measures_db.new_case(self.measure_id, a_case)
                 pass
 
@@ -164,6 +140,10 @@ class MeasureCases(QtWidgets.QWidget):
     def current_case(self):
         return self.cases[self.cases_bar.currentIndex()]
 
+    def closeEvent(self, a_event: QtGui.QCloseEvent) -> None:
+        self.measure_view.close()
+        a_event.accept()
+
     # def get_scales(self) -> List[cfg.Scale]:
     #     scales = [self.get_scale_by_tab_idx(tab_idx) for tab_idx in range(self.cases_bar.count() - 1)]
     #     return scales
@@ -176,9 +156,31 @@ class MeasureCases(QtWidgets.QWidget):
         #                  a_scale_points=scale_points_list.get_list())
 
 
-if __name__ == "__main__":
-    import sys
-    app = QtWidgets.QApplication(sys.argv)
-    w = SettingsCloseWidget()
-    w.show()
-    sys.exit(app.exec())
+class SettingsCloseWidget(QtWidgets.QWidget):
+    settings_clicked = QtCore.pyqtSignal()
+    close_clicked = QtCore.pyqtSignal()
+
+    def __init__(self, a_parent=None):
+        super().__init__(a_parent)
+
+        self.settings_button = QtWidgets.QPushButton(self)
+        self.settings_button.setIcon(QtGui.QIcon(QtGui.QPixmap(cfg.SETTINGS_ICON_PATH)))
+        self.settings_button.setIconSize(QtCore.QSize(15, 15))
+        self.settings_button.setFlat(True)
+        self.settings_button.setFixedSize(15, 15)
+
+        self.close_button = QtWidgets.QPushButton(self)
+        self.close_button.setIcon(QtGui.QIcon(QtGui.QPixmap(cfg.CLOSE_ICON_PATH)))
+        self.close_button.setIconSize(QtCore.QSize(15, 15))
+        self.close_button.setFlat(True)
+        self.close_button.setFixedSize(15, 15)
+
+        self.layout = QtWidgets.QHBoxLayout(self)
+        self.layout.addWidget(self.settings_button)
+        self.layout.addWidget(self.close_button)
+        self.layout.setContentsMargins(5, 0, 0, 0)
+        self.layout.setSpacing(2)
+        self.setLayout(self.layout)
+
+        self.settings_button.clicked.connect(self.settings_clicked.emit)
+        self.close_button.clicked.connect(self.close_clicked.emit)
