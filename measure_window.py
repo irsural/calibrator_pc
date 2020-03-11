@@ -38,22 +38,31 @@ class MeasureWindow(QtWidgets.QWidget):
 
         self.settings = a_settings
 
-        self.calibrator = a_calibrator
-        self.clb_state = clb.State.DISCONNECTED
-
         self.parent.restoreGeometry(self.settings.get_last_geometry(self.__class__.__name__))
         self.parent.show()
         self.parent.restoreGeometry(self.settings.get_last_geometry(self.__class__.__name__))
-
         # Вызывать после self.parent.show() !!! Иначе состояние столбцов не восстановится
         self.ui.measure_table.horizontalHeader().restoreState(self.settings.get_last_header_state(
             self.__class__.__name__))
 
         self.db_connection = a_db_connection
+        self.measure_config: Measure = a_measure_config
 
-        self.start_button_active = True
+        self.calibrator = a_calibrator
+        self.clb_state = clb.State.DISCONNECTED
+
+        self.measures_db = MeasuresDB(self.db_connection)
+        # self.measure_config = self.measures_db.new_measure(self.measure_config)
+
+        self.measure_manager = MeasureCases(self.measure_config.id, self.measures_db, self.ui.measure_table,
+                                            self.measure_config.cases)
+        self.ui.cases_bar_layout.addWidget(self.measure_manager.cases_bar)
+
+        # --------------------Создение переменных
+        self.started = False
+
         self.soft_approach_points = []
-        self.soft_approach_timer = QTimer()
+        self.soft_approach_timer = QTimer(self)
         # Минимум стабильной передачи - 200 мс
         self.next_soft_point_time_ms = 200
         self.soft_approach_time_s = 4
@@ -61,16 +70,6 @@ class MeasureWindow(QtWidgets.QWidget):
         self.start_measure_timer = QTimer(self)
         # Нужен, чтобы убедиться, что сигнал выключен, после чего менять параметры сигнала
         self.stop_measure_timer = QTimer(self)
-
-        self.started = False
-
-        self.measures_db = MeasuresDB(self.db_connection)
-        self.measure_config: Measure = a_measure_config
-        # self.measure_config = self.measures_db.new_measure(self.measure_config)
-
-        self.measure_manager = MeasureCases(self.measure_config.id, self.measures_db, self.ui.measure_table,
-                                            self.measure_config.cases)
-        self.ui.cases_bar_layout.addWidget(self.measure_manager.cases_bar)
 
         self.units_text = "В"
         self.value_to_user = utils.value_to_user_with_units(self.units_text)
@@ -80,6 +79,7 @@ class MeasureWindow(QtWidgets.QWidget):
 
         self.fixed_step = 0
         self.fixed_step_list = self.settings.fixed_step_list
+        # --------------------Создение переменных
 
         self.current_case = self.measure_manager.current_case()
         self.current_case_changed()
@@ -117,22 +117,6 @@ class MeasureWindow(QtWidgets.QWidget):
         self.highest_amplitude = clb.bound_amplitude(utils.increase_by_percent(
             self.current_case.limit, self.settings.start_deviation), self.current_case.signal_type)
         self.lowest_amplitude = -self.highest_amplitude if clb.is_dc_signal[self.current_case.signal_type] else 0
-
-    # Вызывается по таймауту stop_measure_timer
-    def current_case_changed(self):
-        if not self.calibrator.signal_enable:
-            self.current_case = self.measure_manager.current_case()
-            self.set_window_elements()
-            self.update_case_params()
-
-            # Чтобы обновились единицы измерения
-            self.set_amplitude(self.calibrator.amplitude)
-            self.set_frequency(self.calibrator.frequency)
-            self.fill_fixed_step_combobox()
-
-            self.stop_measure_timer.stop()
-        else:
-            self.stop_measure()
 
     def fill_fixed_step_combobox(self):
         values: List[float] = self.settings.fixed_step_list
@@ -212,7 +196,7 @@ class MeasureWindow(QtWidgets.QWidget):
                 self.calibrator.signal_type = self.current_case.signal_type
 
     def signal_enable_changed(self, a_enable):
-        if self.start_button_active and self.calibrator.signal_enable:
+        if not self.started and self.calibrator.signal_enable:
             # Пока измерение не начато, запрещаем включать сигнал
             self.enable_signal(False)
             self.update_pause_button_state(False)
@@ -221,6 +205,93 @@ class MeasureWindow(QtWidgets.QWidget):
                 self.update_pause_button_state(True)
             else:
                 self.update_pause_button_state(False)
+
+    def start_stop_measure(self):
+        if not self.started:
+            if self.ask_for_start_measure():
+                self.started = True
+                self.ui.start_stop_button.setText("Закончить\nповерку")
+                self.ui.pause_button.setEnabled(True)
+
+                self.start_measure()
+        else:
+            self.ask_for_close()
+
+    def ask_for_start_measure(self):
+        message = f"Начать поверку?\n\n" \
+                  f"На калибраторе будет включен сигнал и установлены следующие параметры:\n\n" \
+                  f"Режим измерения: Фиксированный диапазон\n" \
+                  f"Тип сигнала: {clb.enum_to_signal_type[self.current_case.signal_type]}\n" \
+                  f"Амплитуда: {self.value_to_user(self.highest_amplitude)}"
+
+        if clb.is_ac_signal[self.current_case.signal_type]:
+            message += f"\nЧастота: {utils.float_to_string(self.calibrator.frequency)} Гц"
+
+        reply = QMessageBox.question(self, "Подтвердите действие", message, QMessageBox.Yes | QMessageBox.No,
+                                     QMessageBox.No)
+
+        if reply == QMessageBox.Yes:
+            return True
+        else:
+            return False
+
+    def start_measure(self):
+        self.set_amplitude(self.highest_amplitude)
+        self.calibrator.mode = clb.Mode.FIXED_RANGE
+        self.calibrator.signal_type = self.current_case.signal_type
+
+        self.start_measure_timer.start(1100)
+
+    def update_pause_button_state(self, a_signal_enabled: bool):
+        self.soft_approach_points.clear()
+        if a_signal_enabled:
+            self.ui.pause_button.setChecked(a_signal_enabled)
+            self.ui.pause_button.setText("Пауза")
+        else:
+            self.ui.pause_button.setChecked(a_signal_enabled)
+            self.ui.pause_button.setText("Возобновить")
+
+    def check_fixed_range(self):
+        if self.calibrator.mode == clb.Mode.FIXED_RANGE and self.calibrator.amplitude == self.highest_amplitude:
+            self.enable_signal(True)
+            self.start_measure_timer.stop()
+
+    def stop_measure(self):
+        """
+        Вызывается каждый раз, когда меняются параметры сигнала
+        Если сигнал выключен, вызывает self.current_case_changed
+        Если сигнал включен, выключает и через 1.1 сек вызывает self.current_case_changed
+        """
+        if self.calibrator.signal_enable:
+            self.enable_signal(False)
+            self.stop_measure_timer.start(1100)
+        else:
+            self.current_case_changed()
+
+    # Вызывается по таймауту stop_measure_timer
+    def current_case_changed(self):
+        if not self.calibrator.signal_enable:
+            self.current_case = self.measure_manager.current_case()
+            self.set_window_elements()
+            self.update_case_params()
+
+            # Чтобы обновились единицы измерения
+            self.set_amplitude(self.calibrator.amplitude)
+            self.set_frequency(self.calibrator.frequency)
+            self.fill_fixed_step_combobox()
+
+            self.stop_measure_timer.stop()
+        else:
+            self.stop_measure()
+
+    def pause_or_resume_measure(self):
+        if self.calibrator.signal_enable:
+            self.enable_signal(False)
+        else:
+            # Иконка и состояние чекбокса меняется до утвердительного ответа, принудительно меняем обратно
+            self.update_pause_button_state(False)
+            if self.ask_for_start_measure():
+                self.start_measure()
 
     # def keyPressEvent(self, event: QtGui.QKeyEvent):
     #     if self.ui.measure_table.hasFocus():
@@ -294,73 +365,6 @@ class MeasureWindow(QtWidgets.QWidget):
     def update_current_frequency(self, a_current_frequency):
         self.current_point.frequency = a_current_frequency
 
-    def start_stop_measure(self):
-        if self.start_button_active:
-            if self.ask_for_start_measure():
-                self.start_button_active = False
-                self.ui.start_stop_button.setText("Закончить\nповерку")
-                self.ui.pause_button.setEnabled(True)
-
-                self.start_measure()
-        else:
-            self.ask_for_close()
-
-    def ask_for_start_measure(self):
-        message = f"Начать поверку?\n\n" \
-                  f"На калибраторе будет включен сигнал и установлены следующие параметры:\n\n" \
-                  f"Режим измерения: Фиксированный диапазон\n" \
-                  f"Тип сигнала: {clb.enum_to_signal_type[self.current_case.signal_type]}\n" \
-                  f"Амплитуда: {self.value_to_user(self.highest_amplitude)}"
-
-        if clb.is_ac_signal[self.current_case.signal_type]:
-            message += f"\nЧастота: {utils.float_to_string(self.calibrator.frequency)} Гц"
-
-        reply = QMessageBox.question(self, "Подтвердите действие", message, QMessageBox.Yes | QMessageBox.No,
-                                     QMessageBox.No)
-
-        if reply == QMessageBox.Yes:
-            return True
-        else:
-            return False
-
-    def start_measure(self):
-        self.set_amplitude(self.highest_amplitude)
-        self.calibrator.mode = clb.Mode.FIXED_RANGE
-        self.calibrator.signal_type = self.current_case.signal_type
-        self.started = True
-
-        self.start_measure_timer.start(1100)
-
-    def update_pause_button_state(self, a_signal_enabled: bool):
-        self.soft_approach_points.clear()
-        if a_signal_enabled:
-            self.ui.pause_button.setChecked(a_signal_enabled)
-            self.ui.pause_button.setText("Пауза")
-        else:
-            self.ui.pause_button.setChecked(a_signal_enabled)
-            self.ui.pause_button.setText("Возобновить")
-
-    def check_fixed_range(self):
-        if self.calibrator.mode == clb.Mode.FIXED_RANGE and self.calibrator.amplitude == self.highest_amplitude:
-            self.enable_signal(True)
-            self.start_measure_timer.stop()
-
-    def stop_measure(self):
-        if self.calibrator.signal_enable:
-            self.enable_signal(False)
-            self.stop_measure_timer.start(1100)
-        else:
-            self.current_case_changed()
-
-    def pause_or_resume_measure(self):
-        if self.calibrator.signal_enable:
-            self.enable_signal(False)
-        else:
-            # Иконка и состояние чекбокса меняется до утвердительного ответа, принудительно меняем обратно
-            self.update_pause_button_state(False)
-            if self.ask_for_start_measure():
-                self.start_measure()
-
     def save_point(self):
         if self.clb_state != clb.State.WAITING_SIGNAL:
             try:
@@ -421,8 +425,7 @@ class MeasureWindow(QtWidgets.QWidget):
                 target_amplitude = change_value_foo(target_amplitude, self.settings.start_deviation,
                                                     a_normalize_value=self.current_case.limit)
 
-                target_amplitude = self.calibrator.limit_amplitude(target_amplitude, self.lowest_amplitude,
-                                                                   self.highest_amplitude)
+                target_amplitude = utils.bound(target_amplitude, self.lowest_amplitude, self.highest_amplitude)
                 self.start_approach_to_point(target_amplitude)
 
     def start_approach_to_point(self, a_point):
