@@ -46,13 +46,13 @@ class MeasureWindow(QtWidgets.QWidget):
             self.__class__.__name__))
 
         self.db_connection = a_db_connection
-        self.measure_config: Measure = a_measure_config
 
         self.calibrator = a_calibrator
         self.clb_state = clb.State.DISCONNECTED
 
+        self.measure_config: Measure = a_measure_config
         self.measures_db = MeasuresDB(self.db_connection)
-        # self.measure_config = self.measures_db.new_measure(self.measure_config)
+        self.measure_config.id = self.measures_db.new_measure(self.measure_config)
 
         self.measure_manager = MeasureCases(self.measure_config.id, self.measures_db, self.ui.measure_table,
                                             self.measure_config.cases)
@@ -142,7 +142,6 @@ class MeasureWindow(QtWidgets.QWidget):
         self.ui.go_to_point_button.clicked.connect(self.go_to_point)
         self.ui.delete_point_button.clicked.connect(self.delete_point)
         self.remove_points.connect(self.measure_manager.view().remove_selected)
-
 
         self.ui.rough_plus_button.clicked.connect(self.rough_plus_button_clicked)
         self.ui.rough_minus_button.clicked.connect(self.rough_minus_button_clicked)
@@ -536,7 +535,8 @@ class MeasureWindow(QtWidgets.QWidget):
         try:
             edit_template_params_dialog = EditMeasureParamsDialog(self.settings, self.measure_config,
                                                                   self.db_connection, self)
-            edit_template_params_dialog.exec()
+            if edit_template_params_dialog.exec() == QtWidgets.QDialog.Accepted:
+                self.measures_db.update_measure(self.measure_config)
             # self.measure_manager.view().set_device_class(self.current_case.device_class)
         except AssertionError as err:
             utils.exception_handler(err)

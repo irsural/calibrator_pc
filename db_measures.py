@@ -1,4 +1,3 @@
-from collections import namedtuple
 from typing import List, Tuple
 from enum import IntEnum
 import sqlite3
@@ -8,42 +7,33 @@ from PyQt5.QtCore import QDate, QTime
 from variable_template_fields_dialog import VariableTemplateParams
 from new_fast_measure_dialog import FastMeasureParams
 from db_templates import TemplateParams
-from constants import DeviceSystem, MeasuredPoint, Scale, enum_to_device_system
+from constants import DeviceSystem, MeasuredPoint, enum_to_device_system
 import calibrator_constants as clb
 import utils
-
 
 
 class MeasureColumn(IntEnum):
     ID = 0
     DATETIME = 1
     DEVICE_NAME = 2
-    SERIAL_NUMBER = 3
-    SIGNAL_TYPE = 4
-    DEVICE_CLASS = 5
-    COMMENT = 6
-    OWNER = 7
-    DEVICE_SYSTEM = 8
-    USER = 9
-    ORGANISATION = 10
-    ETALON_DEVICE = 11
-    DEVICE_CREATOR = 12
+    DEVICE_CREATOR = 3
+    DEVICE_SYSTEM = 4
+    OWNER = 5
+    USER = 6
+    SERIAL_NUMBER = 7
+    COMMENT = 8
 
 
 MEASURE_COLUMN_TO_NAME = {
     MeasureColumn.ID: "Id",
     MeasureColumn.DATETIME: "Дата / Время",
     MeasureColumn.DEVICE_NAME: "Наименование\nприбора",
-    MeasureColumn.SERIAL_NUMBER: "Заводской\nномер",
-    MeasureColumn.SIGNAL_TYPE: "Род\nтока",
-    MeasureColumn.DEVICE_CLASS: "Класс",
-    MeasureColumn.COMMENT: "Комментарий",
-    MeasureColumn.OWNER: "Организация\nвладелец",
+    MeasureColumn.DEVICE_CREATOR: "Изготовитель",
     MeasureColumn.DEVICE_SYSTEM: "Система",
+    MeasureColumn.OWNER: "Организация\nвладелец",
     MeasureColumn.USER: "Поверитель",
-    MeasureColumn.ORGANISATION: "Организация\nповеритель",
-    MeasureColumn.ETALON_DEVICE: "Средство\nповерки",
-    MeasureColumn.DEVICE_CREATOR: "Изготовитель"
+    MeasureColumn.SERIAL_NUMBER: "Заводской\nномер",
+    MeasureColumn.COMMENT: "Комментарий",
 }
 
 
@@ -131,23 +121,28 @@ class MeasuresDB:
         connection = sqlite3.connect(a_db_name)
         cursor = connection.cursor()
         with connection:
-            cursor.execute(f"CREATE TABLE IF NOT EXISTS marks "
-                           f"(name text primary key, tag text unique, default_value text)")
-
             cursor.execute(f"CREATE TABLE IF NOT EXISTS measures "
                            f"(id integer primary key autoincrement, datetime text, device_name text, "
-                           f"serial_number text, comment text, owner text, device_system integer, "
-                           f"user text, device_creator text)")
+                           f"device_creator text, device_system integer, owner text, user text, "
+                           f"serial_number text, comment text)")
+
+            cursor.execute(f"CREATE TABLE IF NOT EXISTS measure_cases "
+                           f"(id integer primary key autoincrement, measure_limit real, device_class real, "
+                           f"signal_type int, measure_id int, "
+                           f"foreign key (measure_id) references measures(id))")
+
+            cursor.execute(f"CREATE TABLE IF NOT EXISTS results "
+                           f"(id integer primary key autoincrement, point real, frequency real, up_value real, "
+                           f"down_value real, measure_case_id int,"
+                           f"foreign key (measure_case_id) references measure_cases(id))")
+
+            cursor.execute(f"CREATE TABLE IF NOT EXISTS marks "
+                           f"(name text primary key, tag text unique, default_value text)")
 
             cursor.execute(f"CREATE TABLE IF NOT EXISTS mark_values "
                            f"(id integer primary key autoincrement, value text, mark_name text,  measure_id int, "
                            f"unique (mark_name, measure_id), "
                            f"foreign key (mark_name) references marks (name),"
-                           f"foreign key (measure_id) references measures(id))")
-
-            cursor.execute(f"CREATE TABLE IF NOT EXISTS results "
-                           f"(id integer primary key autoincrement, point real, frequency real, up_value real, "
-                           f"down_value real, measure_id int,"
                            f"foreign key (measure_id) references measures(id))")
 
             # Таблицы соответствий системы прибора и типа сигнала
@@ -161,15 +156,30 @@ class MeasuresDB:
 
         return connection
 
-    def create(self):
+    def new_measure(self, a_measure: Measure):
         with self.connection:
-            self.cursor.execute(f"insert into measures default values")
+            self.cursor.execute(f"insert into measures (datetime, device_name, device_creator, device_system, owner, "
+                                f"user, serial_number, comment) values (?, ?, ?, ?, ?, ?, ?, ?)",
+                                (' '.join([a_measure.date, a_measure.time]), a_measure.device_name,
+                                 a_measure.device_creator, a_measure.device_system, a_measure.owner, a_measure.user,
+                                 a_measure.serial_num, a_measure.comment))
             measure_id = self.cursor.lastrowid
             # Копируем все дефолтные значения в измерение, если дефолтное значение заполнено
             self.cursor.execute(f"insert into mark_values (mark_name, value, measure_id) "
                                 f"select name, default_value, {measure_id} from marks  "
                                 f"where default_value != ''")
         return measure_id
+
+    def update_measure(self, a_measure: Measure):
+        assert self.is_measure_exist(a_measure.id), "Row for updated measure must exist!"
+
+        with self.connection:
+            self.cursor.execute(
+                f"update measures set datetime = ?, device_name = ?, device_creator = ?, device_system = ?, "
+                f"owner = ?, user = ?, serial_number = ?, comment = ? where id = {a_measure.id}",
+                (' '.join([a_measure.date, a_measure.time]), a_measure.device_name, a_measure.device_creator,
+                 a_measure.device_system, a_measure.owner, a_measure.user, a_measure.serial_num, a_measure.comment)
+            )
 
     def get(self, a_id: int) -> Measure:
         self.cursor.execute(f"select point, frequency, up_value, down_value from results where measure_id={a_id}")
@@ -193,12 +203,7 @@ class MeasuresDB:
     def save(self, a_params: Measure, a_save_points: bool):
         assert self.is_measure_exist(a_params.id), "Row for saved measure must exist!"
         with self.connection:
-            self.cursor.execute(
-                f"update measures set device_name = ?, device_creator = ?, device_system = ?, "
-                f"serial_number = ?, comment = ?, owner = ?, user = ?, datetime = ? where id = {a_params.id}",
-                (a_params.device_name, a_params.device_creator, a_params.device_system, a_params.serial_num,
-                 a_params.comment, a_params.owner, a_params.user, ' '.join([a_params.date, a_params.time]))
-            )
+
 
             if a_save_points:
                 self.cursor.executemany(f"insert into results (point, frequency, up_value, down_value, "

@@ -49,7 +49,7 @@ class EditMeasureParamsDialog(QtWidgets.QDialog):
     def save_pressed(self):
         self.save()
         if self.marks_widget.save():
-            self.close()
+            self.accept()
 
     def save(self):
         self.measure_config.user = self.ui.user_name_edit.text()

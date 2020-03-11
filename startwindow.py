@@ -49,13 +49,13 @@ class StartWindow(QtWidgets.QWidget):
         # По каким то причинам restoreGeometry не восстанавливает размер MainWindow, если оно скрыто
         self.parent.restoreGeometry(self.settings.get_last_geometry(self.__class__.__name__))
 
+        self.control_db_connection = a_control_db_connection
+        self.measure_db = MeasuresDB(a_control_db_connection)
+
         self.display_db_connection = QtSql.QSqlDatabase.addDatabase("QSQLITE")
         self.display_db_model = QtSql.QSqlRelationalTableModel(self)
         self.sort_proxy_model = QtCore.QSortFilterProxyModel(self)
         self.header_context = self.config_measure_table(a_db_name)
-
-        self.control_db_connection = a_control_db_connection
-        self.measure_db = MeasuresDB(a_control_db_connection)
 
     def config_measure_table(self, a_db_name: str):
         self.display_db_connection.setDatabaseName(a_db_name)
@@ -65,8 +65,6 @@ class StartWindow(QtWidgets.QWidget):
         self.display_db_model.setTable("measures")
         self.display_db_model.setRelation(MeasureColumn.DEVICE_SYSTEM,
                                           QtSql.QSqlRelation("system", "id", "name"))
-        self.display_db_model.setRelation(MeasureColumn.SIGNAL_TYPE,
-                                          QtSql.QSqlRelation("signal_type", "id", "name"))
 
         for column in range(self.display_db_model.columnCount()):
             self.display_db_model.setHeaderData(column, QtCore.Qt.Horizontal, MEASURE_COLUMN_TO_NAME[column])

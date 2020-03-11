@@ -2,8 +2,6 @@ from typing import List
 
 from PyQt5 import QtCore, QtWidgets, QtGui
 
-from custom_widgets.EditListDialog import EditedListOnlyNumbers
-from scale_limits_dialog import ScaleLimitsDialog
 from MeasureView import MeasureView
 from db_measures import Measure, MeasuresDB
 import calibrator_constants as clb
