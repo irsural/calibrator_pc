@@ -57,6 +57,7 @@ class TableHeaderContextMenu:
         table_header = a_table.horizontalHeader()
         table_header.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
 
+        self.table = a_table
         self.menu = QtWidgets.QMenu(a_parent)
         self.lambda_connections = []
         for column in range(a_table.model().columnCount()):
@@ -72,9 +73,12 @@ class TableHeaderContextMenu:
                 lambda state, col=column: a_table.setColumnHidden(col, not state))))
 
         self.lambda_connections.append((table_header.customContextMenuRequested,
-                                        table_header.customContextMenuRequested.connect(
-                                            lambda position: self.menu.popup(a_table.horizontalHeader().viewport().
-                                                                             mapToGlobal(position)))))
+                                        table_header.customContextMenuRequested.connect(self.show_context_menu)))
+
+    def show_context_menu(self, a_position):
+        self.menu.popup(self.table.horizontalHeader().viewport().mapToGlobal(a_position))
+        for column, action in enumerate(self.menu.actions()):
+            action.setChecked(not self.table.isColumnHidden(column))
 
     def delete_connections(self):
         # Нужно потому что лямбда соединения сами не удаляются
