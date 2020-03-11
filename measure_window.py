@@ -1,5 +1,5 @@
 from sqlite3 import Connection
-from typing import List
+from typing import List, Union
 
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QTimer, Qt
 from PyQt5 import QtCore, QtGui, QtWidgets
@@ -63,14 +63,15 @@ class MeasureWindow(QtWidgets.QWidget):
 
         self.soft_approach_points = []
         self.soft_approach_timer = QTimer(self)
-        SOFT_APPROACH_TIME_MS = 4000
+        soft_approach_time_ms = 4000
         # Минимум стабильной передачи - 200 мс
         self.NEXT_SOFT_POINT_TIME_MS = 200
-        self.SOFT_APPROACH_POINTS_COUNT = int(SOFT_APPROACH_TIME_MS // self.NEXT_SOFT_POINT_TIME_MS)
+        self.SOFT_APPROACH_POINTS_COUNT = int(soft_approach_time_ms // self.NEXT_SOFT_POINT_TIME_MS)
         # Нужен, чтобы убедиться, что фиксированный диапазон выставлен, после чего включить сигнал
         self.start_measure_timer = QTimer(self)
         # Нужен, чтобы убедиться, что сигнал выключен, после чего менять параметры сигнала
         self.stop_measure_timer = QTimer(self)
+        self.wait_dialog: Union[QtWidgets.QDialog, None] = None
 
         self.units_text = "В"
         self.value_to_user = utils.value_to_user_with_units(self.units_text)
@@ -142,7 +143,6 @@ class MeasureWindow(QtWidgets.QWidget):
         self.ui.delete_point_button.clicked.connect(self.delete_point)
         self.remove_points.connect(self.measure_manager.view().remove_selected)
 
-        self.measure_manager.current_case_changed.connect(self.stop_measure)
 
         self.ui.rough_plus_button.clicked.connect(self.rough_plus_button_clicked)
         self.ui.rough_minus_button.clicked.connect(self.rough_minus_button_clicked)
@@ -169,6 +169,7 @@ class MeasureWindow(QtWidgets.QWidget):
 
         self.ui.edit_parameters_button.clicked.connect(self.update_config)
 
+        self.measure_manager.current_case_changed.connect(self.current_case_changed)
         self.stop_measure_timer.timeout.connect(self.current_case_changed)
 
     @pyqtSlot(list)
@@ -257,20 +258,11 @@ class MeasureWindow(QtWidgets.QWidget):
             self.enable_signal(True)
             self.start_measure_timer.stop()
 
-    def stop_measure(self):
+    # Вызывается по таймауту stop_measure_timer и по изменению параметров сигнала в self.measure_manager
+    def current_case_changed(self):
         """
         Вызывается каждый раз, когда меняются параметры сигнала
-        Если сигнал выключен, вызывает self.current_case_changed
-        Если сигнал включен, выключает и через 1.1 сек вызывает self.current_case_changed
         """
-        if self.calibrator.signal_enable:
-            self.enable_signal(False)
-            self.stop_measure_timer.start(1100)
-        else:
-            self.current_case_changed()
-
-    # Вызывается по таймауту stop_measure_timer
-    def current_case_changed(self):
         if not self.calibrator.signal_enable:
             self.current_case = self.measure_manager.current_case()
             self.set_window_elements()
@@ -282,8 +274,24 @@ class MeasureWindow(QtWidgets.QWidget):
             self.fill_fixed_step_combobox()
 
             self.stop_measure_timer.stop()
+
+            if self.wait_dialog is not None:
+                self.wait_dialog.close()
+                self.wait_dialog = None
         else:
-            self.stop_measure()
+            self.enable_signal(False)
+            self.stop_measure_timer.start(1100)
+
+            if self.wait_dialog is None:
+                self.wait_dialog = QtWidgets.QDialog(self)
+                self.wait_dialog.setWindowTitle("Подождите")
+                layout = QtWidgets.QVBoxLayout(self.wait_dialog)
+                layout.addWidget(QtWidgets.QLabel("Выключается сигнал...", self.wait_dialog))
+                self.wait_dialog.setFont(self.font())
+                self.wait_dialog.setFixedSize(250, 50)
+                self.wait_dialog.setLayout(layout)
+                self.wait_dialog.adjustSize()
+                self.wait_dialog.exec()
 
     def pause_or_resume_measure(self):
         if self.calibrator.signal_enable:

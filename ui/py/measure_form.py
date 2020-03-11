@@ -14,6 +14,9 @@ class Ui_main_widget(object):
     def setupUi(self, main_widget):
         main_widget.setObjectName("main_widget")
         main_widget.resize(915, 544)
+        font = QtGui.QFont()
+        font.setPointSize(10)
+        main_widget.setFont(font)
         self.verticalLayout_4 = QtWidgets.QVBoxLayout(main_widget)
         self.verticalLayout_4.setSpacing(3)
         self.verticalLayout_4.setObjectName("verticalLayout_4")
