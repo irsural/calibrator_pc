@@ -100,7 +100,13 @@ class MeasureCases(QtWidgets.QWidget):
     def delete_case(self):
         try:
             sender = self.sender()
-            self.remove_tab(self.get_tab_idx(sender))
+            tab_idx = self.get_tab_idx(sender)
+            self.remove_tab(tab_idx)
+
+            if self.cases_bar.currentIndex() == tab_idx:
+                # В этих случаях cases_bar.currentChanged не эмитится
+                self.select_case(tab_idx)
+
         except AssertionError as err:
             utils.exception_handler(err)
 
@@ -130,8 +136,7 @@ class MeasureCases(QtWidgets.QWidget):
                     self.measures_db.delete_case(self.get_tab_case_id(a_idx))
                     self.cases_bar.removeTab(a_idx)
                     self.cases.pop(a_idx)
-                    return True
-            return False
+
         except Exception as err:
             utils.exception_handler(err)
 

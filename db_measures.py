@@ -39,8 +39,8 @@ MEASURE_COLUMN_TO_NAME = {
 
 class Measure:
     class Case:
-        def __init__(self, a_id=0, a_limit=1, a_class=0, a_signal_type=clb.SignalType.ACI, a_minimal_discrete=0,
-                     a_scale_coef=0, a_points: List[MeasuredPoint] = None):
+        def __init__(self, a_id=0, a_limit=1e-9, a_class=0.05, a_signal_type=clb.SignalType.ACI, a_minimal_discrete=0,
+                     a_scale_coef=1, a_points: List[MeasuredPoint] = None):
             self.id = a_id
             self.limit = a_limit
             self.device_class = a_class
