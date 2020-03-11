@@ -39,7 +39,7 @@ MEASURE_COLUMN_TO_NAME = {
 
 class Measure:
     class Case:
-        def __init__(self, a_id=0, a_limit=0, a_class=0, a_signal_type=clb.SignalType.ACI, a_minimal_discrete=0,
+        def __init__(self, a_id=0, a_limit=1, a_class=0, a_signal_type=clb.SignalType.ACI, a_minimal_discrete=0,
                      a_scale_coef=0, a_points: List[MeasuredPoint] = None):
             self.id = a_id
             self.limit = a_limit
@@ -180,6 +180,27 @@ class MeasuresDB:
                 (' '.join([a_measure.date, a_measure.time]), a_measure.device_name, a_measure.device_creator,
                  a_measure.device_system, a_measure.owner, a_measure.user, a_measure.serial_num, a_measure.comment)
             )
+
+    def new_case(self, a_measure_id, a_case: Measure.Case):
+        with self.connection:
+            self.cursor.execute(f"insert into measure_cases (measure_limit, device_class, signal_type, measure_id) "
+                                f"values (?, ?, ?, ?)",
+                                (a_case.limit, a_case.device_class, a_case.signal_type, a_measure_id))
+            case_id = self.cursor.lastrowid
+        return case_id
+
+    def update_case(self, a_case: Measure.Case):
+        assert a_case.id != 0, "Case id must not be zero!!!"
+        with self.connection:
+            self.cursor.execute(f"update measure_cases set measure_limit = ?, device_class = ?, signal_type = ? "
+                                f"where id = {a_case.id}",
+                                (a_case.limit, a_case.device_class, a_case.signal_type))
+
+    def delete_case(self, a_case_id: int):
+        assert a_case_id != 0, "Case id must not be zero!!!"
+        with self.connection:
+            self.cursor.execute(f"delete from measure_cases where id = {a_case_id}")
+            self.cursor.execute(f"delete from results where measure_case_id = {a_case_id}")
 
     def get(self, a_id: int) -> Measure:
         self.cursor.execute(f"select point, frequency, up_value, down_value from results where measure_id={a_id}")

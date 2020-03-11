@@ -552,7 +552,7 @@ class MeasureWindow(QtWidgets.QWidget):
                     # self.measures_db.save(self.measure_config, True)
                 # else:
                 #     self.measures_db.delete(self.measure_config.id)
-
+                print(len(self.measure_config.cases))
                 self.save_settings()
                 self.measure_manager.close()
 

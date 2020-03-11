@@ -30,6 +30,7 @@ class MeasureCases(QtWidgets.QWidget):
         self.cases = a_cases
 
         for case in self.cases:
+            case.id = self.measures_db.new_case(self.measure_id, case)
             self.add_new_tab(case)
 
         self.select_case(0)
@@ -51,7 +52,7 @@ class MeasureCases(QtWidgets.QWidget):
 
         plus_button = QtWidgets.QPushButton("+")
         plus_button.setFlat(True)
-        plus_button.setFixedSize(20, 20)
+        plus_button.setFixedSize(30, 30)
         self.cases_bar.addTab("")
         self.cases_bar.setTabEnabled(self.cases_bar.count() - 1, False)
         self.cases_bar.setTabButton(self.cases_bar.count() - 1, QtWidgets.QTabBar.RightSide, plus_button)
@@ -62,23 +63,28 @@ class MeasureCases(QtWidgets.QWidget):
         self.add_new_tab()
 
     def select_case(self, a_idx):
-        self.cases_bar.setCurrentIndex(a_idx)
-        self.measure_view.reset(self.cases[a_idx])
-        self.current_case_changed.emit()
+        try:
+            self.cases_bar.setCurrentIndex(a_idx)
+            self.measure_view.reset(self.cases[a_idx])
+            self.current_case_changed.emit()
+        except Exception as err:
+            utils.exception_handler(err)
 
     def add_new_tab(self, a_case: Measure.Case = None):
         try:
-            new_tab_index = self.cases_bar.count() - 1
-
             if a_case is None:
-                # a_case = self.measures_db.new_case(self.measure_id, a_case)
-                pass
+                a_case = Measure.Case()
+                a_case.id = self.measures_db.new_case(self.measure_id, a_case)
+                self.cases.append(a_case)
+
+            assert a_case.id != 0, "Case id must not be zero!!!"
 
             settings_close_widget = SettingsCloseWidget(self.cases_bar)
             settings_close_widget.setProperty("case_id", a_case.id)
             settings_close_widget.settings_clicked.connect(self.open_case_settings)
             settings_close_widget.close_clicked.connect(self.delete_case)
 
+            new_tab_index = self.cases_bar.count() - 1
             self.cases_bar.insertTab(new_tab_index, self.create_tab_name(a_case))
             self.cases_bar.setTabButton(new_tab_index, QtWidgets.QTabBar.RightSide, settings_close_widget)
 
@@ -92,9 +98,17 @@ class MeasureCases(QtWidgets.QWidget):
         print(case_id)
 
     def delete_case(self):
-        sender = self.sender()
-        case_id = int(sender.property("case_id"))
-        print(case_id)
+        try:
+            sender = self.sender()
+            self.remove_tab(self.get_tab_idx(sender))
+        except AssertionError as err:
+            utils.exception_handler(err)
+
+    def get_tab_idx(self, a_widget):
+        for tab_idx in range(self.cases_bar.count() - 1):
+            if a_widget is self.cases_bar.tabButton(tab_idx, QtWidgets.QTabBar.RightSide):
+                return tab_idx
+        assert True, "Cant find tab idx by widget!!!"
 
     def create_tab_name(self, a_case: Measure.Case):
         return " " + clb.enum_to_signal_type_short[a_case.signal_type] + "; " + \
@@ -112,10 +126,12 @@ class MeasureCases(QtWidgets.QWidget):
                     if a_idx == self.cases_bar.count() - 2 and a_idx == self.cases_bar.currentIndex():
                         # Если удаляемая вкладка активна, меняем активную на предыдущую
                         self.cases_bar.setCurrentIndex(self.cases_bar.count() - 3)
-                    # self.measures_db.delete_case(self.measure_id, self.get_tab_case_id(a_idx))
+
+                    self.measures_db.delete_case(self.get_tab_case_id(a_idx))
                     self.cases_bar.removeTab(a_idx)
                     self.cases.pop(a_idx)
-
+                    return True
+            return False
         except Exception as err:
             utils.exception_handler(err)
 
