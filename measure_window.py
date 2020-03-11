@@ -63,9 +63,10 @@ class MeasureWindow(QtWidgets.QWidget):
 
         self.soft_approach_points = []
         self.soft_approach_timer = QTimer(self)
+        SOFT_APPROACH_TIME_MS = 4000
         # Минимум стабильной передачи - 200 мс
-        self.next_soft_point_time_ms = 200
-        self.soft_approach_time_s = 4
+        self.NEXT_SOFT_POINT_TIME_MS = 200
+        self.SOFT_APPROACH_POINTS_COUNT = int(SOFT_APPROACH_TIME_MS // self.NEXT_SOFT_POINT_TIME_MS)
         # Нужен, чтобы убедиться, что фиксированный диапазон выставлен, после чего включить сигнал
         self.start_measure_timer = QTimer(self)
         # Нужен, чтобы убедиться, что сигнал выключен, после чего менять параметры сигнала
@@ -430,11 +431,10 @@ class MeasureWindow(QtWidgets.QWidget):
 
     def start_approach_to_point(self, a_point):
         if self.calibrator.signal_enable:
-            points_count = int((self.soft_approach_time_s * 1000) // self.next_soft_point_time_ms)
             self.soft_approach_points = utils.calc_smooth_approach(a_from=self.calibrator.amplitude, a_to=a_point,
-                                                                   a_count=points_count, sigma=0.001,
-                                                                   a_dt=self.next_soft_point_time_ms)
-            self.soft_approach_timer.start(self.next_soft_point_time_ms)
+                                                                   a_count=self.SOFT_APPROACH_POINTS_COUNT, sigma=0.001,
+                                                                   a_dt=self.NEXT_SOFT_POINT_TIME_MS)
+            self.soft_approach_timer.start(self.NEXT_SOFT_POINT_TIME_MS)
         else:
             self.set_amplitude(a_point)
 
@@ -466,7 +466,6 @@ class MeasureWindow(QtWidgets.QWidget):
             if reply == QMessageBox.Yes:
                 self.remove_points.emit(row_indexes)
 
-    @pyqtSlot()
     def amplitude_edit_text_changed(self):
         try:
             parsed = utils.parse_input(self.ui.amplitude_edit.text())
@@ -474,7 +473,6 @@ class MeasureWindow(QtWidgets.QWidget):
             parsed = ""
         qt_utils.update_edit_color(self.calibrator.amplitude, parsed, self.ui.amplitude_edit)
 
-    @pyqtSlot()
     def apply_amplitude_button_clicked(self):
         try:
             new_amplitude = utils.parse_input(self.ui.amplitude_edit.text())
@@ -483,12 +481,10 @@ class MeasureWindow(QtWidgets.QWidget):
             # Отлавливает некорректный ввод
             pass
 
-    @pyqtSlot()
     def frequency_edit_text_changed(self):
         qt_utils.update_edit_color(self.calibrator.frequency, self.ui.frequency_edit.text().replace(",", "."),
                                    self.ui.frequency_edit)
 
-    @pyqtSlot()
     def apply_frequency_button_clicked(self):
         try:
             new_frequency = utils.parse_input(self.ui.frequency_edit.text())
@@ -498,39 +494,30 @@ class MeasureWindow(QtWidgets.QWidget):
             # Отлавливает некорректный ввод
             pass
 
-    @pyqtSlot()
     def rough_plus_button_clicked(self):
         self.tune_amplitude(self.settings.rough_step)
 
-    @pyqtSlot()
     def rough_minus_button_clicked(self):
         self.tune_amplitude(-self.settings.rough_step)
 
-    @pyqtSlot()
     def common_plus_button_clicked(self):
         self.tune_amplitude(self.settings.common_step)
 
-    @pyqtSlot()
     def common_minus_button_clicked(self):
         self.tune_amplitude(-self.settings.common_step)
 
-    @pyqtSlot()
     def exact_plus_button_clicked(self):
         self.tune_amplitude(self.settings.exact_step)
 
-    @pyqtSlot()
     def exact_minus_button_clicked(self):
         self.tune_amplitude(-self.settings.exact_step)
 
-    @pyqtSlot()
     def fixed_plus_button_clicked(self):
         self.set_amplitude(self.calibrator.amplitude + self.fixed_step)
 
-    @pyqtSlot()
     def fixed_minus_button_clicked(self):
         self.set_amplitude(self.calibrator.amplitude - self.fixed_step)
 
-    @pyqtSlot(str)
     def set_fixed_step(self, a_new_step: str):
         try:
             self.fixed_step = utils.parse_input(a_new_step)
@@ -542,8 +529,7 @@ class MeasureWindow(QtWidgets.QWidget):
             edit_template_params_dialog = EditMeasureParamsDialog(self.settings, self.measure_config,
                                                                   self.db_connection, self)
             edit_template_params_dialog.exec()
-
-            self.measure_manager.view().set_device_class(self.current_case.device_class)
+            # self.measure_manager.view().set_device_class(self.current_case.device_class)
         except AssertionError as err:
             utils.exception_handler(err)
 
@@ -568,7 +554,6 @@ class MeasureWindow(QtWidgets.QWidget):
 
     def save_settings(self):
         self.settings.fixed_step_idx = self.ui.fixed_step_combobox.currentIndex()
-
         self.settings.save_geometry(self.__class__.__name__, self.parent.saveGeometry())
         self.settings.save_header_state(self.__class__.__name__, self.ui.measure_table.horizontalHeader().saveState())
 
