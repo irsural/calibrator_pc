@@ -119,7 +119,6 @@ class MeasureWindow(QtWidgets.QWidget):
         self.highest_amplitude = clb.bound_amplitude(utils.increase_by_percent(
             self.current_case.limit, self.settings.start_deviation), self.current_case.signal_type)
         self.lowest_amplitude = -self.highest_amplitude if clb.is_dc_signal[self.current_case.signal_type] else 0
-        print("updated")
 
     def fill_fixed_step_combobox(self):
         values: List[float] = self.settings.fixed_step_list
@@ -559,10 +558,9 @@ class MeasureWindow(QtWidgets.QWidget):
                 self.enable_signal(False)
                 if self.started:
                     self.measure_config.points = self.measure_manager.view().export_points()
-                    # self.measures_db.save(self.measure_config, True)
-                # else:
-                #     self.measures_db.delete(self.measure_config.id)
-                print(len(self.measure_config.cases))
+                else:
+                    self.measures_db.delete(self.measure_config.id)
+
                 self.save_settings()
                 self.measure_manager.close()
 

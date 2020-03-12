@@ -221,21 +221,25 @@ class MeasuresDB:
                        a_device_creator=measure_data[MeasureColumn.DEVICE_CREATOR]
                        )
 
-    def save(self, a_params: Measure, a_save_points: bool):
-        assert self.is_measure_exist(a_params.id), "Row for saved measure must exist!"
+    # def save(self, a_params: Measure, a_save_points: bool):
+    #     assert self.is_measure_exist(a_params.id), "Row for saved measure must exist!"
+    #     with self.connection:
+    #
+    #
+    #         if a_save_points:
+    #             self.cursor.executemany(f"insert into results (point, frequency, up_value, down_value, "
+    #                                     f"measure_id) values (?, ?, ?, ?, {a_params.id})", a_params.points)
+
+    def delete(self, a_measure_id: int):
+        assert self.is_measure_exist(a_measure_id), "deleted id must exist!"
         with self.connection:
+            self.cursor.execute(f"delete from mark_values where measure_id={a_measure_id}")
 
+            self.cursor.execute(f"delete from results where exists("
+                                f"select * from measure_cases where measure_cases.measure_id={a_measure_id})")
 
-            if a_save_points:
-                self.cursor.executemany(f"insert into results (point, frequency, up_value, down_value, "
-                                        f"measure_id) values (?, ?, ?, ?, {a_params.id})", a_params.points)
-
-    def delete(self, a_id: int):
-        assert self.is_measure_exist(a_id), "deleted id must exist!"
-        with self.connection:
-            self.cursor.execute(f"delete from mark_values where measure_id={a_id}")
-            self.cursor.execute(f"delete from results where measure_id={a_id}")
-            self.cursor.execute(f"delete from measures where id={a_id}")
+            self.cursor.execute(f"delete from measure_cases where measure_id={a_measure_id}")
+            self.cursor.execute(f"delete from measures where id={a_measure_id}")
 
     def is_measure_exist(self, a_id: int):
         self.cursor.execute(f"SELECT EXISTS(SELECT 1 FROM measures WHERE id='{a_id}')")

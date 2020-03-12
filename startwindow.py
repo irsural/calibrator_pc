@@ -112,16 +112,15 @@ class StartWindow(QtWidgets.QWidget):
         menu.popup(self.ui.measures_table.viewport().mapToGlobal(a_position))
 
     def delete_measure(self):
-        reply = QtWidgets.QMessageBox.question(self, "Подтвердите действие", "Вы действительно хотите удалить "
-                                               "выбранное измерение?", QtWidgets.QMessageBox.Yes |
-                                               QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)
+        measure_id = self.get_selected_id()
+        if measure_id is not None:
+            reply = QtWidgets.QMessageBox.question(self, "Подтвердите действие", "Вы действительно хотите удалить "
+                                                   "выбранное измерение?", QtWidgets.QMessageBox.Yes |
+                                                   QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)
 
-        if reply == QtWidgets.QMessageBox.Yes:
-            measure_id = self.get_selected_id()
-            assert measure_id is not None, "measure id must not be None!"
-
-            self.measure_db.delete(measure_id)
-            self.update_table()
+            if reply == QtWidgets.QMessageBox.Yes:
+                self.measure_db.delete(measure_id)
+                self.update_table()
 
     def get_selected_id(self):
         selected = self.ui.measures_table.selectionModel().selectedRows()
