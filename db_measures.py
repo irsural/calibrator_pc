@@ -202,6 +202,14 @@ class MeasuresDB:
             self.cursor.execute(f"delete from measure_cases where id = {a_case_id}")
             self.cursor.execute(f"delete from results where measure_case_id = {a_case_id}")
 
+    def save_points(self, a_measure: Measure):
+        assert a_measure.id != 0, "Measure id must not be zero"
+        with self.connection:
+            self.cursor.executemany(f"insert into results (point, frequency, up_value, down_value, measure_case_id) "
+                                    f"values (?, ?, ?, ?, ?)",
+                                    ((point.amplitude, point.frequency, point.up_value, point.down_value, case.id)
+                                     for case in a_measure.cases for point in case.points))
+
     def get(self, a_id: int) -> Measure:
         self.cursor.execute(f"select point, frequency, up_value, down_value from results where measure_id={a_id}")
         points: list = self.cursor.fetchall()
@@ -235,8 +243,8 @@ class MeasuresDB:
         with self.connection:
             self.cursor.execute(f"delete from mark_values where measure_id={a_measure_id}")
 
-            self.cursor.execute(f"delete from results where exists("
-                                f"select * from measure_cases where measure_cases.measure_id={a_measure_id})")
+            self.cursor.execute(f"delete from results where measure_case_id in "
+                                f"(select id from measure_cases where measure_cases.measure_id={a_measure_id})")
 
             self.cursor.execute(f"delete from measure_cases where measure_id={a_measure_id}")
             self.cursor.execute(f"delete from measures where id={a_measure_id}")

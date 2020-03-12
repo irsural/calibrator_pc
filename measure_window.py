@@ -555,12 +555,16 @@ class MeasureWindow(QtWidgets.QWidget):
                                          QMessageBox.No, QMessageBox.No)
             if reply == QMessageBox.Yes:
                 self.enable_signal(False)
-                if not self.started:
+                # После закрытия measure_manager все кейсы синхронизированы с данными в таблицах
+                self.measure_manager.close()
+
+                if self.started:
+                    self.measures_db.save_points(self.measure_config)
+                else:
                     # Не сохраняем в БД не начатые измерения
                     self.measures_db.delete(self.measure_config.id)
 
                 self.save_settings()
-                self.measure_manager.close()
 
                 self.close_confirmed.emit()
         except AssertionError as err:
