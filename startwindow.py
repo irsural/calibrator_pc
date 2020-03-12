@@ -75,7 +75,9 @@ class StartWindow(QtWidgets.QWidget):
         # Чтобы был приятный цвет выделения
         self.ui.measures_table.setItemDelegate(NonOverlappingDoubleClick(self))
 
-        self.ui.measures_table.selectionModel().currentChanged.connect(self.activate_create_protocol_button)
+        self.ui.measures_table.selectionModel().currentChanged.connect(self.current_selection_changed)
+        self.ui.measures_table.selectionModel().modelChanged.connect(self.current_selection_changed)
+        self.ui.measures_table.selectionModel().selectionChanged.connect(self.current_selection_changed)
 
         self.ui.measures_table.horizontalHeader().restoreState(self.settings.get_last_header_state(
             self.__class__.__name__))
@@ -88,12 +90,16 @@ class StartWindow(QtWidgets.QWidget):
         self.update_table()
         return header_context
 
-    def activate_create_protocol_button(self):
-        self.ui.create_protocol_button.setEnabled(True)
+    def current_selection_changed(self):
+        measure_id = self.get_selected_id()
+        if measure_id is None:
+            self.ui.create_protocol_button.setEnabled(False)
+        else:
+            self.ui.create_protocol_button.setEnabled(True)
 
     def update_table(self):
         self.display_db_model.select()
-        self.ui.create_protocol_button.setEnabled(False)
+        self.current_selection_changed()
 
     def create_protocol(self):
         try:
