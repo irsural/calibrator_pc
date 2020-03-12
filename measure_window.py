@@ -263,35 +263,44 @@ class MeasureWindow(QtWidgets.QWidget):
         """
         Вызывается каждый раз, когда меняются параметры сигнала
         """
-        if not self.calibrator.signal_enable:
-            self.current_case = self.measure_manager.current_case()
-            self.set_window_elements()
-            self.update_case_params()
+        try:
+            if not self.calibrator.signal_enable:
+                self.current_case = self.measure_manager.current_case()
+                self.set_window_elements()
+                self.update_case_params()
 
-            # Чтобы обновились единицы измерения
-            self.set_amplitude(self.calibrator.amplitude)
-            self.set_frequency(self.calibrator.frequency)
-            self.fill_fixed_step_combobox()
+                # Чтобы обновились единицы измерения
+                self.set_amplitude(self.calibrator.amplitude)
+                self.set_frequency(self.calibrator.frequency)
+                self.fill_fixed_step_combobox()
 
-            self.stop_measure_timer.stop()
+                self.stop_measure_timer.stop()
+                self.close_wait_dialog()
 
-            if self.wait_dialog is not None:
-                self.wait_dialog.close()
-                self.wait_dialog = None
-        else:
-            self.enable_signal(False)
-            self.stop_measure_timer.start(1100)
+            else:
+                self.enable_signal(False)
+                self.stop_measure_timer.start(1100)
+                self.show_wait_dialog()
 
-            if self.wait_dialog is None:
-                self.wait_dialog = QtWidgets.QDialog(self)
-                self.wait_dialog.setWindowTitle("Подождите")
-                layout = QtWidgets.QVBoxLayout(self.wait_dialog)
-                layout.addWidget(QtWidgets.QLabel("Выключается сигнал...", self.wait_dialog))
-                self.wait_dialog.setFont(self.font())
-                self.wait_dialog.setFixedSize(250, 50)
-                self.wait_dialog.setLayout(layout)
-                self.wait_dialog.adjustSize()
-                self.wait_dialog.exec()
+        except AssertionError as err:
+            utils.exception_handler(err)
+
+    def show_wait_dialog(self):
+        if self.wait_dialog is None:
+            self.wait_dialog = QtWidgets.QDialog(self)
+            self.wait_dialog.setWindowTitle("Подождите")
+            layout = QtWidgets.QVBoxLayout(self.wait_dialog)
+            layout.addWidget(QtWidgets.QLabel("Выключается сигнал...", self.wait_dialog))
+            self.wait_dialog.setFont(self.font())
+            self.wait_dialog.setFixedSize(250, 50)
+            self.wait_dialog.setLayout(layout)
+            self.wait_dialog.adjustSize()
+            self.wait_dialog.exec()
+
+    def close_wait_dialog(self):
+        if self.wait_dialog is not None:
+            self.wait_dialog.close()
+            self.wait_dialog = None
 
     def pause_or_resume_measure(self):
         if self.calibrator.signal_enable:

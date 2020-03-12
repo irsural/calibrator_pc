@@ -83,16 +83,18 @@ class EditCaseParamsDialog(QtWidgets.QDialog):
         self.ui.device_class_spinbox.setValue(self.case.device_class)
 
     def save_params(self):
-        if self.case.limit != self.ui.limit_edit.text():
-            # Это сбрасывает точки шкалы в таблице
-            self.case.scale_coef = 0
+        limit = utils.parse_input(self.ui.limit_edit.text())
+        if limit != 0:
+            if self.case.limit != limit:
+                # Это сбрасывает точки шкалы в таблице
+                self.case.scale_coef = 0
 
-        self.case.limit = utils.parse_input(self.ui.limit_edit.text())
-        self.case.minimal_discrete = utils.parse_input(self.ui.minimal_discrete_edit.text())
-        self.case.signal_type = clb.SignalType(self.ui.signal_type_combobox.currentIndex())
-        self.case.device_class = self.ui.device_class_spinbox.value()
+            self.case.limit = limit
+            self.case.minimal_discrete = utils.parse_input(self.ui.minimal_discrete_edit.text())
+            self.case.signal_type = clb.SignalType(self.ui.signal_type_combobox.currentIndex())
+            self.case.device_class = self.ui.device_class_spinbox.value()
 
-
-        # Обработка ошибок
-
-        self.accept()
+            self.accept()
+        else:
+            QtWidgets.QMessageBox.critical(self, "Ошибка", "Предел не может быть равен нулю",
+                                           QtWidgets.QMessageBox.Ok, QtWidgets.QMessageBox.Ok)
