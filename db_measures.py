@@ -1,4 +1,4 @@
-from typing import List, Tuple
+from typing import List
 from enum import IntEnum
 import sqlite3
 
@@ -249,15 +249,6 @@ class MeasuresDB:
                                               a_signal_type=case_row[3], a_points=points))
 
         return measure
-
-    # def save(self, a_params: Measure, a_save_points: bool):
-    #     assert self.is_measure_exist(a_params.id), "Row for saved measure must exist!"
-    #     with self.connection:
-    #
-    #
-    #         if a_save_points:
-    #             self.cursor.executemany(f"insert into results (amplitude, frequency, up_value, down_value, "
-    #                                     f"measure_id) values (?, ?, ?, ?, {a_params.id})", a_params.points)
 
     def delete(self, a_measure_id: int):
         assert self.is_measure_exist(a_measure_id), "deleted id must exist!"

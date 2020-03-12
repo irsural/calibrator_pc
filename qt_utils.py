@@ -3,7 +3,6 @@ from math import isclose
 from PyQt5 import QtCore, QtWidgets, QtGui
 
 import constants
-import utils
 
 
 QSTYLE_COLOR_WHITE = "background-color: rgb(255, 255, 255);"
@@ -62,7 +61,8 @@ class TableHeaderContextMenu:
         self.menu = QtWidgets.QMenu(a_parent)
         self.lambda_connections = []
         for column in range(a_table.model().columnCount()):
-            if column == 0 and a_hide_first_column: continue
+            if column == 0 and a_hide_first_column:
+                continue
             header_name = a_table.model().headerData(column, QtCore.Qt.Horizontal)
             menu_checkbox = QtWidgets.QAction(header_name, self.menu)
             menu_checkbox.setCheckable(True)

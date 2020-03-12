@@ -1,6 +1,6 @@
 from typing import Union
 
-from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5 import QtCore, QtWidgets
 
 from custom_widgets.QTableDelegates import NonOverlappingDoubleClick
 from MeasureModel import MeasureModel, PointData

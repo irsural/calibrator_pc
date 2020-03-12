@@ -1,6 +1,6 @@
 from sqlite3 import Connection
 
-from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5 import QtGui, QtWidgets
 from PyQt5.QtCore import pyqtSignal
 
 from custom_widgets.EditListDialog import EditedListWithUnits
