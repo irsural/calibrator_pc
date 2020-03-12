@@ -546,7 +546,6 @@ class MeasureWindow(QtWidgets.QWidget):
                                                                   self.db_connection, self)
             if edit_template_params_dialog.exec() == QtWidgets.QDialog.Accepted:
                 self.measures_db.update_measure(self.measure_config)
-            # self.measure_manager.view().set_device_class(self.current_case.device_class)
         except AssertionError as err:
             utils.exception_handler(err)
 
@@ -556,9 +555,8 @@ class MeasureWindow(QtWidgets.QWidget):
                                          QMessageBox.No, QMessageBox.No)
             if reply == QMessageBox.Yes:
                 self.enable_signal(False)
-                if self.started:
-                    self.measure_config.points = self.measure_manager.view().export_points()
-                else:
+                if not self.started:
+                    # Не сохраняем в БД не начатые измерения
                     self.measures_db.delete(self.measure_config.id)
 
                 self.save_settings()

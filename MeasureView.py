@@ -16,6 +16,7 @@ class MeasureView:
         self.measure_case: Union[Measure.Case, None] = None
         self.measure_model: Union[MeasureModel, None] = None
 
+        # Нужен, чтобы сохранять в него точки, перед self.reset
         self.reset(a_measure_case)
 
         self.table.setItemDelegate(NonOverlappingDoubleClick(self.table))
@@ -27,6 +28,9 @@ class MeasureView:
         print("MeasureView deleted")
 
     def reset(self, a_case: Measure.Case):
+        # Перед сменой кейса сохраняем точки
+        self.save_current_points()
+
         self.measure_case = a_case
         assert a_case.limit != 0, "a_measure_case.limit must not be zero"
 
@@ -41,7 +45,12 @@ class MeasureView:
         self.table.setModel(self.measure_model)
         self.table.setColumnHidden(MeasureModel.Column.FREQUENCY, clb.is_dc_signal[self.measure_case.signal_type])
 
+    def save_current_points(self):
+        if self.measure_model is not None and self.measure_case is not None:
+            self.measure_case.points = self.measure_model.exportPoints()
+
     def close(self):
+        self.save_current_points()
         # Без этого header_context не уничтожится
         self.header_context.delete_connections()
 

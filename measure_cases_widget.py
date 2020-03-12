@@ -35,6 +35,7 @@ class MeasureCases(QtWidgets.QWidget):
             self.add_new_tab(case)
 
         self.select_case(0)
+        # noinspection PyUnresolvedReferences
         self.cases_bar.currentChanged.connect(self.select_case)
 
     def __del__(self):
@@ -57,7 +58,6 @@ class MeasureCases(QtWidgets.QWidget):
         self.cases_bar.addTab("")
         self.cases_bar.setTabEnabled(self.cases_bar.count() - 1, False)
         self.cases_bar.setTabButton(self.cases_bar.count() - 1, QtWidgets.QTabBar.RightSide, plus_button)
-        # self.cases_bar.tabCloseRequested.connect(self.remove_tab)
         plus_button.clicked.connect(self.plus_button_clicked)
 
     def plus_button_clicked(self):
@@ -167,17 +167,6 @@ class MeasureCases(QtWidgets.QWidget):
     def closeEvent(self, a_event: QtGui.QCloseEvent) -> None:
         self.measure_view.close()
         a_event.accept()
-
-    # def get_scales(self) -> List[cfg.Scale]:
-    #     scales = [self.get_scale_by_tab_idx(tab_idx) for tab_idx in range(self.cases_bar.count() - 1)]
-    #     return scales
-
-    # def get_scale_by_tab_idx(self, a_tab_idx):
-    #     scale_points_list: EditedListOnlyNumbers = self.ui.measure_cases_tabwidget.widget(a_tab_idx)
-    #     scale_number = a_tab_idx + 1
-    #     Пределы обновляются в базе сразу после изменения, их передавать не нужно
-        # return cfg.Scale(a_id=self.scales_id[scale_number], a_number=scale_number,
-        #                  a_scale_points=scale_points_list.get_list())
 
 
 class SettingsCloseWidget(QtWidgets.QWidget):
