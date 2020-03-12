@@ -3,7 +3,7 @@ from typing import List
 from PyQt5 import QtCore, QtWidgets, QtGui
 
 from MeasureView import MeasureView
-from db_measures import Measure, MeasuresDB
+from db_measures import Measure
 from edit_case_params_dialog import EditCaseParamsDialog
 import calibrator_constants as clb
 import constants as cfg
@@ -15,8 +15,7 @@ class MeasureCases(QtWidgets.QWidget):
     case_removed = QtCore.pyqtSignal(int)
     current_case_changed = QtCore.pyqtSignal()
 
-    def __init__(self, a_measure_id, a_measures_db: MeasuresDB, a_case_table: QtWidgets.QTableView,
-                 a_cases: List[Measure.Case], a_parent=None):
+    def __init__(self, a_case_table: QtWidgets.QTableView, a_cases: List[Measure.Case], a_parent=None):
         super().__init__(a_parent)
 
         self.cases_bar = QtWidgets.QTabBar(self)
@@ -26,12 +25,12 @@ class MeasureCases(QtWidgets.QWidget):
         self.measure_view = MeasureView(a_case_table, a_cases[0])
 
         self.parent = a_parent
-        self.measures_db: MeasuresDB = a_measures_db
-        self.measure_id = a_measure_id
+        # self.measures_db: MeasuresDB = a_measures_db
+        # self.measure_id = a_measure_id
         self.cases = a_cases
 
         for case in self.cases:
-            case.id = self.measures_db.new_case(self.measure_id, case)
+            # case.id = self.measures_db.new_case(self.measure_id, case)
             self.add_new_tab(case)
 
         self.select_case(0)
@@ -75,13 +74,13 @@ class MeasureCases(QtWidgets.QWidget):
         try:
             if a_case is None:
                 a_case = Measure.Case()
-                a_case.id = self.measures_db.new_case(self.measure_id, a_case)
+                # a_case.id = self.measures_db.new_case(self.measure_id, a_case)
                 self.cases.append(a_case)
 
-            assert a_case.id != 0, "Case id must not be zero!!!"
+            # assert a_case.id != 0, "Case id must not be zero!!!"
 
             settings_close_widget = SettingsCloseWidget(self.cases_bar)
-            settings_close_widget.setProperty("case_id", a_case.id)
+            # settings_close_widget.setProperty("case_id", a_case.id)
             settings_close_widget.settings_clicked.connect(self.open_case_settings)
             settings_close_widget.close_clicked.connect(self.delete_case)
 
@@ -135,7 +134,7 @@ class MeasureCases(QtWidgets.QWidget):
                         # Если удаляемая вкладка активна, меняем активную на предыдущую
                         self.cases_bar.setCurrentIndex(self.cases_bar.count() - 3)
 
-                    self.measures_db.delete_case(self.get_tab_case_id(a_idx))
+                    # self.measures_db.delete_case(self.get_tab_case_id(a_idx))
                     self.cases_bar.removeTab(a_idx)
                     self.cases.pop(a_idx)
 
@@ -149,7 +148,7 @@ class MeasureCases(QtWidgets.QWidget):
 
             if case_params_dialog.exec() == QtWidgets.QDialog.Accepted:
                 self.cases_bar.setTabText(a_case_number, self.create_tab_name(case))
-                self.measures_db.update_case(case)
+                # self.measures_db.update_case(case)
 
                 if self.cases_bar.currentIndex() == a_case_number:
                     # Обновляем параметры измерения
@@ -158,8 +157,8 @@ class MeasureCases(QtWidgets.QWidget):
         except Exception as err:
             utils.exception_handler(err)
 
-    def get_tab_case_id(self, a_tab_idx: int):
-        return self.cases_bar.tabButton(a_tab_idx, QtWidgets.QTabBar.RightSide).property("case_id")
+    # def get_tab_case_id(self, a_tab_idx: int):
+    #     return self.cases_bar.tabButton(a_tab_idx, QtWidgets.QTabBar.RightSide).property("case_id")
 
     def current_case(self):
         return self.cases[self.cases_bar.currentIndex()]

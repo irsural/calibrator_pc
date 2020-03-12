@@ -190,7 +190,10 @@ class Ui_Dialog(object):
         self.points_table.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
         self.points_table.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
         self.points_table.setObjectName("points_table")
-        self.gridLayout_5.addWidget(self.points_table, 0, 0, 1, 1)
+        self.gridLayout_5.addWidget(self.points_table, 1, 0, 1, 1)
+        self.cases_bar_layout = QtWidgets.QVBoxLayout()
+        self.cases_bar_layout.setObjectName("cases_bar_layout")
+        self.gridLayout_5.addLayout(self.cases_bar_layout, 0, 0, 1, 1)
         self.marks_and_points_tabwidget.addTab(self.points_tab, "")
         self.verticalLayout.addWidget(self.marks_and_points_tabwidget)
         self.horizontalLayout_2 = QtWidgets.QHBoxLayout()
@@ -214,7 +217,7 @@ class Ui_Dialog(object):
         self.verticalLayout.addLayout(self.horizontalLayout_2)
 
         self.retranslateUi(Dialog)
-        self.marks_and_points_tabwidget.setCurrentIndex(0)
+        self.marks_and_points_tabwidget.setCurrentIndex(1)
         QtCore.QMetaObject.connectSlotsByName(Dialog)
         Dialog.setTabOrder(self.accept_button, self.reject_button)
 

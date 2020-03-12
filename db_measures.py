@@ -214,24 +214,41 @@ class MeasuresDB:
                                       point.down_value, case.id)
                                      for case in a_measure.cases for point in case.points))
 
-    def get(self, a_id: int) -> Measure:
-        self.cursor.execute(f"select point, frequency, up_value, down_value from results where measure_id={a_id}")
-        points: list = self.cursor.fetchall()
+    def save_measure(self, a_measure: Measure):
+        self.update_measure(a_measure)
+        for case in a_measure.cases:
+            case.id = self.new_case(a_measure.id, case)
+        self.save_points(a_measure)
 
+    def get(self, a_id: int) -> Measure:
         self.cursor.execute(f"select * from measures where id={a_id}")
         measure_data = self.cursor.fetchone()
         date, time = measure_data[MeasureColumn.DATETIME].split(' ')
 
-        return Measure(a_id=measure_data[MeasureColumn.ID],
-                       a_date=date,
-                       a_device_name=measure_data[MeasureColumn.DEVICE_NAME],
-                       a_serial_num=measure_data[MeasureColumn.SERIAL_NUMBER],
-                       a_comment=measure_data[MeasureColumn.COMMENT],
-                       a_owner=measure_data[MeasureColumn.OWNER],
-                       a_device_system=measure_data[MeasureColumn.DEVICE_SYSTEM],
-                       a_user=measure_data[MeasureColumn.USER],
-                       a_device_creator=measure_data[MeasureColumn.DEVICE_CREATOR]
-                       )
+        measure = Measure(a_cases=[], a_id=measure_data[MeasureColumn.ID], a_date=date,
+                          a_device_name=measure_data[MeasureColumn.DEVICE_NAME],
+                          a_device_creator=measure_data[MeasureColumn.DEVICE_CREATOR],
+                          a_device_system=measure_data[MeasureColumn.DEVICE_SYSTEM],
+                          a_owner=measure_data[MeasureColumn.OWNER],
+                          a_user=measure_data[MeasureColumn.USER],
+                          a_serial_num=measure_data[MeasureColumn.SERIAL_NUMBER],
+                          a_comment=measure_data[MeasureColumn.COMMENT],
+                          )
+
+        self.cursor.execute(f"select * from measure_cases where measure_id = {measure.id}")
+        case_data = self.cursor.fetchall()
+
+        for case_row in case_data:
+            case_id = case_row[0]
+
+            self.cursor.execute(f"select scale_point, amplitude, frequency, up_value, down_value from results "
+                                f"where measure_case_id={case_id}")
+            points = [MeasuredPoint(*point_data) for point_data in self.cursor.fetchall()]
+
+            measure.cases.append(Measure.Case(a_id=case_id, a_limit=case_row[1], a_class=case_row[2],
+                                              a_signal_type=case_row[3], a_points=points))
+
+        return measure
 
     # def save(self, a_params: Measure, a_save_points: bool):
     #     assert self.is_measure_exist(a_params.id), "Row for saved measure must exist!"

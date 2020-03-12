@@ -52,10 +52,10 @@ class MeasureWindow(QtWidgets.QWidget):
 
         self.measure_config: Measure = a_measure_config
         self.measures_db = MeasuresDB(self.db_connection)
+        # Нужно создать заранее, чтобы было id для сохранения меток
         self.measure_config.id = self.measures_db.new_measure(self.measure_config)
 
-        self.measure_manager = MeasureCases(self.measure_config.id, self.measures_db, self.ui.measure_table,
-                                            self.measure_config.cases)
+        self.measure_manager = MeasureCases(self.ui.measure_table, self.measure_config.cases)
         self.ui.cases_bar_layout.addWidget(self.measure_manager.cases_bar)
 
         # --------------------Создение переменных
@@ -544,8 +544,7 @@ class MeasureWindow(QtWidgets.QWidget):
         try:
             edit_template_params_dialog = EditMeasureParamsDialog(self.settings, self.measure_config,
                                                                   self.db_connection, self)
-            if edit_template_params_dialog.exec() == QtWidgets.QDialog.Accepted:
-                self.measures_db.update_measure(self.measure_config)
+            edit_template_params_dialog.exec()
         except AssertionError as err:
             utils.exception_handler(err)
 
@@ -559,9 +558,8 @@ class MeasureWindow(QtWidgets.QWidget):
                 self.measure_manager.close()
 
                 if self.started:
-                    self.measures_db.save_points(self.measure_config)
+                    self.measures_db.save_measure(self.measure_config)
                 else:
-                    # Не сохраняем в БД не начатые измерения
                     self.measures_db.delete(self.measure_config.id)
 
                 self.save_settings()

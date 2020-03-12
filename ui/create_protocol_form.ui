@@ -278,7 +278,7 @@
       </sizepolicy>
      </property>
      <property name="currentIndex">
-      <number>0</number>
+      <number>1</number>
      </property>
      <widget class="QWidget" name="marks_widget_tab">
       <attribute name="title">
@@ -307,7 +307,7 @@
        <string>Результаты измерения</string>
       </attribute>
       <layout class="QGridLayout" name="gridLayout_5">
-       <item row="0" column="0">
+       <item row="1" column="0">
         <widget class="QTableView" name="points_table">
          <property name="contextMenuPolicy">
           <enum>Qt::CustomContextMenu</enum>
@@ -323,6 +323,9 @@ selection-background-color: rgb(170, 170, 255);</string>
           <enum>QAbstractItemView::SelectRows</enum>
          </property>
         </widget>
+       </item>
+       <item row="0" column="0">
+        <layout class="QVBoxLayout" name="cases_bar_layout"/>
        </item>
       </layout>
      </widget>
