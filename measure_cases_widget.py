@@ -15,16 +15,17 @@ class MeasureCases(QtWidgets.QWidget):
     case_removed = QtCore.pyqtSignal(int)
     current_case_changed = QtCore.pyqtSignal()
 
-    def __init__(self, a_case_table: QtWidgets.QTableView, a_cases: List[Measure.Case], a_parent=None):
+    def __init__(self, a_case_table: QtWidgets.QTableView, a_cases: List[Measure.Case], a_allow_editing, a_parent=None):
         super().__init__(a_parent)
+
+        self.allow_editing = a_allow_editing
+        self.parent = a_parent
 
         self.cases_bar = QtWidgets.QTabBar(self)
         self.set_up_tab_widget()
 
         assert a_cases, "Every measure must have at least 1 case!!!"
         self.measure_view = MeasureView(a_case_table, a_cases[0])
-
-        self.parent = a_parent
 
         self.cases = a_cases
         for case in self.cases:
@@ -55,6 +56,7 @@ class MeasureCases(QtWidgets.QWidget):
         self.cases_bar.setTabEnabled(self.cases_bar.count() - 1, False)
         self.cases_bar.setTabButton(self.cases_bar.count() - 1, QtWidgets.QTabBar.RightSide, plus_button)
         plus_button.clicked.connect(self.plus_button_clicked)
+        plus_button.setEnabled(self.allow_editing)
 
     def plus_button_clicked(self):
         self.add_new_tab()
@@ -76,6 +78,7 @@ class MeasureCases(QtWidgets.QWidget):
             settings_close_widget = SettingsCloseWidget(self.cases_bar)
             settings_close_widget.settings_clicked.connect(self.open_case_settings)
             settings_close_widget.close_clicked.connect(self.delete_case)
+            settings_close_widget.setEnabled(self.allow_editing)
 
             new_tab_index = self.cases_bar.count() - 1
             self.cases_bar.insertTab(new_tab_index, self.create_tab_name(a_case))

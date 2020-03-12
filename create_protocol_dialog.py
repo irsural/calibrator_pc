@@ -42,13 +42,12 @@ class CreateProtocolDialog(QtWidgets.QDialog):
         self.ui.points_table.horizontalHeader().restoreState(self.settings.get_last_header_state(
             self.__class__.__name__))
 
-        self.measure_manager = MeasureCases(self.ui.points_table, self.measure_config.cases)
+        self.measure_manager = MeasureCases(self.ui.points_table, self.measure_config.cases, a_allow_editing=False)
         self.ui.cases_bar_layout.addWidget(self.measure_manager.cases_bar)
 
         self.connect_signals()
         self.ui.marks_and_points_tabwidget.setCurrentIndex(0)
 
-    # noinspection DuplicatedCode
     def connect_signals(self):
         for widgets in self.default_marks_widgets:
             widgets[0].customContextMenuRequested.connect(self.show_label_custom_menu)
@@ -59,7 +58,6 @@ class CreateProtocolDialog(QtWidgets.QDialog):
         self.ui.accept_button.clicked.connect(self.save_pressed)
         self.ui.reject_button.clicked.connect(self.reject)
 
-    # noinspection DuplicatedCode
     def get_default_marks_widgets(self):
         default_marks_widgets: List[Tuple[QtWidgets.QLabel, QtWidgets.QWidget]] = [
             (self.ui.date_label, self.ui.date_edit),
@@ -116,12 +114,8 @@ class CreateProtocolDialog(QtWidgets.QDialog):
             return a_widget.text()
         elif a_widget == self.ui.date_edit:
             return a_widget.text()
-        elif a_widget == self.ui.class_spinbox:
-            return utils.float_to_string(a_widget.value())
         elif a_widget == self.ui.system_combobox:
             return cfg.enum_to_device_system[a_widget.currentIndex()]
-        elif a_widget == self.ui.signal_type_combobox:
-            return clb.enum_to_signal_type[a_widget.currentIndex()]
         else:
             assert True, "Unexpected widget"
 

@@ -182,6 +182,7 @@ class Ui_Dialog(object):
         self.points_tab = QtWidgets.QWidget()
         self.points_tab.setObjectName("points_tab")
         self.gridLayout_5 = QtWidgets.QGridLayout(self.points_tab)
+        self.gridLayout_5.setVerticalSpacing(0)
         self.gridLayout_5.setObjectName("gridLayout_5")
         self.points_table = QtWidgets.QTableView(self.points_tab)
         self.points_table.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)

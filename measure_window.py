@@ -55,7 +55,7 @@ class MeasureWindow(QtWidgets.QWidget):
         # Нужно создать заранее, чтобы было id для сохранения меток
         self.measure_config.id = self.measures_db.new_measure(self.measure_config)
 
-        self.measure_manager = MeasureCases(self.ui.measure_table, self.measure_config.cases)
+        self.measure_manager = MeasureCases(self.ui.measure_table, self.measure_config.cases, a_allow_editing=True)
         self.ui.cases_bar_layout.addWidget(self.measure_manager.cases_bar)
 
         # --------------------Создение переменных

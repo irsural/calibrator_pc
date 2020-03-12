@@ -307,6 +307,9 @@
        <string>Результаты измерения</string>
       </attribute>
       <layout class="QGridLayout" name="gridLayout_5">
+       <property name="verticalSpacing">
+        <number>0</number>
+       </property>
        <item row="1" column="0">
         <widget class="QTableView" name="points_table">
          <property name="contextMenuPolicy">
