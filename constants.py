@@ -14,7 +14,7 @@ SETTINGS_ICON_PATH = "./resources/icons/settings.png"
 FLOAT_EPSILON = 1e-9
 
 
-MeasuredPoint = namedtuple("Point", ["amplitude", "frequency", "up_value", "down_value"])
+MeasuredPoint = namedtuple("Point", ["scale_point", "amplitude", "frequency", "up_value", "down_value"])
 Mark = namedtuple("Mark", ["description", "mark", "value"])
 
 

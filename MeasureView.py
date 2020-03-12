@@ -69,7 +69,7 @@ class MeasureView:
         self.measure_model.removeSelected(a_rows)
 
     def get_point_by_row(self, a_row: int):
-        return self.__get_cell_text(a_row, MeasureModel.Column.POINT)
+        return self.__get_cell_text(a_row, MeasureModel.Column.AMPLITUDE)
 
     def get_frequency_by_row(self, a_row: int):
         return self.__get_cell_text(a_row, MeasureModel.Column.FREQUENCY)

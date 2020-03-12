@@ -76,8 +76,10 @@ class Measure:
         else:
             frequency_list = [0] if clb.is_dc_signal[a_params.signal_type] else [50]
 
-        points = [MeasuredPoint(amplitude=float(p), frequency=clb.bound_frequency(float(f), a_params.signal_type),
-                                up_value=0, down_value=0) for f in frequency_list for p in a_params.amplitudes]
+        points = [MeasuredPoint(scale_point=0, amplitude=float(p),
+                                frequency=clb.bound_frequency(float(f), a_params.signal_type),
+                                up_value=0, down_value=0)
+                  for f in frequency_list for p in a_params.amplitudes]
         measure_case = Measure.Case(a_id=0, a_limit=a_params.upper_bound, a_class=a_params.accuracy_class,
                                     a_signal_type=a_params.signal_type, a_minimal_discrete=a_params.minimal_discrete,
                                     a_scale_coef=0, a_points=points)
@@ -97,7 +99,8 @@ class Measure:
                 scale_coef = limit.limit / max(scale.points)
                 minimal_discrete = round(utils.get_array_min_diff(sorted(scale.points)) * scale_coef, 9)
 
-                points = [MeasuredPoint(amplitude=clb.bound_amplitude(p * scale_coef, limit.signal_type),
+                points = [MeasuredPoint(scale_point=p,
+                                        amplitude=clb.bound_amplitude(p * scale_coef, limit.signal_type),
                                         frequency=clb.bound_frequency(float(f), limit.signal_type),
                                         up_value=0, down_value=0)
                           for f in frequency_list for p in scale.points]
@@ -132,8 +135,8 @@ class MeasuresDB:
                            f"foreign key (measure_id) references measures(id))")
 
             cursor.execute(f"CREATE TABLE IF NOT EXISTS results "
-                           f"(id integer primary key autoincrement, point real, frequency real, up_value real, "
-                           f"down_value real, measure_case_id int,"
+                           f"(id integer primary key autoincrement, scale_point real, amplitude real, frequency real, "
+                           f"up_value real, down_value real, measure_case_id int,"
                            f"foreign key (measure_case_id) references measure_cases(id))")
 
             cursor.execute(f"CREATE TABLE IF NOT EXISTS marks "
@@ -205,9 +208,10 @@ class MeasuresDB:
     def save_points(self, a_measure: Measure):
         assert a_measure.id != 0, "Measure id must not be zero"
         with self.connection:
-            self.cursor.executemany(f"insert into results (point, frequency, up_value, down_value, measure_case_id) "
-                                    f"values (?, ?, ?, ?, ?)",
-                                    ((point.amplitude, point.frequency, point.up_value, point.down_value, case.id)
+            self.cursor.executemany(f"insert into results (scale_point, amplitude, frequency, up_value, down_value, "
+                                    f"measure_case_id) values (?, ?, ?, ?, ?, ?)",
+                                    ((point.scale_point, point.amplitude, point.frequency, point.up_value,
+                                      point.down_value, case.id)
                                      for case in a_measure.cases for point in case.points))
 
     def get(self, a_id: int) -> Measure:
@@ -235,7 +239,7 @@ class MeasuresDB:
     #
     #
     #         if a_save_points:
-    #             self.cursor.executemany(f"insert into results (point, frequency, up_value, down_value, "
+    #             self.cursor.executemany(f"insert into results (amplitude, frequency, up_value, down_value, "
     #                                     f"measure_id) values (?, ?, ?, ?, {a_params.id})", a_params.points)
 
     def delete(self, a_measure_id: int):

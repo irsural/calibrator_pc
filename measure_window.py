@@ -366,7 +366,7 @@ class MeasureWindow(QtWidgets.QWidget):
         Обновляет данные, которые будут записаны в таблицу по кнопке "Сохранить точку"
         :param a_current_value: Новое значение амплитуды
         """
-        self.current_point.point = self.guess_point(a_current_value)
+        self.current_point.amplitude = self.guess_point(a_current_value)
 
         self.current_point.approach_side = PointData.ApproachSide.UP \
             if a_current_value < self.current_point.value else PointData.ApproachSide.DOWN
@@ -385,13 +385,13 @@ class MeasureWindow(QtWidgets.QWidget):
     def save_point(self):
         if self.clb_state != clb.State.WAITING_SIGNAL:
             try:
-                if self.measure_manager.view().is_point_good(self.current_point.point, self.current_point.frequency,
+                if self.measure_manager.view().is_point_good(self.current_point.amplitude, self.current_point.frequency,
                                                              self.current_point.approach_side):
 
                     side_text = "СНИЗУ" if self.current_point.approach_side == PointData.ApproachSide.DOWN \
                         else "СВЕРХУ"
 
-                    point_text = f"{self.value_to_user(self.current_point.point)}"
+                    point_text = f"{self.value_to_user(self.current_point.amplitude)}"
                     if clb.is_ac_signal[self.current_case.signal_type]:
                         point_text += f" : {utils.float_to_string(self.current_point.frequency)} Гц"
 
@@ -405,8 +405,8 @@ class MeasureWindow(QtWidgets.QWidget):
                     if self.clb_state == clb.State.READY:
                         self.measure_manager.view().append(self.current_point)
                     else:
-                        self.measure_manager.view().append(PointData(a_point=self.current_point.point,
-                                                           a_frequency=self.current_point.frequency))
+                        self.measure_manager.view().append(PointData(a_point=self.current_point.amplitude,
+                                                                     a_frequency=self.current_point.frequency))
             except AssertionError as err:
                 print(err)
         else:
