@@ -4,6 +4,7 @@ from PyQt5 import QtCore, QtWidgets, QtGui
 
 from MeasureView import MeasureView
 from db_measures import Measure, MeasuresDB
+from edit_case_params_dialog import EditCaseParamsDialog
 import calibrator_constants as clb
 import constants as cfg
 import utils
@@ -94,8 +95,8 @@ class MeasureCases(QtWidgets.QWidget):
 
     def open_case_settings(self):
         sender = self.sender()
-        case_id = int(sender.property("case_id"))
-        print(case_id)
+        tab_idx = self.get_tab_idx(sender)
+        self.edit_case_parameters(tab_idx)
 
     def delete_case(self):
         try:
@@ -116,7 +117,8 @@ class MeasureCases(QtWidgets.QWidget):
                 return tab_idx
         assert True, "Cant find tab idx by widget!!!"
 
-    def create_tab_name(self, a_case: Measure.Case):
+    @staticmethod
+    def create_tab_name(a_case: Measure.Case):
         return " " + clb.enum_to_signal_type_short[a_case.signal_type] + "; " + \
                utils.value_to_user_with_units(clb.signal_type_to_units[a_case.signal_type])(a_case.limit)
 
@@ -140,16 +142,19 @@ class MeasureCases(QtWidgets.QWidget):
         except Exception as err:
             utils.exception_handler(err)
 
-    def edit_scale_limits(self):
+    def edit_case_parameters(self, a_case_number):
         try:
-            case_id = self.get_tab_case_id(self.cases_bar.currentIndex())
-            case: Measure.Case = self.measure_db.get_case(case_id)
+            case = self.cases[a_case_number]
+            case_params_dialog = EditCaseParamsDialog(case, self)
 
-            case_params_dialog = CaseParamsDialog(case, self)
-
-            new_case_params = case_params_dialog.exec_and_get_limits()
-            if new_case_params is not None:
+            if case_params_dialog.exec() == QtWidgets.QDialog.Accepted:
+                self.cases_bar.setTabText(a_case_number, self.create_tab_name(case))
                 self.measures_db.update_case(case)
+
+                if self.cases_bar.currentIndex() == a_case_number:
+                    # Обновляем параметры измерения
+                    self.select_case(a_case_number)
+
         except Exception as err:
             utils.exception_handler(err)
 
