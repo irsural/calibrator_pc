@@ -1,8 +1,9 @@
-from typing import List
+from typing import List, Tuple, Iterable
 
 from PyQt5 import QtCore, QtWidgets, QtGui
 
 from MeasureView import MeasureView
+from MeasureModel import MeasureModel
 from db_measures import Measure
 from edit_case_params_dialog import EditCaseParamsDialog
 import calibrator_constants as clb
@@ -153,6 +154,30 @@ class MeasureCases(QtWidgets.QWidget):
 
     def current_case(self):
         return self.cases[self.cases_bar.currentIndex()]
+
+    def export_tables(self) -> List[Tuple[Measure.Case, Iterable]]:
+        """
+        Возвращает пару Measure.Case и данных таблиц в их текущем визуальном состоянии (Учитывая скрытые колонки и
+        положение колонок)
+        Не учитывается только колонка частоты (Она всегда добавляется в качестве последней колонки)
+        """
+        table = self.measure_view.view()
+        chosen_column = []
+        for column in range(table.horizontalHeader().count()):
+            logic_column = table.horizontalHeader().logicalIndex(column)
+            if not table.isColumnHidden(logic_column):
+                # Частота всегда добавляется в конец
+                if logic_column != MeasureModel.Column.FREQUENCY:
+                    chosen_column.append(logic_column)
+        chosen_column.append(MeasureModel.Column.FREQUENCY)
+
+        case_data = []
+        for case in self.cases:
+            model = MeasureModel(a_normalize_value=case.limit, a_error_limit=case.device_class,
+                                 a_signal_type=case.signal_type, a_init_points=case.points, a_parent=table)
+            case_data.append((case, model.exportByColumns(chosen_column)))
+
+        return case_data
 
     def closeEvent(self, a_event: QtGui.QCloseEvent) -> None:
         self.measure_view.close()

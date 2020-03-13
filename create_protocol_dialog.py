@@ -1,6 +1,6 @@
 from re import compile as re_compile
 from sqlite3 import Connection
-from typing import List, Tuple, Union
+from typing import List, Tuple, Union, Iterable
 import os
 
 from PyQt5 import QtCore, QtGui, QtWidgets
@@ -12,6 +12,7 @@ from settings_ini_parser import Settings
 from marks_widget import MarksWidget
 import calibrator_constants as clb
 import constants as cfg
+import odf_output
 import utils
 
 
@@ -41,6 +42,7 @@ class CreateProtocolDialog(QtWidgets.QDialog):
 
         self.ui.points_table.horizontalHeader().restoreState(self.settings.get_last_header_state(
             self.__class__.__name__))
+        self.ui.points_table.horizontalHeader().setSectionsMovable(True)
 
         self.measure_manager = MeasureCases(self.ui.points_table, self.measure_config.cases, a_allow_editing=False)
         self.ui.cases_bar_layout.addWidget(self.measure_manager.cases_bar)
@@ -196,10 +198,9 @@ class CreateProtocolDialog(QtWidgets.QDialog):
             marks_map: list = self.marks_widget.get_marks_map()
 
             for widgets in self.default_marks_widgets:
-                marks_map.append((self.extract_mark_from_label(widgets[0]),
-                                  self.extract_value_from_widget(widgets[1])))
+                marks_map.append((self.extract_mark_from_label(widgets[0]), self.extract_value_from_widget(widgets[1])))
 
-            if utils.replace_text_in_odt(src_file, dst_file, marks_map, ((1,2,3,4,5,6,7), (7,6,5,4,3,2,1))):
+            if odf_output.replace_text_in_odt(src_file, dst_file, marks_map, self.create_table_to_export()):
                 QtWidgets.QMessageBox.information(self, "Успех", "Протокол успешно сгенерирован")
                 return True
             else:
@@ -214,6 +215,16 @@ class CreateProtocolDialog(QtWidgets.QDialog):
                              self.measure_config.time.replace(':', '.') + '.',
                              self.measure_config.device_name + ".odt"])
         return os.path.sep.join([os.path.dirname(dst_folder), dst_file])
+
+    def create_table_to_export(self) -> Iterable[Iterable]:
+        for case, table in self.measure_manager.export_tables():
+            table_to_draw = odf_output.TableToDraw(case)
+            for row in table:
+                # Последняя колонка - всегда частота
+                table_to_draw.add_point(row[-1], row[:-1])
+            print(table_to_draw)
+
+        return ((1,2,3,4,5,6,7), (7,6,5,4,3,2,1))
 
     def closeEvent(self, a_event: QtGui.QCloseEvent) -> None:
         self.settings.save_geometry(self.__class__.__name__, self.saveGeometry())

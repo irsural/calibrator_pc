@@ -1,5 +1,5 @@
 import enum
-from typing import List
+from typing import List, Iterable
 
 from PyQt5.QtCore import QAbstractTableModel, QModelIndex, Qt, QVariant, pyqtSlot
 from PyQt5.QtGui import QBrush, QColor
@@ -135,6 +135,12 @@ class MeasureModel(QAbstractTableModel):
                                          down_value=row[MeasureModel.Column.DOWN_VALUE])
                            for row in self.__points]
         return exported_points
+
+    def exportByColumns(self, a_columns: Iterable) -> Iterable[Iterable]:
+        table_data = []
+        for row in range(self.rowCount()):
+            table_data.append([self.data(QModelIndex(self.index(row, column))) for column in a_columns])
+        return table_data
 
     def isPointGood(self, a_point: float, a_frequency: float, a_approach_side: PointData.ApproachSide) -> bool:
         """

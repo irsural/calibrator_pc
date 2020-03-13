@@ -63,3 +63,4 @@ class Scale:
 
     def __str__(self):
         return f"Points: {self.points}\nLimits: {[str(lim) for lim in self.limits]}"
+

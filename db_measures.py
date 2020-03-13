@@ -51,7 +51,7 @@ class Measure:
 
     def __init__(self, a_cases: List[Case], a_id=0,  a_device_name="", a_device_creator="",
                  a_device_system=DeviceSystem.MAGNETOELECTRIC, a_user="", a_date="", a_serial_num="", a_owner="",
-                 a_comment=""):
+                 a_comment="", a_time=None):
 
         self.id = a_id
 
@@ -63,7 +63,7 @@ class Measure:
         self.user = a_user
         self.serial_num = a_serial_num
         self.date = a_date if a_date else QDate.currentDate().toString("dd.MM.yyyy")
-        self.time = QTime.currentTime().toString("H:mm:ss")
+        self.time = QTime.currentTime().toString("H:mm:ss") if a_time is None else a_time
 
         self.comment = a_comment
 
@@ -233,6 +233,7 @@ class MeasuresDB:
                           a_user=measure_data[MeasureColumn.USER],
                           a_serial_num=measure_data[MeasureColumn.SERIAL_NUMBER],
                           a_comment=measure_data[MeasureColumn.COMMENT],
+                          a_time=time
                           )
 
         self.cursor.execute(f"select * from measure_cases where measure_id = {measure.id}")

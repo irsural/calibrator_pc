@@ -99,6 +99,3 @@ class MeasureView:
 
     def get_selected_rows(self):
         return self.table.selectionModel().selectedRows()
-
-    def export_points(self):
-        return self.measure_model.exportPoints()
