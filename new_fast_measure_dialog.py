@@ -2,7 +2,6 @@ from typing import Union
 import enum
 
 from PyQt5.QtWidgets import QDialog, QMessageBox
-from PyQt5.QtCore import pyqtSignal, pyqtSlot
 from PyQt5 import QtWidgets, QtCore
 
 from ui.py.new_fast_measure_form import Ui_Dialog as NewFastMeasureForm
@@ -24,30 +23,16 @@ class FastMeasureParams:
         self.minimal_discrete = 0.1
         self.comment = ""
 
-        self.date = QtCore.QDate.currentDate().toString("dd.MM.yyyy")
-        self.time = QtCore.QTime.currentTime().toString("H:mm:ss")
-
         self.auto_calc_points = False
         self.lower_bound = 0.
         self.points_step = 0.1
         self.start_point_side = self.StartPoint.LOWER
         self.amplitudes = []
-        self.frequency = []
-
-    def __str__(self):
-        return f"Signal type: {self.signal_type.name}\n" \
-            f"Lower: {self.lower_bound}\n" \
-            f"Upper: {self.upper_bound}\n" \
-            f"Discrete: {self.minimal_discrete}\n" \
-            f"Class: {self.accuracy_class}\n" \
-            f"Auto calc: {self.auto_calc_points}\n" \
-            f"Step: {self.points_step}\n" \
-            f"Side: {self.start_point_side.name}\n" \
-            f"Frequency: {self.frequency}\n"
+        self.frequency: str = ""
 
 
 class NewFastMeasureDialog(QDialog):
-    config_ready = pyqtSignal(FastMeasureParams)
+    config_ready = QtCore.pyqtSignal(FastMeasureParams)
 
     class InputStatus(enum.IntEnum):
         ok = 0
@@ -107,16 +92,16 @@ class NewFastMeasureDialog(QDialog):
         self.ui.edit_frequency_button.clicked.connect(self.show_frequency_list)
 
         self.ui.lower_bound_edit.textEdited.connect(self.edit_text_edited)
-        self.ui.lower_bound_edit.editingFinished.connect(self.editinig_finished)
+        self.ui.lower_bound_edit.editingFinished.connect(self.editing_finished)
 
         self.ui.upper_bound_edit.textEdited.connect(self.edit_text_edited)
-        self.ui.upper_bound_edit.editingFinished.connect(self.editinig_finished)
+        self.ui.upper_bound_edit.editingFinished.connect(self.editing_finished)
 
         self.ui.step_edit.textEdited.connect(self.edit_text_edited)
-        self.ui.step_edit.editingFinished.connect(self.editinig_finished)
+        self.ui.step_edit.editingFinished.connect(self.editing_finished)
 
         self.ui.minimal_discrete.textEdited.connect(self.edit_text_edited)
-        self.ui.minimal_discrete.editingFinished.connect(self.editinig_finished)
+        self.ui.minimal_discrete.editingFinished.connect(self.editing_finished)
 
         self.ui.comment_edit.editingFinished.connect(self.ui.comment_edit.clearFocus)
 
@@ -140,8 +125,7 @@ class NewFastMeasureDialog(QDialog):
         except ValueError:
             a_edit.setStyleSheet(qt_utils.QSTYLE_COLOR_RED)
 
-    @pyqtSlot()
-    def editinig_finished(self):
+    def editing_finished(self):
         try:
             edit: QtCore.QObject = self.sender()
             assert isinstance(edit, QtWidgets.QLineEdit), "editinig_finished must be connected to QLineEdit event!"
@@ -174,7 +158,7 @@ class NewFastMeasureDialog(QDialog):
 
         self.ui.auto_calc_points_checkbox.setChecked(self.fast_params.auto_calc_points)
         self.ui.lower_bound_edit.setText(self.value_to_user(self.fast_params.lower_bound))
-        self.ui.frequency_edit.setText(";".join(self.fast_params.frequency))
+        self.ui.frequency_edit.setText(self.fast_params.frequency)
         self.ui.step_edit.setText(self.value_to_user(self.fast_params.points_step))
         start_point_upper_chosen = self.fast_params.start_point_side == FastMeasureParams.StartPoint.UPPER
         self.ui.start_point_up_radio.setChecked(start_point_upper_chosen)
@@ -190,8 +174,7 @@ class NewFastMeasureDialog(QDialog):
             self.fast_params.lower_bound = utils.parse_input(self.ui.lower_bound_edit.text())
             self.fast_params.points_step = utils.parse_input(self.ui.step_edit.text())
 
-            self.fast_params.frequency = ["0"] if clb.is_dc_signal[self.fast_params.signal_type] else \
-                self.ui.frequency_edit.text().split(';')
+            self.fast_params.frequency = self.ui.frequency_edit.text()
 
             self.fast_params.start_point_side = FastMeasureParams.StartPoint.UPPER if \
                 self.ui.start_point_up_radio.isChecked() else FastMeasureParams.StartPoint.LOWER
@@ -199,27 +182,22 @@ class NewFastMeasureDialog(QDialog):
         except ValueError:
             return False
 
-    @pyqtSlot()
     def set_mode_aci(self):
         self.fast_params.signal_type = clb.SignalType.ACI
         self.set_units("А")
 
-    @pyqtSlot()
     def set_mode_dci(self):
         self.fast_params.signal_type = clb.SignalType.DCI
         self.set_units("А")
 
-    @pyqtSlot()
     def set_mode_acv(self):
         self.fast_params.signal_type = clb.SignalType.ACV
         self.set_units("В")
 
-    @pyqtSlot()
     def set_mode_dcv(self):
         self.fast_params.signal_type = clb.SignalType.DCV
         self.set_units("В")
 
-    @pyqtSlot()
     def accept(self):
         if not self.save_config():
             input_status = self.InputStatus.bad_input
@@ -228,8 +206,6 @@ class NewFastMeasureDialog(QDialog):
 
         if input_status == self.InputStatus.ok:
             self.fast_params.amplitudes = [] if not self.fast_params.auto_calc_points else self.calc_points()
-            if self.fast_params.frequency[0] == "":
-                self.fast_params.frequency = ["0"]
 
             self.config_ready.emit(self.fast_params)
             self.done(QDialog.Accepted)
@@ -251,28 +227,27 @@ class NewFastMeasureDialog(QDialog):
             return self.InputStatus.voltage_too_big
         elif a_config.auto_calc_points and a_config.points_step == 0:
             return self.InputStatus.step_is_zero
-        elif clb.is_ac_signal[a_config.signal_type] and not a_config.frequency:
-            return self.InputStatus.no_frequency
+        # elif clb.is_ac_signal[a_config.signal_type] and not a_config.frequency:
+        #     return self.InputStatus.no_frequency
         else:
             return self.InputStatus.ok
 
-    @pyqtSlot()
     def show_frequency_list(self):
         frequency_text = self.ui.frequency_edit.text()
         current_frequency = frequency_text.split(';') if frequency_text else []
         edit_frequency_dialog = OkCancelDialog(self, "Редактирование частот поверки")
 
         self.edit_frequency_widget = EditedListOnlyNumbers(edit_frequency_dialog, tuple(current_frequency),
-                                                           clb.MIN_FREQUENCY, clb.MAX_FREQUENCY, "Частота, Гц")
+                                                           clb.MIN_FREQUENCY, clb.MAX_FREQUENCY,
+                                                           QtWidgets.QLabel("Частота, Гц", self))
 
         edit_frequency_dialog.ui.main_widget_layout.addWidget(self.edit_frequency_widget)
         edit_frequency_dialog.accepted.connect(self.frequency_editing_finished)
         edit_frequency_dialog.exec()
 
-    @pyqtSlot()
     def frequency_editing_finished(self):
         frequency_list = self.edit_frequency_widget.get_list()
-        self.ui.frequency_edit.setText(";".join(frequency_list))
+        self.ui.frequency_edit.setText(";".join(utils.float_to_string(f) for f in frequency_list))
 
     def set_units(self, a_units_str: str):
         self.value_to_user = utils.value_to_user_with_units(a_units_str)

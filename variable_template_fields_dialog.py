@@ -25,6 +25,9 @@ class VariableTemplateFieldsDialog(QtWidgets.QDialog):
         self.ui.accept_button.clicked.connect(self.accept)
         self.ui.reject_button.clicked.connect(self.reject)
 
+    def __del__(self):
+        print("variable deleted")
+
     def recover_params(self, a_params):
         self.ui.serial_number_edit.setText(a_params.serial_num)
         self.ui.owner_edit.setText(a_params.owner)

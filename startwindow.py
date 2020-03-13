@@ -4,7 +4,7 @@ from PyQt5.QtCore import pyqtSignal
 from PyQt5 import QtGui, QtWidgets, QtCore, QtSql
 
 from ui.py.startform import Ui_Form as StartForm
-from db_measures import MeasureTables, MeasureColumn, MEASURE_COLUMN_TO_NAME, MeasuresDB
+from db_measures import MeasureColumn, MEASURE_COLUMN_TO_NAME, MeasuresDB
 from custom_widgets.QTableDelegates import NonOverlappingDoubleClick
 from create_protocol_dialog import CreateProtocolDialog
 from settings_ini_parser import Settings
@@ -17,15 +17,13 @@ class StartWindow(QtWidgets.QWidget):
     no_template_mode_chosen = pyqtSignal()
     template_mode_chosen = pyqtSignal()
 
-    def __init__(self, a_control_db_connection: Connection, a_db_name: str, a_db_tables: MeasureTables,
-                 a_settings: Settings, a_parent=None):
+    def __init__(self, a_control_db_connection: Connection, a_db_name: str, a_settings: Settings, a_parent=None):
         """
         Для отображения таблицы измерений используется QSqlRelationalTableModel (это сильно упрощает жизнь)
         При этом для остальных операций (добавление, удаление) используется другое соединение sqlite3.Connection
         Соединения могут быть подключены к БД параллельно
         :param a_control_db_connection: Соединения для управления БД
         :param a_db_name: Имя файла БД
-        :param a_db_tables: Названия таблиц БД
         :param a_settings: Настройки в ini
         :param a_parent: Widget parent
         """
@@ -36,7 +34,6 @@ class StartWindow(QtWidgets.QWidget):
         self.parent = a_parent
 
         self.settings = a_settings
-        self.db_tables = a_db_tables
 
         self.setWindowTitle("Калибратор N4-25")
 
@@ -52,24 +49,22 @@ class StartWindow(QtWidgets.QWidget):
         # По каким то причинам restoreGeometry не восстанавливает размер MainWindow, если оно скрыто
         self.parent.restoreGeometry(self.settings.get_last_geometry(self.__class__.__name__))
 
+        self.control_db_connection = a_control_db_connection
+        self.measure_db = MeasuresDB(a_control_db_connection)
+
         self.display_db_connection = QtSql.QSqlDatabase.addDatabase("QSQLITE")
         self.display_db_model = QtSql.QSqlRelationalTableModel(self)
         self.sort_proxy_model = QtCore.QSortFilterProxyModel(self)
-        self.header_context = self.config_measure_table(a_db_name, a_db_tables)
+        self.header_context = self.config_measure_table(a_db_name)
 
-        self.control_db_connection = a_control_db_connection
-        self.measure_db = MeasuresDB(a_control_db_connection, a_db_tables)
-
-    def config_measure_table(self, a_db_name: str, a_tables: MeasureTables):
+    def config_measure_table(self, a_db_name: str):
         self.display_db_connection.setDatabaseName(a_db_name)
         res = self.display_db_connection.open()
         assert res, f"Can't open database {a_db_name}!"
 
-        self.display_db_model.setTable(a_tables.measures_table)
+        self.display_db_model.setTable("measures")
         self.display_db_model.setRelation(MeasureColumn.DEVICE_SYSTEM,
-                                          QtSql.QSqlRelation(a_tables.system_table, "id", "name"))
-        self.display_db_model.setRelation(MeasureColumn.SIGNAL_TYPE,
-                                          QtSql.QSqlRelation(a_tables.signal_type_table, "id", "name"))
+                                          QtSql.QSqlRelation("system", "id", "name"))
 
         for column in range(self.display_db_model.columnCount()):
             self.display_db_model.setHeaderData(column, QtCore.Qt.Horizontal, MEASURE_COLUMN_TO_NAME[column])
@@ -80,7 +75,9 @@ class StartWindow(QtWidgets.QWidget):
         # Чтобы был приятный цвет выделения
         self.ui.measures_table.setItemDelegate(NonOverlappingDoubleClick(self))
 
-        self.ui.measures_table.selectionModel().currentChanged.connect(self.activate_create_protocol_button)
+        self.ui.measures_table.selectionModel().currentChanged.connect(self.current_selection_changed)
+        self.ui.measures_table.selectionModel().modelChanged.connect(self.current_selection_changed)
+        self.ui.measures_table.selectionModel().selectionChanged.connect(self.current_selection_changed)
 
         self.ui.measures_table.horizontalHeader().restoreState(self.settings.get_last_header_state(
             self.__class__.__name__))
@@ -93,19 +90,22 @@ class StartWindow(QtWidgets.QWidget):
         self.update_table()
         return header_context
 
-    def activate_create_protocol_button(self):
-        self.ui.create_protocol_button.setEnabled(True)
+    def current_selection_changed(self):
+        measure_id = self.get_selected_id()
+        if measure_id is None:
+            self.ui.create_protocol_button.setEnabled(False)
+        else:
+            self.ui.create_protocol_button.setEnabled(True)
 
     def update_table(self):
         self.display_db_model.select()
-        self.ui.create_protocol_button.setEnabled(False)
+        self.current_selection_changed()
 
     def create_protocol(self):
         try:
             measure_id = self.get_selected_id()
             assert measure_id is not None, "measure id must not be None!"
-            create_protocol_dialog = CreateProtocolDialog(self.settings, measure_id, self.control_db_connection,
-                                                          self.db_tables, self)
+            create_protocol_dialog = CreateProtocolDialog(self.settings, measure_id, self.control_db_connection, self)
             create_protocol_dialog.exec()
             self.update_table()
         except Exception as err:
@@ -118,16 +118,15 @@ class StartWindow(QtWidgets.QWidget):
         menu.popup(self.ui.measures_table.viewport().mapToGlobal(a_position))
 
     def delete_measure(self):
-        reply = QtWidgets.QMessageBox.question(self, "Подтвердите действие", "Вы действительно хотите удалить "
-                                               "выбранное измерение?", QtWidgets.QMessageBox.Yes |
-                                               QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)
+        measure_id = self.get_selected_id()
+        if measure_id is not None:
+            reply = QtWidgets.QMessageBox.question(self, "Подтвердите действие", "Вы действительно хотите удалить "
+                                                   "выбранное измерение?", QtWidgets.QMessageBox.Yes |
+                                                   QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)
 
-        if reply == QtWidgets.QMessageBox.Yes:
-            measure_id = self.get_selected_id()
-            assert measure_id is not None, "measure id must not be None!"
-
-            self.measure_db.delete(measure_id)
-            self.update_table()
+            if reply == QtWidgets.QMessageBox.Yes:
+                self.measure_db.delete(measure_id)
+                self.update_table()
 
     def get_selected_id(self):
         selected = self.ui.measures_table.selectionModel().selectedRows()

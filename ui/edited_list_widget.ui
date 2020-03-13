@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>242</width>
+    <width>218</width>
     <height>288</height>
    </rect>
   </property>
@@ -19,6 +19,9 @@
    <string>Form</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
+   <property name="spacing">
+    <number>0</number>
+   </property>
    <property name="leftMargin">
     <number>0</number>
    </property>
@@ -33,17 +36,14 @@
    </property>
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout_2">
+     <property name="topMargin">
+      <number>5</number>
+     </property>
+     <property name="bottomMargin">
+      <number>5</number>
+     </property>
      <item>
-      <widget class="QLabel" name="lsitname_label">
-       <property name="font">
-        <font>
-         <pointsize>10</pointsize>
-        </font>
-       </property>
-       <property name="text">
-        <string>List name</string>
-       </property>
-      </widget>
+      <layout class="QVBoxLayout" name="optional_widget_layout"/>
      </item>
      <item>
       <spacer name="horizontalSpacer">
@@ -101,11 +101,25 @@
     </layout>
    </item>
    <item>
+    <widget class="QLabel" name="list_header">
+     <property name="text">
+      <string/>
+     </property>
+     <property name="wordWrap">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item>
     <widget class="QListWidget" name="list_widget">
      <property name="font">
       <font>
        <pointsize>13</pointsize>
       </font>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">selection-color: rgb(0, 0, 0);
+selection-background-color: rgb(170, 170, 255);</string>
      </property>
      <property name="editTriggers">
       <set>QAbstractItemView::DoubleClicked|QAbstractItemView::EditKeyPressed</set>

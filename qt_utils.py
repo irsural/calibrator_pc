@@ -1,10 +1,8 @@
 from math import isclose
-import inspect
 
 from PyQt5 import QtCore, QtWidgets, QtGui
 
 import constants
-import utils
 
 
 QSTYLE_COLOR_WHITE = "background-color: rgb(255, 255, 255);"
@@ -58,10 +56,13 @@ class TableHeaderContextMenu:
         table_header = a_table.horizontalHeader()
         table_header.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
 
+        self.table = a_table
+        self.hide_first_col = a_hide_first_column
         self.menu = QtWidgets.QMenu(a_parent)
         self.lambda_connections = []
         for column in range(a_table.model().columnCount()):
-            if column == 0 and a_hide_first_column: continue
+            if column == 0 and a_hide_first_column:
+                continue
             header_name = a_table.model().headerData(column, QtCore.Qt.Horizontal)
             menu_checkbox = QtWidgets.QAction(header_name, self.menu)
             menu_checkbox.setCheckable(True)
@@ -73,9 +74,13 @@ class TableHeaderContextMenu:
                 lambda state, col=column: a_table.setColumnHidden(col, not state))))
 
         self.lambda_connections.append((table_header.customContextMenuRequested,
-                                        table_header.customContextMenuRequested.connect(
-                                            lambda position: self.menu.popup(a_table.horizontalHeader().viewport().
-                                                                             mapToGlobal(position)))))
+                                        table_header.customContextMenuRequested.connect(self.show_context_menu)))
+
+    def show_context_menu(self, a_position):
+        self.menu.popup(self.table.horizontalHeader().viewport().mapToGlobal(a_position))
+        for column, action in enumerate(self.menu.actions()):
+            col_idx = column + 1 if self.hide_first_col else column
+            action.setChecked(not self.table.isColumnHidden(col_idx))
 
     def delete_connections(self):
         # Нужно потому что лямбда соединения сами не удаляются

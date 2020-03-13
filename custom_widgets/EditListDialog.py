@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Iterable
 from sys import float_info
 from collections import OrderedDict
 
@@ -12,12 +12,19 @@ import utils
 
 
 class EditedListWidget(QtWidgets.QWidget):
-    def __init__(self, parent=None, a_init_items=(), a_min_value=None, a_max_value=None, a_list_name="List name"):
+    def __init__(self, parent=None, a_init_items=(), a_min_value=None, a_max_value=None, a_optional_widget=None,
+                 a_list_header=""):
         super().__init__(parent)
 
         self.ui = EditedListForm()
         self.ui.setupUi(self)
-        self.ui.lsitname_label.setText(a_list_name)
+        if a_optional_widget is not None:
+            self.ui.optional_widget_layout.addWidget(a_optional_widget)
+
+        if not a_list_header:
+            self.ui.list_header.hide()
+        else:
+            self.ui.list_header.setText(a_list_header)
 
         self.min_value = a_min_value if a_min_value is not None else float_info.min
         self.max_value = a_max_value if a_max_value is not None else float_info.max
@@ -94,8 +101,10 @@ class QRegExpDelegator(QtWidgets.QItemDelegate):
 
 
 class EditedListOnlyNumbers(EditedListWidget):
-    def __init__(self, parent=None, a_init_items=(), a_min_value=None, a_max_value=None, a_list_name="List name"):
-        super().__init__(parent, a_init_items, a_min_value, a_max_value, a_list_name)
+    def __init__(self, parent=None, a_init_items: Iterable[float] = (), a_min_value=None, a_max_value=None,
+                 a_optional_widget=None, a_list_header=""):
+        str_items = (str(item) for item in a_init_items)
+        super().__init__(parent, str_items, a_min_value, a_max_value, a_optional_widget, a_list_header)
 
         delegator = QRegExpDelegator(self, utils.find_number_re.pattern)
         delegator.editing_finished.connect(self.item_editing_finished)
@@ -106,13 +115,21 @@ class EditedListOnlyNumbers(EditedListWidget):
         value = self.bound_input(value)
         return utils.float_to_string(value)
 
+    def get_list(self):
+        out_list: List[float] = []
+        for idx in range(self.ui.list_widget.count()):
+            item = float(self.ui.list_widget.item(idx).text().replace(',', '.'))
+            if item not in out_list:
+                out_list.append(item)
+        return out_list
+
 
 class EditedListWithUnits(EditedListWidget):
     def __init__(self, parent=None, units: str = "В", a_init_items=(), a_min_value=None, a_max_value=None,
-                 a_list_name="List name"):
+                 a_optional_widget=None):
         self.value_to_user = utils.value_to_user_with_units(units)
         items_with_units = (self.value_to_user(item) for item in a_init_items)
-        super().__init__(parent, items_with_units, a_min_value, a_max_value, a_list_name)
+        super().__init__(parent, items_with_units, a_min_value, a_max_value, a_optional_widget)
 
         delegator = QRegExpDelegator(self, utils.check_input_no_python_re.pattern)
         delegator.editing_finished.connect(self.item_editing_finished)
@@ -157,6 +174,14 @@ class OkCancelDialog(QtWidgets.QDialog):
         self.ui = OkCancelForm()
         self.ui.setupUi(self)
         self.setWindowTitle(a_title)
+        self.main_widget = None
 
         self.ui.accept_button.clicked.connect(self.accept)
         self.ui.cancel_button.clicked.connect(self.reject)
+
+    def set_main_widget(self, a_widget: QtWidgets.QWidget):
+        self.main_widget = a_widget
+        self.ui.main_widget_layout.addWidget(self.main_widget)
+
+    def get_main_widget(self):
+        return self.main_widget

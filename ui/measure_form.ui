@@ -10,6 +10,11 @@
     <height>544</height>
    </rect>
   </property>
+  <property name="font">
+   <font>
+    <pointsize>10</pointsize>
+   </font>
+  </property>
   <property name="windowTitle">
    <string>Form</string>
   </property>
@@ -947,7 +952,7 @@
       <property name="lineWidth">
        <number>0</number>
       </property>
-      <layout class="QHBoxLayout" name="horizontalLayout">
+      <layout class="QGridLayout" name="gridLayout_2">
        <property name="leftMargin">
         <number>0</number>
        </property>
@@ -960,7 +965,13 @@
        <property name="bottomMargin">
         <number>0</number>
        </property>
-       <item>
+       <property name="horizontalSpacing">
+        <number>5</number>
+       </property>
+       <property name="verticalSpacing">
+        <number>0</number>
+       </property>
+       <item row="1" column="0">
         <widget class="QTableView" name="measure_table">
          <property name="enabled">
           <bool>true</bool>
@@ -989,7 +1000,10 @@ selection-background-color: rgb(170, 170, 255);</string>
          </property>
         </widget>
        </item>
-       <item>
+       <item row="0" column="0">
+        <layout class="QVBoxLayout" name="cases_bar_layout"/>
+       </item>
+       <item row="1" column="1">
         <layout class="QVBoxLayout" name="verticalLayout">
          <item>
           <widget class="QPushButton" name="save_point_button">
@@ -1130,7 +1144,6 @@ selection-background-color: rgb(170, 170, 255);</string>
   <tabstop>apply_amplitude_button</tabstop>
   <tabstop>frequency_edit</tabstop>
   <tabstop>apply_frequency_button</tabstop>
-  <tabstop>measure_table</tabstop>
   <tabstop>save_point_button</tabstop>
   <tabstop>go_to_point_button</tabstop>
   <tabstop>delete_point_button</tabstop>

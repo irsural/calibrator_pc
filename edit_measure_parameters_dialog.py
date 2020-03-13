@@ -4,13 +4,13 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 
 from ui.py.edit_measure_parameters_form import Ui_Dialog as EditMeasureParamsForm
 from marks_widget import MarksWidget
-from db_measures import MeasureParams, MeasureTables
+from db_measures import Measure
 from settings_ini_parser import Settings
 
 
 class EditMeasureParamsDialog(QtWidgets.QDialog):
-    def __init__(self, a_settings: Settings, a_measure_config: MeasureParams, a_db_connection: Connection,
-                 a_db_tables: MeasureTables, a_parent=None):
+    def __init__(self, a_settings: Settings, a_measure_config: Measure, a_db_connection: Connection,
+                 a_parent=None):
         super().__init__(a_parent)
 
         self.ui = EditMeasureParamsForm()
@@ -23,8 +23,8 @@ class EditMeasureParamsDialog(QtWidgets.QDialog):
         self.measure_config = a_measure_config
 
         assert a_measure_config.id != 0, "Measure id must not be zero!"
-        self.marks_widget = MarksWidget(self.settings, a_db_connection, a_db_tables,
-                                        a_measure_id=self.measure_config.id, a_parent=None)
+        self.marks_widget = MarksWidget(self.settings, a_db_connection, a_measure_id=self.measure_config.id,
+                                        a_parent=None)
         self.ui.marks_widget_layout.addWidget(self.marks_widget)
 
         self.set_up_params_to_ui()
@@ -43,18 +43,13 @@ class EditMeasureParamsDialog(QtWidgets.QDialog):
         self.ui.device_creator_edit.setText(self.measure_config.device_creator)
         self.ui.date_edit.setDate(QtCore.QDate.fromString(self.measure_config.date, "dd.MM.yyyy"))
 
-        self.ui.organisation_edit.setText(self.measure_config.organisation)
         self.ui.system_combobox.setCurrentIndex(self.measure_config.device_system)
         self.ui.comment_edit.setText(self.measure_config.comment)
-
-        self.ui.signal_type_combobox.setCurrentIndex(self.measure_config.signal_type)
-        self.ui.class_spinbox.setValue(self.measure_config.device_class)
-        self.ui.etalon_edit.setText(self.measure_config.etalon_device)
 
     def save_pressed(self):
         self.save()
         if self.marks_widget.save():
-            self.close()
+            self.accept()
 
     def save(self):
         self.measure_config.user = self.ui.user_name_edit.text()
@@ -63,11 +58,8 @@ class EditMeasureParamsDialog(QtWidgets.QDialog):
         self.measure_config.owner = self.ui.owner_edit.text()
         self.measure_config.device_creator = self.ui.device_creator_edit.text()
         self.measure_config.date = self.ui.date_edit.text()
-        self.measure_config.organisation = self.ui.organisation_edit.text()
         self.measure_config.device_system = self.ui.system_combobox.currentIndex()
         self.measure_config.comment = self.ui.comment_edit.text()
-        self.measure_config.etalon_device = self.ui.etalon_edit.text()
-        self.measure_config.device_class = self.ui.class_spinbox.value()
 
     def closeEvent(self, a_event: QtGui.QCloseEvent) -> None:
         self.settings.save_geometry(self.__class__.__name__, self.saveGeometry())

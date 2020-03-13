@@ -1,5 +1,5 @@
 import enum
-from typing import List
+from typing import List, Iterable
 
 from PyQt5.QtCore import QAbstractTableModel, QModelIndex, Qt, QVariant, pyqtSlot
 from PyQt5.QtGui import QBrush, QColor
@@ -14,15 +14,17 @@ class PointData:
         UP = 0
         DOWN = 1
 
-    def __init__(self, a_point=0., a_frequency=0., a_value=0., a_normalize_value=0, a_approach_side=ApproachSide.UP):
-        self.point = a_point
+    def __init__(self, a_point=0., a_frequency=0., a_value=0., a_normalize_value=0, a_approach_side=ApproachSide.UP,
+                 a_scale_point=0.):
+        self.scale_point = a_scale_point
+        self.amplitude = a_point
         self.frequency = a_frequency
         self.value = a_value
         self.approach_side = a_approach_side
         self.normalize_value = a_normalize_value
 
     def __str__(self):
-        return f"Point: {self.point}\n" \
+        return f"Point: {self.amplitude}\n" \
             f"Frequency: {self.frequency}" \
             f"Value: {self.value}\n" \
             f"Side: {self.approach_side.name}" \
@@ -31,19 +33,21 @@ class PointData:
 
 class MeasureModel(QAbstractTableModel):
     class Column(enum.IntEnum):
-        POINT = 0
-        FREQUENCY = 1
-        UP_VALUE = 2
-        UP_DEVIATION = 3
-        UP_DEVIATION_PERCENT = 4
-        DOWN_VALUE = 5
-        DOWN_DEVIATION = 6
-        DOWN_DEVIATION_PERCENT = 7
-        VARIATION = 8
-        COUNT = 9
+        SCALE_POINT = 0
+        AMPLITUDE = 1
+        FREQUENCY = 2
+        UP_VALUE = 3
+        UP_DEVIATION = 4
+        UP_DEVIATION_PERCENT = 5
+        DOWN_VALUE = 6
+        DOWN_DEVIATION = 7
+        DOWN_DEVIATION_PERCENT = 8
+        VARIATION = 9
+        COUNT = 10
 
     enum_to_column_header = {
-        Column.POINT: "Поверяемая\nточка",
+        Column.SCALE_POINT: "Отметка\nшкалы",
+        Column.AMPLITUDE: "Амплитуда",
         Column.FREQUENCY: "Частота, Гц",
         Column.UP_VALUE: "Значение\nсверху",
         Column.UP_DEVIATION: "Отклонение\nсверху",
@@ -74,7 +78,8 @@ class MeasureModel(QAbstractTableModel):
 
         self.__row_count = 0
         self.__column_count = self.Column.COUNT
-        self.__raw_columns = self.Column.FREQUENCY, self.Column.DOWN_DEVIATION_PERCENT, self.Column.UP_DEVIATION_PERCENT
+        self.__raw_columns = (self.Column.SCALE_POINT, self.Column.FREQUENCY, self.Column.DOWN_DEVIATION_PERCENT,
+                              self.Column.UP_DEVIATION_PERCENT)
 
         self.__points: List[List[float]] = []
 
@@ -89,20 +94,20 @@ class MeasureModel(QAbstractTableModel):
 
         if a_init_points:
             # Формат a_init_points - кортеж, который формируется в self.exportPoints
-            for a, f, up_v, down_v in a_init_points:
-                self.appendPoint(PointData(a_point=a, a_frequency=f, a_value=up_v,
+            for s_p, a, f, up_v, down_v in a_init_points:
+                self.appendPoint(PointData(a_scale_point=s_p, a_point=a, a_frequency=f, a_value=up_v,
                                            a_approach_side=PointData.ApproachSide.UP))
 
-                self.appendPoint(PointData(a_point=a, a_frequency=f, a_value=down_v,
+                self.appendPoint(PointData(a_scale_point=s_p, a_point=a, a_frequency=f, a_value=down_v,
                                            a_approach_side=PointData.ApproachSide.DOWN))
 
     def appendPoint(self, a_point_data: PointData) -> int:
-        row_idx = self.__find_point(a_point_data.point, a_point_data.frequency)
+        row_idx = self.__find_point(a_point_data.amplitude, a_point_data.frequency)
         point_row = self.rowCount() if row_idx is None else row_idx
 
         if point_row == self.rowCount():
             # Добавляемой точки еще нет в списке
-            point_data = [clb.bound_amplitude(a_point_data.point, self.signal_type),
+            point_data = [a_point_data.scale_point, clb.bound_amplitude(a_point_data.amplitude, self.signal_type),
                           clb.bound_frequency(a_point_data.frequency, self.signal_type), 0, 0, 0, 0, 0, 0, 0]
             assert len(point_data) == self.Column.COUNT, "Размер point_data не соответствует количеству колонок таблицы"
 
@@ -120,15 +125,22 @@ class MeasureModel(QAbstractTableModel):
         if len(self.__points) < a_row_idx:
             return None
         else:
-            return self.__points[a_row_idx][self.Column.POINT]
+            return self.__points[a_row_idx][self.Column.AMPLITUDE]
 
     def exportPoints(self) -> List[MeasuredPoint]:
-        exported_points = [MeasuredPoint(amplitude=row[MeasureModel.Column.POINT],
+        exported_points = [MeasuredPoint(scale_point=row[MeasureModel.Column.SCALE_POINT],
+                                         amplitude=row[MeasureModel.Column.AMPLITUDE],
                                          frequency=row[MeasureModel.Column.FREQUENCY],
                                          up_value=row[MeasureModel.Column.UP_VALUE],
                                          down_value=row[MeasureModel.Column.DOWN_VALUE])
                            for row in self.__points]
         return exported_points
+
+    def exportByColumns(self, a_columns: Iterable) -> Iterable[Iterable]:
+        table_data = []
+        for row in range(self.rowCount()):
+            table_data.append([self.data(QModelIndex(self.index(row, column))) for column in a_columns])
+        return table_data
 
     def isPointGood(self, a_point: float, a_frequency: float, a_approach_side: PointData.ApproachSide) -> bool:
         """
@@ -151,7 +163,7 @@ class MeasureModel(QAbstractTableModel):
 
     def __find_point(self, a_point: float, a_frequency: float):
         for idx, row_data in enumerate(self.__points):
-            if a_point == row_data[self.Column.POINT] and row_data[self.Column.FREQUENCY] == a_frequency:
+            if a_point == row_data[self.Column.AMPLITUDE] and row_data[self.Column.FREQUENCY] == a_frequency:
                 return idx
         return None
 
@@ -182,7 +194,7 @@ class MeasureModel(QAbstractTableModel):
             return QVariant(QBrush(QColor(Qt.white)))
 
     def __recalculate_parameters(self, a_row_idx, a_approach_size: PointData.ApproachSide):
-        point = self.__points[a_row_idx][self.Column.POINT]
+        point = self.__points[a_row_idx][self.Column.AMPLITUDE]
         value = self.__points[a_row_idx][self.__side_to_value_column[a_approach_size]]
         if point != 0 and value == 0:
             # Если точка добавлена в таблицу, но еще не измерена
@@ -245,7 +257,7 @@ class MeasureModel(QAbstractTableModel):
         try:
             float_value = utils.parse_input(value)
 
-            if index.column() in (self.Column.POINT, self.Column.DOWN_VALUE, self.Column.UP_VALUE):
+            if index.column() in (self.Column.AMPLITUDE, self.Column.DOWN_VALUE, self.Column.UP_VALUE):
                 float_value = clb.bound_amplitude(float_value, self.signal_type)
             elif index.column() == self.Column.FREQUENCY:
                 float_value = clb.bound_frequency(float_value, self.signal_type)
@@ -253,14 +265,14 @@ class MeasureModel(QAbstractTableModel):
             self.__points[index.row()][index.column()] = float_value
             self.dataChanged.emit(index, index)
 
-            if index.column() in (self.Column.POINT, self.Column.DOWN_VALUE, self.Column.UP_VALUE):
+            if index.column() in (self.Column.AMPLITUDE, self.Column.DOWN_VALUE, self.Column.UP_VALUE):
                 if index.column() != self.Column.DOWN_VALUE:
                     self.__recalculate_parameters(index.row(), PointData.ApproachSide.UP)
 
                 if index.column() != self.Column.UP_VALUE:
                     self.__recalculate_parameters(index.row(), PointData.ApproachSide.DOWN)
 
-                if index.column() == self.Column.POINT:
+                if index.column() == self.Column.AMPLITUDE:
                     # Это нужно, чтобы цвета ячеек Нижнее значение и Верхнее значение обновлялись сразу после изменения
                     # ячейки Поверяемая точка
                     up_value_index = self.index(index.row(), self.Column.UP_VALUE)
@@ -290,7 +302,7 @@ class MeasureModel(QAbstractTableModel):
     def flags(self, index):
         item_flags = super().flags(index)
         if index.isValid():
-            if index.column() in (self.Column.POINT, self.Column.FREQUENCY,
+            if index.column() in (self.Column.SCALE_POINT, self.Column.AMPLITUDE, self.Column.FREQUENCY,
                                   self.Column.UP_VALUE, self.Column.DOWN_VALUE):
                 item_flags |= Qt.ItemIsEditable
         return item_flags
