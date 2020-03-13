@@ -195,12 +195,12 @@ class CreateProtocolDialog(QtWidgets.QDialog):
         paths = self.get_src_dst_path()
         if paths is not None:
             src_file, dst_file = paths
-            marks_map: list = self.marks_widget.get_marks_map()
 
+            marks_map: list = self.marks_widget.get_marks_map()
             for widgets in self.default_marks_widgets:
                 marks_map.append((self.extract_mark_from_label(widgets[0]), self.extract_value_from_widget(widgets[1])))
 
-            if odf_output.replace_text_in_odt(src_file, dst_file, marks_map, self.create_table_to_export()):
+            if odf_output.replace_text_in_odt(src_file, dst_file, marks_map, self.create_tables_to_export()):
                 QtWidgets.QMessageBox.information(self, "Успех", "Протокол успешно сгенерирован")
                 return True
             else:
@@ -216,15 +216,15 @@ class CreateProtocolDialog(QtWidgets.QDialog):
                              self.measure_config.device_name + ".odt"])
         return os.path.sep.join([os.path.dirname(dst_folder), dst_file])
 
-    def create_table_to_export(self) -> Iterable[Iterable]:
+    def create_tables_to_export(self) -> list:
+        exported_tables = []
         for case, table in self.measure_manager.export_tables():
             table_to_draw = odf_output.TableToDraw(case)
             for row in table:
                 # Последняя колонка - всегда частота
                 table_to_draw.add_point(row[-1], row[:-1])
-            print(table_to_draw)
-
-        return ((1,2,3,4,5,6,7), (7,6,5,4,3,2,1))
+            exported_tables.append(table_to_draw)
+        return exported_tables
 
     def closeEvent(self, a_event: QtGui.QCloseEvent) -> None:
         self.settings.save_geometry(self.__class__.__name__, self.saveGeometry())
