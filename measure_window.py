@@ -117,7 +117,8 @@ class MeasureWindow(QtWidgets.QWidget):
         self.current_point = PointData(a_normalize_value=self.current_case.limit)
 
         self.highest_amplitude = clb.bound_amplitude(utils.increase_by_percent(
-            self.current_case.limit, self.settings.start_deviation), self.current_case.signal_type)
+            self.current_case.limit, 15), self.current_case.signal_type)
+            # self.current_case.limit, self.settings.start_deviation), self.current_case.signal_type)
         self.lowest_amplitude = -self.highest_amplitude if clb.is_dc_signal[self.current_case.signal_type] else 0
 
     def fill_fixed_step_combobox(self):
