@@ -111,7 +111,6 @@ def __fill_odf_table(a_file, a_tables_to_draw: List[TableToDraw]):
                                 # Чтобы пустые ячейки не мерджились в одну
                                 __add_cell_to_row(points_row, cell_style, text_style, "")
 
-
                 # Без этого дерево нодов сломается
                 a_file.rebuild_caches(table_row.parentNode)
                 break
@@ -142,7 +141,7 @@ def __add_row_with_texts_to_table(table, text_style, cell_style, texts: list, ro
     table_row.addElement(value_cell)
 
     for t in texts:
-        text_element = __add_text_to_element(value_cell, text_style, t)
+        __add_text_to_element(value_cell, text_style, t)
 
 
 def __get_table_columns_count(table):

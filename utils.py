@@ -172,9 +172,10 @@ def relative_step_change(a_value: float, a_step: float, a_min_step: float, a_nor
     assert new_step == test_step, f"new: {new_step}, test: {test_step}. dont work"
 
     new_step *= pow(10., exp)
+    new_step /= 100
     new_step: float = max(new_step, a_min_step)
-    a_value += new_step * value_sign
 
+    a_value += new_step * value_sign
     # Если это преобразование убрать, то шаг будет равномерным на любой амплитуде
     finish_value = math.ceil(a_value / new_step) * new_step if value_sign > 0 \
         else math.floor(a_value / new_step) * new_step
