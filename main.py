@@ -10,6 +10,7 @@ from PyQt5 import QtCore
 from mainwindow import MainWindow
 from utils import exception_handler
 
+
 if __name__ == "__main__":
     app = QApplication(sys.argv)
 

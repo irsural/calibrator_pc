@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>261</width>
+    <width>303</width>
     <height>146</height>
    </rect>
   </property>
@@ -216,8 +216,13 @@
   </customwidget>
  </customwidgets>
  <tabstops>
+  <tabstop>limit_edit</tabstop>
+  <tabstop>signal_type_combobox</tabstop>
+  <tabstop>minimal_discrete_edit</tabstop>
+  <tabstop>device_class_spinbox</tabstop>
   <tabstop>accept_button</tabstop>
   <tabstop>reject_button</tabstop>
+  <tabstop>default_button</tabstop>
  </tabstops>
  <resources/>
  <connections/>

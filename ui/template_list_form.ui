@@ -363,12 +363,16 @@ selection-background-color: rgb(170, 170, 255);</string>
  </widget>
  <tabstops>
   <tabstop>filter_edit</tabstop>
+  <tabstop>duplicate_template_button</tabstop>
+  <tabstop>edit_template_button</tabstop>
+  <tabstop>add_template_button</tabstop>
+  <tabstop>delete_template_button</tabstop>
   <tabstop>templates_list</tabstop>
+  <tabstop>choose_template_button</tabstop>
   <tabstop>template_name_edit</tabstop>
   <tabstop>device_name_edit</tabstop>
   <tabstop>device_creator_edit</tabstop>
   <tabstop>device_system_combobox</tabstop>
-  <tabstop>choose_template_button</tabstop>
   <tabstop>save_template_button</tabstop>
   <tabstop>cancel_edit_template_button</tabstop>
  </tabstops>

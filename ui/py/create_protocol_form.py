@@ -220,7 +220,22 @@ class Ui_Dialog(object):
         self.retranslateUi(Dialog)
         self.marks_and_points_tabwidget.setCurrentIndex(1)
         QtCore.QMetaObject.connectSlotsByName(Dialog)
+        Dialog.setTabOrder(self.template_protocol_edit, self.choose_protocol_template_button)
+        Dialog.setTabOrder(self.choose_protocol_template_button, self.save_folder_edit)
+        Dialog.setTabOrder(self.save_folder_edit, self.choose_save_folder_button)
+        Dialog.setTabOrder(self.choose_save_folder_button, self.device_name_edit)
+        Dialog.setTabOrder(self.device_name_edit, self.device_creator_edit)
+        Dialog.setTabOrder(self.device_creator_edit, self.system_combobox)
+        Dialog.setTabOrder(self.system_combobox, self.user_name_edit)
+        Dialog.setTabOrder(self.user_name_edit, self.serial_number_edit)
+        Dialog.setTabOrder(self.serial_number_edit, self.owner_edit)
+        Dialog.setTabOrder(self.owner_edit, self.date_edit)
+        Dialog.setTabOrder(self.date_edit, self.comment_edit)
+        Dialog.setTabOrder(self.comment_edit, self.marks_and_points_tabwidget)
+        Dialog.setTabOrder(self.marks_and_points_tabwidget, self.points_table)
+        Dialog.setTabOrder(self.points_table, self.accept_button)
         Dialog.setTabOrder(self.accept_button, self.reject_button)
+        Dialog.setTabOrder(self.reject_button, self.default_button)
 
     def retranslateUi(self, Dialog):
         _translate = QtCore.QCoreApplication.translate

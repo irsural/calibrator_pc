@@ -13,7 +13,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_Form(object):
     def setupUi(self, Form):
         Form.setObjectName("Form")
-        Form.resize(685, 349)
+        Form.resize(674, 378)
         font = QtGui.QFont()
         font.setPointSize(13)
         Form.setFont(font)
@@ -107,6 +107,10 @@ class Ui_Form(object):
 
         self.retranslateUi(Form)
         QtCore.QMetaObject.connectSlotsByName(Form)
+        Form.setTabOrder(self.create_protocol_button, self.source_mode_button)
+        Form.setTabOrder(self.source_mode_button, self.no_template_mode_button)
+        Form.setTabOrder(self.no_template_mode_button, self.template_mode_button)
+        Form.setTabOrder(self.template_mode_button, self.measures_table)
 
     def retranslateUi(self, Form):
         _translate = QtCore.QCoreApplication.translate

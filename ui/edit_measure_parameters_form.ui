@@ -282,8 +282,17 @@
   </layout>
  </widget>
  <tabstops>
+  <tabstop>device_name_edit</tabstop>
+  <tabstop>device_creator_edit</tabstop>
+  <tabstop>system_combobox</tabstop>
+  <tabstop>user_name_edit</tabstop>
+  <tabstop>serial_number_edit</tabstop>
+  <tabstop>owner_edit</tabstop>
+  <tabstop>date_edit</tabstop>
+  <tabstop>comment_edit</tabstop>
   <tabstop>accept_button</tabstop>
   <tabstop>reject_button</tabstop>
+  <tabstop>default_button</tabstop>
  </tabstops>
  <resources/>
  <connections/>
