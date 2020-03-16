@@ -167,7 +167,16 @@ class Ui_Dialog(object):
 
         self.retranslateUi(Dialog)
         QtCore.QMetaObject.connectSlotsByName(Dialog)
+        Dialog.setTabOrder(self.device_name_edit, self.device_creator_edit)
+        Dialog.setTabOrder(self.device_creator_edit, self.system_combobox)
+        Dialog.setTabOrder(self.system_combobox, self.user_name_edit)
+        Dialog.setTabOrder(self.user_name_edit, self.serial_number_edit)
+        Dialog.setTabOrder(self.serial_number_edit, self.owner_edit)
+        Dialog.setTabOrder(self.owner_edit, self.date_edit)
+        Dialog.setTabOrder(self.date_edit, self.comment_edit)
+        Dialog.setTabOrder(self.comment_edit, self.accept_button)
         Dialog.setTabOrder(self.accept_button, self.reject_button)
+        Dialog.setTabOrder(self.reject_button, self.default_button)
 
     def retranslateUi(self, Dialog):
         _translate = QtCore.QCoreApplication.translate

@@ -175,13 +175,17 @@ class Ui_Dialog(object):
 
         self.retranslateUi(Dialog)
         QtCore.QMetaObject.connectSlotsByName(Dialog)
-        Dialog.setTabOrder(self.filter_edit, self.templates_list)
-        Dialog.setTabOrder(self.templates_list, self.template_name_edit)
+        Dialog.setTabOrder(self.filter_edit, self.duplicate_template_button)
+        Dialog.setTabOrder(self.duplicate_template_button, self.edit_template_button)
+        Dialog.setTabOrder(self.edit_template_button, self.add_template_button)
+        Dialog.setTabOrder(self.add_template_button, self.delete_template_button)
+        Dialog.setTabOrder(self.delete_template_button, self.templates_list)
+        Dialog.setTabOrder(self.templates_list, self.choose_template_button)
+        Dialog.setTabOrder(self.choose_template_button, self.template_name_edit)
         Dialog.setTabOrder(self.template_name_edit, self.device_name_edit)
         Dialog.setTabOrder(self.device_name_edit, self.device_creator_edit)
         Dialog.setTabOrder(self.device_creator_edit, self.device_system_combobox)
-        Dialog.setTabOrder(self.device_system_combobox, self.choose_template_button)
-        Dialog.setTabOrder(self.choose_template_button, self.save_template_button)
+        Dialog.setTabOrder(self.device_system_combobox, self.save_template_button)
         Dialog.setTabOrder(self.save_template_button, self.cancel_edit_template_button)
 
     def retranslateUi(self, Dialog):

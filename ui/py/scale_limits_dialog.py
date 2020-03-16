@@ -86,6 +86,11 @@ class Ui_Dialog(object):
 
         self.retranslateUi(Dialog)
         QtCore.QMetaObject.connectSlotsByName(Dialog)
+        Dialog.setTabOrder(self.add_limit_button, self.remove_limit_button)
+        Dialog.setTabOrder(self.remove_limit_button, self.limits_table)
+        Dialog.setTabOrder(self.limits_table, self.accept_button)
+        Dialog.setTabOrder(self.accept_button, self.reject_button)
+        Dialog.setTabOrder(self.reject_button, self.default_button)
 
     def retranslateUi(self, Dialog):
         _translate = QtCore.QCoreApplication.translate

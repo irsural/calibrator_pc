@@ -424,6 +424,7 @@ class MeasureWindow(QtWidgets.QWidget):
         if rows:
             row_idx = rows[0].row()
             target_amplitude = utils.parse_input(self.measure_manager.view().get_point_by_row(row_idx))
+            target_frequency = float(self.measure_manager.view().get_frequency_by_row(row_idx).replace(',', '.'))
 
             if target_amplitude != self.calibrator.amplitude:
                 measured_up = self.measure_manager.view().is_point_measured(row_idx, PointData.ApproachSide.UP)
@@ -445,16 +446,17 @@ class MeasureWindow(QtWidgets.QWidget):
                                                     a_normalize_value=self.current_case.limit)
 
                 target_amplitude = utils.bound(target_amplitude, self.lowest_amplitude, self.highest_amplitude)
-                self.start_approach_to_point(target_amplitude)
+                self.start_approach_to_point(target_amplitude, target_frequency)
 
-    def start_approach_to_point(self, a_point):
-        if self.calibrator.signal_enable:
-            self.soft_approach_points = utils.calc_smooth_approach(a_from=self.calibrator.amplitude, a_to=a_point,
+    def start_approach_to_point(self, a_amplitude, a_frequency):
+        if self.calibrator.signal_enable and self.calibrator.frequency == a_frequency:
+            self.soft_approach_points = utils.calc_smooth_approach(a_from=self.calibrator.amplitude, a_to=a_amplitude,
                                                                    a_count=self.SOFT_APPROACH_POINTS_COUNT, sigma=0.001,
                                                                    a_dt=self.NEXT_SOFT_POINT_TIME_MS)
             self.soft_approach_timer.start(self.NEXT_SOFT_POINT_TIME_MS)
         else:
-            self.set_amplitude(a_point)
+            self.set_amplitude(a_amplitude)
+            self.set_frequency(a_frequency)
 
     def set_amplitude_soft(self):
         try:

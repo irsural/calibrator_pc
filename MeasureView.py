@@ -71,7 +71,7 @@ class MeasureView:
     def get_point_by_row(self, a_row: int):
         return self.__get_cell_text(a_row, MeasureModel.Column.AMPLITUDE)
 
-    def get_frequency_by_row(self, a_row: int):
+    def get_frequency_by_row(self, a_row: int) -> str:
         return self.__get_cell_text(a_row, MeasureModel.Column.FREQUENCY)
 
     def __get_cell_text(self, a_row: int, a_column: int):
