@@ -1,6 +1,6 @@
 from re import compile as re_compile
 from sqlite3 import Connection
-from typing import List, Tuple, Union, Iterable
+from typing import List, Tuple, Union
 import os
 
 from PyQt5 import QtCore, QtGui, QtWidgets
@@ -10,7 +10,6 @@ from measure_cases_widget import MeasureCases
 from db_measures import MeasuresDB
 from settings_ini_parser import Settings
 from marks_widget import MarksWidget
-import calibrator_constants as clb
 import constants as cfg
 import odf_output
 import utils

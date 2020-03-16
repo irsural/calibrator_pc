@@ -5,6 +5,7 @@
 *.spec
 *.ini
 /build
+/dist
 /venv
 /Lib
 /Scripts
