@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>563</width>
+    <width>535</width>
     <height>335</height>
    </rect>
   </property>
@@ -68,31 +68,74 @@
       </item>
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout_4">
+        <property name="spacing">
+         <number>4</number>
+        </property>
         <item>
          <widget class="QPushButton" name="duplicate_template_button">
+          <property name="minimumSize">
+           <size>
+            <width>34</width>
+            <height>0</height>
+           </size>
+          </property>
           <property name="text">
-           <string>Copy</string>
+           <string/>
+          </property>
+          <property name="icon">
+           <iconset resource="../resources/icons.qrc">
+            <normaloff>:/icons/icons/duplicate.png</normaloff>:/icons/icons/duplicate.png</iconset>
           </property>
          </widget>
         </item>
         <item>
          <widget class="QPushButton" name="edit_template_button">
+          <property name="minimumSize">
+           <size>
+            <width>34</width>
+            <height>0</height>
+           </size>
+          </property>
           <property name="text">
-           <string>Edit</string>
+           <string/>
+          </property>
+          <property name="icon">
+           <iconset resource="../resources/icons.qrc">
+            <normaloff>:/icons/icons/edit.png</normaloff>:/icons/icons/edit.png</iconset>
           </property>
          </widget>
         </item>
         <item>
          <widget class="QPushButton" name="add_template_button">
+          <property name="minimumSize">
+           <size>
+            <width>34</width>
+            <height>0</height>
+           </size>
+          </property>
           <property name="text">
-           <string>+</string>
+           <string/>
+          </property>
+          <property name="icon">
+           <iconset resource="../resources/icons.qrc">
+            <normaloff>:/icons/icons/plus.png</normaloff>:/icons/icons/plus.png</iconset>
           </property>
          </widget>
         </item>
         <item>
          <widget class="QPushButton" name="delete_template_button">
+          <property name="minimumSize">
+           <size>
+            <width>34</width>
+            <height>0</height>
+           </size>
+          </property>
           <property name="text">
-           <string>-</string>
+           <string/>
+          </property>
+          <property name="icon">
+           <iconset resource="../resources/icons.qrc">
+            <normaloff>:/icons/icons/minus2.png</normaloff>:/icons/icons/minus2.png</iconset>
           </property>
          </widget>
         </item>
@@ -376,6 +419,8 @@ selection-background-color: rgb(170, 170, 255);</string>
   <tabstop>save_template_button</tabstop>
   <tabstop>cancel_edit_template_button</tabstop>
  </tabstops>
- <resources/>
+ <resources>
+  <include location="../resources/icons.qrc"/>
+ </resources>
  <connections/>
 </ui>

@@ -31,7 +31,7 @@ class QEditCopyButton(QEditDoubleClick):
         super().__init__(a_parent)
 
         self.copy_button = QtWidgets.QPushButton(self)
-        pixmap = QtGui.QPixmap(cfg.COPY_ICON_PATH)
+        pixmap = QtGui.QPixmap(":/icons/icons/copy.png")
         self.copy_button.setIcon(QtGui.QIcon(pixmap))
         self.copy_button.setIconSize(pixmap.size())
         self.copy_button.setCursor(QtCore.Qt.ArrowCursor)

@@ -7,16 +7,9 @@ from PyQt5.QtCore import pyqtSignal
 
 from ui.py.marks_widget import Ui_marks_widget as MarksWidgetForm
 from settings_ini_parser import Settings
+import constants as cfg
 import qt_utils
 import utils
-
-
-class Mark:
-    # Сделать namedtuple?
-    def __init__(self, a_name="", a_tag="", a_value=""):
-        self.name = a_name
-        self.tag = a_tag
-        self.value = a_value
 
 
 class MarksWidget(QtWidgets.QWidget):
@@ -32,7 +25,7 @@ class MarksWidget(QtWidgets.QWidget):
                  a_parent=None):
         """
         Виджет, который управляет дополнительными параметрами измерений
-        :param a_caller: Имя вызывающего класса, нужно для сохранение настроек
+        :param a_caller_name: Имя вызывающего класса, нужно для сохранение настроек
         :param a_db_connection: Соединение с базой данных, в которой содержится таблица a_db_table_name
         :param a_db_table_name: Название таблицы, в которой содержатся имена и тэги
         :param a_measure_id: Если не задано, то виджет используется в режиме default_mode
@@ -45,6 +38,10 @@ class MarksWidget(QtWidgets.QWidget):
 
         self.ui = MarksWidgetForm()
         self.ui.setupUi(self)
+
+        self.ui.add_mark_button.setIcon(QtGui.QIcon(QtGui.QPixmap(":/icons/icons/plus.png")))
+        self.ui.delete_mark_button.setIcon(QtGui.QIcon(QtGui.QPixmap(":/icons/icons/minus2.png")))
+
         self.parent = a_parent
         self.caller_name = a_caller_name
 

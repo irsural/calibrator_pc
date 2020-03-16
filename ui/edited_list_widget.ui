@@ -60,6 +60,12 @@
      </item>
      <item>
       <widget class="QPushButton" name="add_list_item_button">
+       <property name="minimumSize">
+        <size>
+         <width>35</width>
+         <height>0</height>
+        </size>
+       </property>
        <property name="maximumSize">
         <size>
          <width>35</width>
@@ -74,12 +80,22 @@
         </font>
        </property>
        <property name="text">
-        <string>+</string>
+        <string/>
+       </property>
+       <property name="icon">
+        <iconset resource="../resources/icons.qrc">
+         <normaloff>:/icons/icons/plus.png</normaloff>:/icons/icons/plus.png</iconset>
        </property>
       </widget>
      </item>
      <item>
       <widget class="QPushButton" name="delete_list_item_button">
+       <property name="minimumSize">
+        <size>
+         <width>35</width>
+         <height>0</height>
+        </size>
+       </property>
        <property name="maximumSize">
         <size>
          <width>35</width>
@@ -94,7 +110,11 @@
         </font>
        </property>
        <property name="text">
-        <string>-</string>
+        <string/>
+       </property>
+       <property name="icon">
+        <iconset resource="../resources/icons.qrc">
+         <normaloff>:/icons/icons/minus2.png</normaloff>:/icons/icons/minus2.png</iconset>
        </property>
       </widget>
      </item>
@@ -169,6 +189,8 @@ selection-background-color: rgb(170, 170, 255);</string>
   <tabstop>delete_list_item_button</tabstop>
   <tabstop>list_widget</tabstop>
  </tabstops>
- <resources/>
+ <resources>
+  <include location="../resources/icons.qrc"/>
+ </resources>
  <connections/>
 </ui>

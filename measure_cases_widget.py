@@ -50,7 +50,8 @@ class MeasureCases(QtWidgets.QWidget):
 
         self.cases_bar.setExpanding(False)
 
-        plus_button = QtWidgets.QPushButton("+")
+        plus_button = QtWidgets.QPushButton()
+        plus_button.setIcon(QtGui.QIcon(QtGui.QPixmap(":/icons/icons/plus.png")))
         plus_button.setFlat(True)
         plus_button.setFixedSize(30, 30)
         self.cases_bar.addTab("")
@@ -192,13 +193,13 @@ class SettingsCloseWidget(QtWidgets.QWidget):
         super().__init__(a_parent)
 
         self.settings_button = QtWidgets.QPushButton(self)
-        self.settings_button.setIcon(QtGui.QIcon(QtGui.QPixmap(cfg.SETTINGS_ICON_PATH)))
+        self.settings_button.setIcon(QtGui.QIcon(QtGui.QPixmap(":/icons/icons/settings.png")))
         self.settings_button.setIconSize(QtCore.QSize(15, 15))
         self.settings_button.setFlat(True)
         self.settings_button.setFixedSize(15, 15)
 
         self.close_button = QtWidgets.QPushButton(self)
-        self.close_button.setIcon(QtGui.QIcon(QtGui.QPixmap(cfg.CLOSE_ICON_PATH)))
+        self.close_button.setIcon(QtGui.QIcon(QtGui.QPixmap(":/icons/icons/close.png")))
         self.close_button.setIconSize(QtCore.QSize(15, 15))
         self.close_button.setFlat(True)
         self.close_button.setFixedSize(15, 15)

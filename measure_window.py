@@ -95,13 +95,13 @@ class MeasureWindow(QtWidgets.QWidget):
 
     def set_up_icons(self):
         pause_icon = QtGui.QIcon()
-        pause_icon.addPixmap(QtGui.QPixmap(cfg.PAUSE_ICON_PATH), QtGui.QIcon.Normal, QtGui.QIcon.On)
-        pause_icon.addPixmap(QtGui.QPixmap(cfg.PLAY_ICON_PATH), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        pause_icon.addPixmap(QtGui.QPixmap(":/icons/icons/pause.png"), QtGui.QIcon.Normal, QtGui.QIcon.On)
+        pause_icon.addPixmap(QtGui.QPixmap(":/icons/icons/play.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.ui.pause_button.setIcon(pause_icon)
         self.ui.pause_button.setIconSize(QtCore.QSize(21, 21))
 
         self.ui.status_warning_label.hide()
-        self.warning_animation = QtGui.QMovie(cfg.WARNING_GIF_PATH)
+        self.warning_animation = QtGui.QMovie(":/icons/gif/warning.gif")
         self.ui.status_warning_label.setMovie(self.warning_animation)
         self.warning_animation.setScaledSize(QtCore.QSize(28, 28))
         self.warning_animation.setSpeed(500)
