@@ -34,7 +34,8 @@ class CreateProtocolDialog(QtWidgets.QDialog):
         self.measure_db = MeasuresDB(a_db_connection)
         self.measure_config = self.measure_db.get(a_measure_id)
 
-        self.marks_widget = MarksWidget(self.settings, a_db_connection, a_measure_id=self.measure_config.id)
+        self.marks_widget = MarksWidget(self.__class__.__name__, self.settings, a_db_connection,
+                                        a_measure_id=self.measure_config.id)
         self.ui.marks_widget_layout.addWidget(self.marks_widget)
 
         self.default_marks_widgets = self.get_default_marks_widgets()

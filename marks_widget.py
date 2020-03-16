@@ -28,9 +28,11 @@ class MarksWidget(QtWidgets.QWidget):
         VALUE = 2
         COUNT = 3
 
-    def __init__(self, a_settings: Settings, a_db_connection: sqlite3.Connection, a_measure_id=None, a_parent=None):
+    def __init__(self, a_caller_name: str, a_settings: Settings, a_db_connection: sqlite3.Connection, a_measure_id=None,
+                 a_parent=None):
         """
         Виджет, который управляет дополнительными параметрами измерений
+        :param a_caller: Имя вызывающего класса, нужно для сохранение настроек
         :param a_db_connection: Соединение с базой данных, в которой содержится таблица a_db_table_name
         :param a_db_table_name: Название таблицы, в которой содержатся имена и тэги
         :param a_measure_id: Если не задано, то виджет используется в режиме default_mode
@@ -44,10 +46,11 @@ class MarksWidget(QtWidgets.QWidget):
         self.ui = MarksWidgetForm()
         self.ui.setupUi(self)
         self.parent = a_parent
+        self.caller_name = a_caller_name
 
         self.settings = a_settings
         self.ui.marks_table.horizontalHeader().restoreState(self.settings.get_last_header_state(
-            '.'.join([self.parent.__class__.__name__, self.__class__.__name__])))
+            '.'.join([self.caller_name, self.__class__.__name__])))
 
         self.connection = a_db_connection
         self.cursor = self.connection.cursor()
@@ -205,5 +208,5 @@ class MarksWidget(QtWidgets.QWidget):
         QtWidgets.QApplication.clipboard().setText(text)
 
     def closeEvent(self, a_event: QtGui.QCloseEvent) -> None:
-        self.settings.save_header_state('.'.join([self.parent.__class__.__name__, self.__class__.__name__]),
+        self.settings.save_header_state('.'.join([self.caller_name, self.__class__.__name__]),
                                         self.ui.marks_table.horizontalHeader().saveState())
