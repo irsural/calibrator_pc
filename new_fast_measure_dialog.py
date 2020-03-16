@@ -227,8 +227,6 @@ class NewFastMeasureDialog(QDialog):
             return self.InputStatus.voltage_too_big
         elif a_config.auto_calc_points and a_config.points_step == 0:
             return self.InputStatus.step_is_zero
-        # elif clb.is_ac_signal[a_config.signal_type] and not a_config.frequency:
-        #     return self.InputStatus.no_frequency
         else:
             return self.InputStatus.ok
 
@@ -258,7 +256,7 @@ class NewFastMeasureDialog(QDialog):
 
     def calc_points(self):
         lower_point, upper_point = (self.fast_params.lower_bound, self.fast_params.upper_bound) if \
-            self.fast_params.StartPoint == FastMeasureParams.StartPoint.LOWER else \
+            self.fast_params.start_point_side == FastMeasureParams.StartPoint.LOWER else \
             (self.fast_params.upper_bound, self.fast_params.lower_bound)
 
         return utils.auto_calc_points(lower_point, upper_point, self.fast_params.points_step)

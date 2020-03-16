@@ -83,11 +83,11 @@ class MeasureWindow(QtWidgets.QWidget):
         self.fixed_step_list = self.settings.fixed_step_list
         # --------------------Создение переменных
 
+        # Вызывать после создания self.measure_manager
+        self.connect_signals()
+
         self.current_case = self.measure_manager.current_case()
         self.current_case_changed()
-
-        # Вызывать после создания self.measure_manager и после self.current_case_changed
-        self.connect_signals()
 
         self.clb_check_timer = QTimer(self)
         self.clb_check_timer.timeout.connect(self.sync_clb_parameters)
@@ -131,6 +131,7 @@ class MeasureWindow(QtWidgets.QWidget):
                 self.ui.fixed_step_combobox.addItem(value_str)
             except ValueError:
                 pass
+        self.ui.fixed_step_combobox.setCurrentIndex(self.settings.fixed_step_idx)
 
     # noinspection DuplicatedCode
     def connect_signals(self):
