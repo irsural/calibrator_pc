@@ -54,7 +54,7 @@ class StartWindow(QtWidgets.QWidget):
 
         self.display_db_connection = QtSql.QSqlDatabase.addDatabase("QSQLITE")
         self.display_db_model = QtSql.QSqlRelationalTableModel(self)
-        self.sort_proxy_model = QtCore.QSortFilterProxyModel(self)
+        self.sort_proxy_model = CustomSortingModel(self)
         self.header_context = self.config_measure_table(a_db_name)
 
     def config_measure_table(self, a_db_name: str):
@@ -143,3 +143,14 @@ class StartWindow(QtWidgets.QWidget):
         self.display_db_connection.close()
         self.header_context.delete_connections()
         a_event.accept()
+
+
+class CustomSortingModel(QtCore.QSortFilterProxyModel):
+    def lessThan(self, left, right):
+        if left.column() == MeasureColumn.DATETIME:
+            date_left = QtCore.QDateTime.fromString(left.data(), "dd.MM.yyyy H:mm:ss")
+            date_right = QtCore.QDateTime.fromString(right.data(), "dd.MM.yyyy H:mm:ss")
+
+            return date_left < date_right
+        else:
+            return super().lessThan(left, right)
