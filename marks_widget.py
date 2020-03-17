@@ -7,7 +7,6 @@ from PyQt5.QtCore import pyqtSignal
 
 from ui.py.marks_widget import Ui_marks_widget as MarksWidgetForm
 from settings_ini_parser import Settings
-import constants as cfg
 import qt_utils
 import utils
 

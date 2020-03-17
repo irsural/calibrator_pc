@@ -13,7 +13,6 @@ from db_measures import Measure, MeasuresDB
 from settings_ini_parser import Settings
 from MeasureModel import PointData
 import calibrator_constants as clb
-import constants as cfg
 import qt_utils
 import clb_dll
 import utils
@@ -446,10 +445,12 @@ class MeasureWindow(QtWidgets.QWidget):
                                                     a_normalize_value=self.current_case.limit)
 
                 target_amplitude = utils.bound(target_amplitude, self.lowest_amplitude, self.highest_amplitude)
+                target_frequency = clb.bound_frequency(target_frequency, self.current_case.signal_type)
                 self.start_approach_to_point(target_amplitude, target_frequency)
 
     def start_approach_to_point(self, a_amplitude, a_frequency):
-        if self.calibrator.signal_enable and self.calibrator.frequency == a_frequency:
+        if self.calibrator.signal_enable and \
+                (self.calibrator.frequency == a_frequency or clb.is_dc_signal[self.current_case.signal_type]):
             self.soft_approach_points = utils.calc_smooth_approach(a_from=self.calibrator.amplitude, a_to=a_amplitude,
                                                                    a_count=self.SOFT_APPROACH_POINTS_COUNT, sigma=0.001,
                                                                    a_dt=self.NEXT_SOFT_POINT_TIME_MS)

@@ -1,13 +1,10 @@
 from enum import IntEnum
-from collections import namedtuple
 from typing import List
 
 from calibrator_constants import SignalType, is_dc_signal
 
 
 FLOAT_EPSILON = 1e-9
-
-MeasuredPoint = namedtuple("Point", ["scale_point", "amplitude", "frequency", "up_value", "down_value"])
 
 
 class DeviceSystem(IntEnum):

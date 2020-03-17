@@ -911,7 +911,17 @@
                 </font>
                </property>
                <property name="text">
-                <string>✔</string>
+                <string/>
+               </property>
+               <property name="icon">
+                <iconset resource="../resources/icons.qrc">
+                 <normaloff>:/icons/icons/ok.png</normaloff>:/icons/icons/ok.png</iconset>
+               </property>
+               <property name="iconSize">
+                <size>
+                 <width>35</width>
+                 <height>35</height>
+                </size>
                </property>
               </widget>
              </item>
@@ -929,7 +939,24 @@
                 </font>
                </property>
                <property name="text">
-                <string>✔</string>
+                <string/>
+               </property>
+               <property name="icon">
+                <iconset resource="../resources/icons.qrc">
+                 <normaloff>:/icons/icons/ok.png</normaloff>
+                 <normalon>:/icons/icons/ok.png</normalon>
+                 <activeon>:/icons/icons/ok.png</activeon>
+                 <selectedoff>:/icons/icons/ok.png</selectedoff>
+                 <selectedon>:/icons/icons/ok.png</selectedon>:/icons/icons/ok.png</iconset>
+               </property>
+               <property name="iconSize">
+                <size>
+                 <width>35</width>
+                 <height>35</height>
+                </size>
+               </property>
+               <property name="flat">
+                <bool>false</bool>
                </property>
               </widget>
              </item>

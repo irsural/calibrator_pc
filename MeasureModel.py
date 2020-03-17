@@ -4,7 +4,7 @@ from typing import List, Iterable
 from PyQt5.QtCore import QAbstractTableModel, QModelIndex, Qt, QVariant, pyqtSlot
 from PyQt5.QtGui import QBrush, QColor
 
-from constants import MeasuredPoint
+from db_measures import MeasuredPoint
 import calibrator_constants as clb
 import utils
 
