@@ -75,6 +75,18 @@ class SourceModeWindow(QtWidgets.QWidget):
         self.ui.dci_radio.clicked.connect(self.dci_radio_checked)
         self.ui.dcv_radio.clicked.connect(self.dcv_radio_checked)
 
+        self.ui.detuning_radio.clicked.connect(self.detuning_radio_checked)
+        self.ui.fixed_mode_radio.clicked.connect(self.fixed_radio_checked)
+        self.ui.source_mode_radio.clicked.connect(self.source_radio_checked)
+
+        self.ui.amplitude_edit.textEdited.connect(self.amplitude_edit_text_changed)
+        self.ui.apply_amplitude_button.clicked.connect(self.apply_amplitude_button_clicked)
+        self.ui.amplitude_edit.returnPressed.connect(self.apply_amplitude_button_clicked)
+
+        self.ui.frequency_edit.textEdited.connect(self.frequency_edit_text_changed)
+        self.ui.apply_frequency_button.clicked.connect(self.apply_frequency_button_clicked)
+        self.ui.frequency_edit.returnPressed.connect(self.apply_frequency_button_clicked)
+
     def update_clb_list(self, a_clb_list: list):
         self.ui.clb_list_combobox.clear()
         for clb_name in a_clb_list:
@@ -89,6 +101,7 @@ class SourceModeWindow(QtWidgets.QWidget):
 
     def sync_clb_parameters(self):
         if self.calibrator.amplitude_changed():
+            print(1)
             self.set_amplitude(self.calibrator.amplitude)
 
         if self.calibrator.frequency_changed():
@@ -97,6 +110,11 @@ class SourceModeWindow(QtWidgets.QWidget):
         if self.calibrator.signal_type_changed():
             self.signal_type = self.calibrator.signal_type
             self.signal_type_to_radio[self.signal_type].setChecked(True)
+            self.update_signal_type(self.signal_type)
+
+        if self.calibrator.mode_changed():
+            self.mode = self.calibrator.mode
+            self.mode_to_radio[self.mode].setChecked(True)
 
     def enable_signal(self, a_signal_enable):
         self.calibrator.signal_enable = a_signal_enable
@@ -157,10 +175,31 @@ class SourceModeWindow(QtWidgets.QWidget):
             parsed = ""
         qt_utils.update_edit_color(self.calibrator.amplitude, parsed, self.ui.amplitude_edit)
 
+    def apply_amplitude_button_clicked(self):
+        try:
+            new_amplitude = utils.parse_input(self.ui.amplitude_edit.text())
+            self.set_amplitude(new_amplitude)
+        except ValueError:
+            # Отлавливает некорректный ввод
+            pass
+
     def set_frequency(self, a_frequency):
         self.calibrator.frequency = a_frequency
         current_frequency = 0 if clb.is_dc_signal[self.signal_type] else self.calibrator.frequency
         self.ui.frequency_edit.setText(utils.float_to_string(current_frequency))
+
+    def frequency_edit_text_changed(self):
+        qt_utils.update_edit_color(self.calibrator.frequency, self.ui.frequency_edit.text().replace(",", "."),
+                                   self.ui.frequency_edit)
+
+    def apply_frequency_button_clicked(self):
+        try:
+            new_frequency = utils.parse_input(self.ui.frequency_edit.text())
+            self.set_frequency(new_frequency)
+            self.frequency_edit_text_changed()
+        except ValueError:
+            # Отлавливает некорректный ввод
+            pass
 
     def aci_radio_checked(self):
         self.update_signal_type(clb.SignalType.ACI)
@@ -187,6 +226,12 @@ class SourceModeWindow(QtWidgets.QWidget):
         if not self.calibrator.signal_enable:
             self.calibrator.signal_type = a_signal_type
             self.signal_type = a_signal_type
+
+            self.units = clb.signal_type_to_units[self.signal_type]
+            self.value_to_user = utils.value_to_user_with_units(self.units)
+
+            self.set_amplitude(self.calibrator.amplitude)
+            self.set_frequency(self.calibrator.frequency)
 
     def update_mode(self, a_mode: clb.Mode):
         if not self.calibrator.signal_enable:
