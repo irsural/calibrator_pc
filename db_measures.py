@@ -1,5 +1,6 @@
-from typing import List
+from collections import namedtuple
 from enum import IntEnum
+from typing import List
 import sqlite3
 
 from PyQt5.QtCore import QDate, QTime
@@ -7,7 +8,7 @@ from PyQt5.QtCore import QDate, QTime
 from variable_template_fields_dialog import VariableTemplateParams
 from new_fast_measure_dialog import FastMeasureParams
 from db_templates import TemplateParams
-from constants import DeviceSystem, MeasuredPoint, enum_to_device_system
+from constants import DeviceSystem, enum_to_device_system
 import calibrator_constants as clb
 import utils
 
@@ -35,6 +36,8 @@ MEASURE_COLUMN_TO_NAME = {
     MeasureColumn.SERIAL_NUMBER: "Заводской\nномер",
     MeasureColumn.COMMENT: "Комментарий",
 }
+
+MeasuredPoint = namedtuple("Point", ["scale_point", "amplitude", "frequency", "up_value", "down_value"])
 
 
 class Measure:
@@ -199,11 +202,11 @@ class MeasuresDB:
                                 f"where id = {a_case.id}",
                                 (a_case.limit, a_case.device_class, a_case.signal_type))
 
-    def delete_case(self, a_case_id: int):
-        assert a_case_id != 0, "Case id must not be zero!!!"
-        with self.connection:
-            self.cursor.execute(f"delete from measure_cases where id = {a_case_id}")
-            self.cursor.execute(f"delete from results where measure_case_id = {a_case_id}")
+    # def delete_case(self, a_case_id: int):
+    #     assert a_case_id != 0, "Case id must not be zero!!!"
+    #     with self.connection:
+    #         self.cursor.execute(f"delete from measure_cases where id = {a_case_id}")
+    #         self.cursor.execute(f"delete from results where measure_case_id = {a_case_id}")
 
     def save_points(self, a_measure: Measure):
         assert a_measure.id != 0, "Measure id must not be zero"

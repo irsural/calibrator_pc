@@ -1,5 +1,6 @@
 import ctypes
 import enum
+import os.path
 
 import calibrator_constants as clb
 import utils
@@ -11,7 +12,10 @@ path = "C:\\Users\\503.IRS\\Desktop\\Qt Projects\\clb_driver_dll\\" \
 
 # noinspection DuplicatedCode
 def set_up_driver(a_full_path):
-    clb_driver_lib = ctypes.CDLL(a_full_path)
+    if os.path.exists(a_full_path):
+        clb_driver_lib = ctypes.CDLL(a_full_path)
+    else:
+        clb_driver_lib = ctypes.CDLL("clb_driver_dll.dll")
 
     # Возвращает список калибраторов, разделенных ';'
     clb_driver_lib.get_usb_devices.restype = ctypes.c_wchar_p

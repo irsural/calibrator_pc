@@ -52,27 +52,65 @@
     <layout class="QVBoxLayout" name="verticalLayout">
      <item>
       <widget class="QPushButton" name="add_mark_button">
+       <property name="minimumSize">
+        <size>
+         <width>35</width>
+         <height>0</height>
+        </size>
+       </property>
        <property name="maximumSize">
         <size>
          <width>35</width>
          <height>16777215</height>
         </size>
        </property>
+       <property name="font">
+        <font>
+         <pointsize>15</pointsize>
+         <weight>75</weight>
+         <bold>true</bold>
+         <underline>false</underline>
+         <kerning>true</kerning>
+        </font>
+       </property>
        <property name="text">
-        <string>+</string>
+        <string/>
+       </property>
+       <property name="icon">
+        <iconset resource="../resources/icons.qrc">
+         <normaloff>:/icons/icons/plus.png</normaloff>:/icons/icons/plus.png</iconset>
        </property>
       </widget>
      </item>
      <item>
       <widget class="QPushButton" name="delete_mark_button">
+       <property name="minimumSize">
+        <size>
+         <width>35</width>
+         <height>0</height>
+        </size>
+       </property>
        <property name="maximumSize">
         <size>
          <width>35</width>
          <height>16777215</height>
         </size>
        </property>
+       <property name="font">
+        <font>
+         <pointsize>15</pointsize>
+         <weight>75</weight>
+         <bold>true</bold>
+         <underline>false</underline>
+         <kerning>true</kerning>
+        </font>
+       </property>
        <property name="text">
-        <string>-</string>
+        <string/>
+       </property>
+       <property name="icon">
+        <iconset resource="../resources/icons.qrc">
+         <normaloff>:/icons/icons/minus2.png</normaloff>:/icons/icons/minus2.png</iconset>
        </property>
       </widget>
      </item>
@@ -93,6 +131,8 @@
    </item>
   </layout>
  </widget>
- <resources/>
+ <resources>
+  <include location="../resources/icons.qrc"/>
+ </resources>
  <connections/>
 </ui>

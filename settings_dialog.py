@@ -35,7 +35,7 @@ class SettingsDialog(QtWidgets.QDialog):
         self.ui.save_button.clicked.connect(self.save)
         self.ui.cancel_button.clicked.connect(self.close)
 
-        self.marks_widget = MarksWidget(self.settings, a_db_connection, a_parent=None)
+        self.marks_widget = MarksWidget(self.__class__.__name__, self.settings, a_db_connection, a_parent=None)
         self.ui.marks_layout.addWidget(self.marks_widget)
 
         self.edit_fixed_range_widget = EditedListWithUnits(self, "В", self.settings.fixed_step_list, clb.MIN_VOLTAGE,

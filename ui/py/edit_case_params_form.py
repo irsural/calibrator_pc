@@ -13,7 +13,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_Dialog(object):
     def setupUi(self, Dialog):
         Dialog.setObjectName("Dialog")
-        Dialog.resize(261, 146)
+        Dialog.resize(303, 146)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -95,7 +95,12 @@ class Ui_Dialog(object):
 
         self.retranslateUi(Dialog)
         QtCore.QMetaObject.connectSlotsByName(Dialog)
+        Dialog.setTabOrder(self.limit_edit, self.signal_type_combobox)
+        Dialog.setTabOrder(self.signal_type_combobox, self.minimal_discrete_edit)
+        Dialog.setTabOrder(self.minimal_discrete_edit, self.device_class_spinbox)
+        Dialog.setTabOrder(self.device_class_spinbox, self.accept_button)
         Dialog.setTabOrder(self.accept_button, self.reject_button)
+        Dialog.setTabOrder(self.reject_button, self.default_button)
 
     def retranslateUi(self, Dialog):
         _translate = QtCore.QCoreApplication.translate

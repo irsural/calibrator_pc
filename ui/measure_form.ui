@@ -345,7 +345,17 @@
                  </font>
                 </property>
                 <property name="text">
-                 <string>+</string>
+                 <string/>
+                </property>
+                <property name="icon">
+                 <iconset resource="../resources/icons.qrc">
+                  <normaloff>:/icons/icons/plus.png</normaloff>:/icons/icons/plus.png</iconset>
+                </property>
+                <property name="iconSize">
+                 <size>
+                  <width>35</width>
+                  <height>35</height>
+                 </size>
                 </property>
                 <property name="autoRepeat">
                  <bool>true</bool>
@@ -386,7 +396,17 @@
                  </font>
                 </property>
                 <property name="text">
-                 <string>-</string>
+                 <string/>
+                </property>
+                <property name="icon">
+                 <iconset resource="../resources/icons.qrc">
+                  <normaloff>:/icons/icons/minus2.png</normaloff>:/icons/icons/minus2.png</iconset>
+                </property>
+                <property name="iconSize">
+                 <size>
+                  <width>35</width>
+                  <height>35</height>
+                 </size>
                 </property>
                 <property name="autoRepeat">
                  <bool>true</bool>
@@ -476,7 +496,17 @@
                  </font>
                 </property>
                 <property name="text">
-                 <string>+</string>
+                 <string/>
+                </property>
+                <property name="icon">
+                 <iconset resource="../resources/icons.qrc">
+                  <normaloff>:/icons/icons/plus.png</normaloff>:/icons/icons/plus.png</iconset>
+                </property>
+                <property name="iconSize">
+                 <size>
+                  <width>35</width>
+                  <height>35</height>
+                 </size>
                 </property>
                 <property name="autoRepeat">
                  <bool>true</bool>
@@ -517,7 +547,17 @@
                  </font>
                 </property>
                 <property name="text">
-                 <string>-</string>
+                 <string/>
+                </property>
+                <property name="icon">
+                 <iconset resource="../resources/icons.qrc">
+                  <normaloff>:/icons/icons/minus2.png</normaloff>:/icons/icons/minus2.png</iconset>
+                </property>
+                <property name="iconSize">
+                 <size>
+                  <width>35</width>
+                  <height>35</height>
+                 </size>
                 </property>
                 <property name="autoRepeat">
                  <bool>true</bool>
@@ -606,7 +646,17 @@
                  </font>
                 </property>
                 <property name="text">
-                 <string>+</string>
+                 <string/>
+                </property>
+                <property name="icon">
+                 <iconset resource="../resources/icons.qrc">
+                  <normaloff>:/icons/icons/plus.png</normaloff>:/icons/icons/plus.png</iconset>
+                </property>
+                <property name="iconSize">
+                 <size>
+                  <width>35</width>
+                  <height>35</height>
+                 </size>
                 </property>
                 <property name="autoRepeat">
                  <bool>true</bool>
@@ -647,7 +697,17 @@
                  </font>
                 </property>
                 <property name="text">
-                 <string>-</string>
+                 <string/>
+                </property>
+                <property name="icon">
+                 <iconset resource="../resources/icons.qrc">
+                  <normaloff>:/icons/icons/minus2.png</normaloff>:/icons/icons/minus2.png</iconset>
+                </property>
+                <property name="iconSize">
+                 <size>
+                  <width>35</width>
+                  <height>35</height>
+                 </size>
                 </property>
                 <property name="autoRepeat">
                  <bool>true</bool>
@@ -748,7 +808,17 @@
                  </font>
                 </property>
                 <property name="text">
-                 <string>+</string>
+                 <string/>
+                </property>
+                <property name="icon">
+                 <iconset resource="../resources/icons.qrc">
+                  <normaloff>:/icons/icons/plus.png</normaloff>:/icons/icons/plus.png</iconset>
+                </property>
+                <property name="iconSize">
+                 <size>
+                  <width>35</width>
+                  <height>35</height>
+                 </size>
                 </property>
                 <property name="autoRepeat">
                  <bool>true</bool>
@@ -789,7 +859,17 @@
                  </font>
                 </property>
                 <property name="text">
-                 <string>-</string>
+                 <string/>
+                </property>
+                <property name="icon">
+                 <iconset resource="../resources/icons.qrc">
+                  <normaloff>:/icons/icons/minus2.png</normaloff>:/icons/icons/minus2.png</iconset>
+                </property>
+                <property name="iconSize">
+                 <size>
+                  <width>35</width>
+                  <height>35</height>
+                 </size>
                 </property>
                 <property name="autoRepeat">
                  <bool>true</bool>
@@ -831,7 +911,17 @@
                 </font>
                </property>
                <property name="text">
-                <string>✔</string>
+                <string/>
+               </property>
+               <property name="icon">
+                <iconset resource="../resources/icons.qrc">
+                 <normaloff>:/icons/icons/ok.png</normaloff>:/icons/icons/ok.png</iconset>
+               </property>
+               <property name="iconSize">
+                <size>
+                 <width>35</width>
+                 <height>35</height>
+                </size>
                </property>
               </widget>
              </item>
@@ -849,7 +939,24 @@
                 </font>
                </property>
                <property name="text">
-                <string>✔</string>
+                <string/>
+               </property>
+               <property name="icon">
+                <iconset resource="../resources/icons.qrc">
+                 <normaloff>:/icons/icons/ok.png</normaloff>
+                 <normalon>:/icons/icons/ok.png</normalon>
+                 <activeon>:/icons/icons/ok.png</activeon>
+                 <selectedoff>:/icons/icons/ok.png</selectedoff>
+                 <selectedon>:/icons/icons/ok.png</selectedon>:/icons/icons/ok.png</iconset>
+               </property>
+               <property name="iconSize">
+                <size>
+                 <width>35</width>
+                 <height>35</height>
+                </size>
+               </property>
+               <property name="flat">
+                <bool>false</bool>
                </property>
               </widget>
              </item>
@@ -1149,6 +1256,8 @@ selection-background-color: rgb(170, 170, 255);</string>
   <tabstop>delete_point_button</tabstop>
   <tabstop>start_stop_button</tabstop>
  </tabstops>
- <resources/>
+ <resources>
+  <include location="../resources/icons.qrc"/>
+ </resources>
  <connections/>
 </ui>

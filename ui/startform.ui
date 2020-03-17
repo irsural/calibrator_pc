@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>685</width>
-    <height>349</height>
+    <width>674</width>
+    <height>378</height>
    </rect>
   </property>
   <property name="font">
@@ -210,6 +210,13 @@ selection-background-color: rgb(170, 170, 255);</string>
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>create_protocol_button</tabstop>
+  <tabstop>source_mode_button</tabstop>
+  <tabstop>no_template_mode_button</tabstop>
+  <tabstop>template_mode_button</tabstop>
+  <tabstop>measures_table</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

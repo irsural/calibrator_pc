@@ -4,7 +4,9 @@
 *.db
 *.spec
 *.ini
+icons_rc.py
 /build
+/dist
 /venv
 /Lib
 /Scripts

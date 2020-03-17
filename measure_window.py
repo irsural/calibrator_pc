@@ -13,7 +13,6 @@ from db_measures import Measure, MeasuresDB
 from settings_ini_parser import Settings
 from MeasureModel import PointData
 import calibrator_constants as clb
-import constants as cfg
 import qt_utils
 import clb_dll
 import utils
@@ -83,11 +82,11 @@ class MeasureWindow(QtWidgets.QWidget):
         self.fixed_step_list = self.settings.fixed_step_list
         # --------------------Создение переменных
 
+        # Вызывать после создания self.measure_manager
+        self.connect_signals()
+
         self.current_case = self.measure_manager.current_case()
         self.current_case_changed()
-
-        # Вызывать после создания self.measure_manager и после self.current_case_changed
-        self.connect_signals()
 
         self.clb_check_timer = QTimer(self)
         self.clb_check_timer.timeout.connect(self.sync_clb_parameters)
@@ -95,13 +94,13 @@ class MeasureWindow(QtWidgets.QWidget):
 
     def set_up_icons(self):
         pause_icon = QtGui.QIcon()
-        pause_icon.addPixmap(QtGui.QPixmap(cfg.PAUSE_ICON_PATH), QtGui.QIcon.Normal, QtGui.QIcon.On)
-        pause_icon.addPixmap(QtGui.QPixmap(cfg.PLAY_ICON_PATH), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        pause_icon.addPixmap(QtGui.QPixmap(":/icons/icons/pause.png"), QtGui.QIcon.Normal, QtGui.QIcon.On)
+        pause_icon.addPixmap(QtGui.QPixmap(":/icons/icons/play.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.ui.pause_button.setIcon(pause_icon)
         self.ui.pause_button.setIconSize(QtCore.QSize(21, 21))
 
         self.ui.status_warning_label.hide()
-        self.warning_animation = QtGui.QMovie(cfg.WARNING_GIF_PATH)
+        self.warning_animation = QtGui.QMovie(":/icons/gif/warning.gif")
         self.ui.status_warning_label.setMovie(self.warning_animation)
         self.warning_animation.setScaledSize(QtCore.QSize(28, 28))
         self.warning_animation.setSpeed(500)
@@ -114,7 +113,7 @@ class MeasureWindow(QtWidgets.QWidget):
     def update_case_params(self):
         self.units_text = clb.signal_type_to_units[self.current_case.signal_type]
         self.value_to_user = utils.value_to_user_with_units(self.units_text)
-        self.current_point = PointData(a_normalize_value=self.current_case.limit)
+        self.current_point = PointData()
 
         self.highest_amplitude = clb.bound_amplitude(utils.increase_by_percent(
             self.current_case.limit, 15), self.current_case.signal_type)
@@ -131,6 +130,7 @@ class MeasureWindow(QtWidgets.QWidget):
                 self.ui.fixed_step_combobox.addItem(value_str)
             except ValueError:
                 pass
+        self.ui.fixed_step_combobox.setCurrentIndex(self.settings.fixed_step_idx)
 
     # noinspection DuplicatedCode
     def connect_signals(self):
@@ -423,6 +423,7 @@ class MeasureWindow(QtWidgets.QWidget):
         if rows:
             row_idx = rows[0].row()
             target_amplitude = utils.parse_input(self.measure_manager.view().get_point_by_row(row_idx))
+            target_frequency = float(self.measure_manager.view().get_frequency_by_row(row_idx).replace(',', '.'))
 
             if target_amplitude != self.calibrator.amplitude:
                 measured_up = self.measure_manager.view().is_point_measured(row_idx, PointData.ApproachSide.UP)
@@ -444,16 +445,19 @@ class MeasureWindow(QtWidgets.QWidget):
                                                     a_normalize_value=self.current_case.limit)
 
                 target_amplitude = utils.bound(target_amplitude, self.lowest_amplitude, self.highest_amplitude)
-                self.start_approach_to_point(target_amplitude)
+                target_frequency = clb.bound_frequency(target_frequency, self.current_case.signal_type)
+                self.start_approach_to_point(target_amplitude, target_frequency)
 
-    def start_approach_to_point(self, a_point):
-        if self.calibrator.signal_enable:
-            self.soft_approach_points = utils.calc_smooth_approach(a_from=self.calibrator.amplitude, a_to=a_point,
+    def start_approach_to_point(self, a_amplitude, a_frequency):
+        if self.calibrator.signal_enable and \
+                (self.calibrator.frequency == a_frequency or clb.is_dc_signal[self.current_case.signal_type]):
+            self.soft_approach_points = utils.calc_smooth_approach(a_from=self.calibrator.amplitude, a_to=a_amplitude,
                                                                    a_count=self.SOFT_APPROACH_POINTS_COUNT, sigma=0.001,
                                                                    a_dt=self.NEXT_SOFT_POINT_TIME_MS)
             self.soft_approach_timer.start(self.NEXT_SOFT_POINT_TIME_MS)
         else:
-            self.set_amplitude(a_point)
+            self.set_amplitude(a_amplitude)
+            self.set_frequency(a_frequency)
 
     def set_amplitude_soft(self):
         try:

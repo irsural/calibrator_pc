@@ -23,14 +23,14 @@ class EditMeasureParamsDialog(QtWidgets.QDialog):
         self.measure_config = a_measure_config
 
         assert a_measure_config.id != 0, "Measure id must not be zero!"
-        self.marks_widget = MarksWidget(self.settings, a_db_connection, a_measure_id=self.measure_config.id,
-                                        a_parent=None)
+        self.marks_widget = MarksWidget(self.__class__.__name__, self.settings, a_db_connection,
+                                        a_measure_id=self.measure_config.id, a_parent=None)
         self.ui.marks_widget_layout.addWidget(self.marks_widget)
 
         self.set_up_params_to_ui()
 
         self.ui.accept_button.clicked.connect(self.save_pressed)
-        self.ui.reject_button.clicked.connect(self.reject)
+        self.ui.reject_button.clicked.connect(self.cancel_pressed)
 
     def __del__(self):
         print("edit parameters deleted")
@@ -49,7 +49,12 @@ class EditMeasureParamsDialog(QtWidgets.QDialog):
     def save_pressed(self):
         self.save()
         if self.marks_widget.save():
+            self.save_geometry()
             self.accept()
+
+    def cancel_pressed(self):
+        self.save_geometry()
+        self.reject()
 
     def save(self):
         self.measure_config.user = self.ui.user_name_edit.text()
@@ -61,8 +66,11 @@ class EditMeasureParamsDialog(QtWidgets.QDialog):
         self.measure_config.device_system = self.ui.system_combobox.currentIndex()
         self.measure_config.comment = self.ui.comment_edit.text()
 
-    def closeEvent(self, a_event: QtGui.QCloseEvent) -> None:
+    def save_geometry(self):
         self.settings.save_geometry(self.__class__.__name__, self.saveGeometry())
         # Вызывается вручную, чтобы marks_widget сохранил состояние своего хэдера
         self.marks_widget.close()
+
+    def closeEvent(self, a_event: QtGui.QCloseEvent) -> None:
+        self.save_geometry()
         a_event.accept()
