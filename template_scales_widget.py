@@ -1,3 +1,4 @@
+from sys import float_info
 from typing import List
 
 from PyQt5 import QtCore, QtWidgets
@@ -66,6 +67,7 @@ class ScalesWidget(QtWidgets.QWidget):
             config_scale_button = QtWidgets.QPushButton("Пределы", self)
             config_scale_button.clicked.connect(self.edit_scale_limits)
             scale_list = EditedListOnlyNumbers(parent=self, a_init_items=(p for p in a_scale.points),
+                                               a_min_value=-float_info.max, a_max_value=float_info.max,
                                                a_optional_widget=config_scale_button,
                                                a_list_header="Числовые отметки шкалы, деление")
 

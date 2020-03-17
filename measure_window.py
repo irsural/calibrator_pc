@@ -113,7 +113,7 @@ class MeasureWindow(QtWidgets.QWidget):
     def update_case_params(self):
         self.units_text = clb.signal_type_to_units[self.current_case.signal_type]
         self.value_to_user = utils.value_to_user_with_units(self.units_text)
-        self.current_point = PointData(a_normalize_value=self.current_case.limit)
+        self.current_point = PointData()
 
         self.highest_amplitude = clb.bound_amplitude(utils.increase_by_percent(
             self.current_case.limit, 15), self.current_case.signal_type)

@@ -202,11 +202,11 @@ class MeasuresDB:
                                 f"where id = {a_case.id}",
                                 (a_case.limit, a_case.device_class, a_case.signal_type))
 
-    def delete_case(self, a_case_id: int):
-        assert a_case_id != 0, "Case id must not be zero!!!"
-        with self.connection:
-            self.cursor.execute(f"delete from measure_cases where id = {a_case_id}")
-            self.cursor.execute(f"delete from results where measure_case_id = {a_case_id}")
+    # def delete_case(self, a_case_id: int):
+    #     assert a_case_id != 0, "Case id must not be zero!!!"
+    #     with self.connection:
+    #         self.cursor.execute(f"delete from measure_cases where id = {a_case_id}")
+    #         self.cursor.execute(f"delete from results where measure_case_id = {a_case_id}")
 
     def save_points(self, a_measure: Measure):
         assert a_measure.id != 0, "Measure id must not be zero"

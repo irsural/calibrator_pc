@@ -39,8 +39,8 @@ class MeasureView:
                                           a_signal_type=self.measure_case.signal_type,
                                           a_init_points=self.measure_case.points, a_parent=self.table)
 
-        assert self.measure_case.points == self.measure_model.exportPoints(), \
-            f"Points were inited with errors:\n{self.measure_case.points}\n{self.measure_model.exportPoints()}"
+        # assert self.measure_case.points == self.measure_model.exportPoints(), \
+        #     f"Points were inited with errors:\n{self.measure_case.points}\n{self.measure_model.exportPoints()}"
 
         self.table.setModel(self.measure_model)
         self.table.setColumnHidden(MeasureModel.Column.FREQUENCY, clb.is_dc_signal[self.measure_case.signal_type])

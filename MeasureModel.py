@@ -14,21 +14,26 @@ class PointData:
         UP = 0
         DOWN = 1
 
-    def __init__(self, a_point=0., a_frequency=0., a_value=0., a_normalize_value=0, a_approach_side=ApproachSide.UP,
+    def __init__(self, a_point=0., a_frequency=0., a_value=0., a_approach_side=ApproachSide.UP,
                  a_scale_point=0.):
         self.scale_point = a_scale_point
         self.amplitude = a_point
         self.frequency = a_frequency
         self.value = a_value
         self.approach_side = a_approach_side
-        self.normalize_value = a_normalize_value
+
+    def round_data(self):
+        self.scale_point = round(self.scale_point, 9)
+        self.amplitude = round(self.amplitude, 9)
+        self.frequency = round(self.frequency, 9)
+        self.value = round(self.value, 9)
+        self.approach_side = round(self.approach_side, 9)
 
     def __str__(self):
         return f"Point: {self.amplitude}\n" \
             f"Frequency: {self.frequency}" \
             f"Value: {self.value}\n" \
-            f"Side: {self.approach_side.name}" \
-            f"Normalize: {self.normalize_value}"
+            f"Side: {self.approach_side.name}"
 
 
 class MeasureModel(QAbstractTableModel):
@@ -102,6 +107,7 @@ class MeasureModel(QAbstractTableModel):
                                            a_approach_side=PointData.ApproachSide.DOWN))
 
     def appendPoint(self, a_point_data: PointData) -> int:
+        a_point_data.round_data()
         row_idx = self.__find_point(a_point_data.amplitude, a_point_data.frequency)
         point_row = self.rowCount() if row_idx is None else row_idx
 
