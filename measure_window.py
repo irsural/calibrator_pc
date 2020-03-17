@@ -272,6 +272,7 @@ class MeasureWindow(QtWidgets.QWidget):
                 # Чтобы обновились единицы измерения
                 self.set_amplitude(self.calibrator.amplitude)
                 self.set_frequency(self.calibrator.frequency)
+                self.calibrator.signal_type = self.current_case.signal_type
                 self.fill_fixed_step_combobox()
 
                 self.stop_measure_timer.stop()
@@ -347,8 +348,7 @@ class MeasureWindow(QtWidgets.QWidget):
 
     def set_frequency(self, a_frequency):
         self.calibrator.frequency = a_frequency
-        current_frequency = 0 if clb.is_dc_signal[self.current_case.signal_type] else \
-            self.calibrator.frequency
+        current_frequency = 0 if clb.is_dc_signal[self.current_case.signal_type] else self.calibrator.frequency
         self.ui.frequency_edit.setText(utils.float_to_string(current_frequency))
 
         self.update_current_frequency(current_frequency)
