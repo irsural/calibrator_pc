@@ -1,11 +1,13 @@
 from PyQt5 import QtCore, QtWidgets, QtGui
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, QTimer
+from PyQt5.QtCore import pyqtSignal, QTimer
 
 
 from ui.py.source_mode_form import Ui_Form as SourceModeForm
 import calibrator_constants as clb
 from settings_ini_parser import Settings
+import qt_utils
 import clb_dll
+import utils
 
 
 class SourceModeWindow(QtWidgets.QWidget):
@@ -16,6 +18,12 @@ class SourceModeWindow(QtWidgets.QWidget):
 
         self.ui = SourceModeForm()
         self.ui.setupUi(self)
+
+        pause_icon = QtGui.QIcon()
+        pause_icon.addPixmap(QtGui.QPixmap(":/icons/icons/pause.png"), QtGui.QIcon.Normal, QtGui.QIcon.On)
+        pause_icon.addPixmap(QtGui.QPixmap(":/icons/icons/play.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.ui.enable_button.setIcon(pause_icon)
+        self.ui.enable_button.setIconSize(QtCore.QSize(25, 25))
 
         self.parent = a_parent
         self.settings = a_settings
@@ -28,16 +36,22 @@ class SourceModeWindow(QtWidgets.QWidget):
         self.setWindowTitle("Режим источника")
 
         self.calibrator = a_calibrator
+        self.clb_state = clb.State.DISCONNECTED
+        self.signal_type = clb.SignalType.ACI
+        self.mode = clb.Mode.SOURCE
+
+        self.units = clb.signal_type_to_units[self.signal_type]
+        self.value_to_user = utils.value_to_user_with_units(self.units)
 
         self.connect_signals()
 
-        self.int_to_signal_type = {
+        self.signal_type_to_radio = {
             clb.SignalType.ACI: self.ui.aci_radio,
             clb.SignalType.ACV: self.ui.acv_radio,
             clb.SignalType.DCI: self.ui.dci_radio,
             clb.SignalType.DCV: self.ui.dcv_radio,
         }
-        self.int_to_mode = {
+        self.mode_to_radio = {
             clb.Mode.SOURCE: self.ui.source_mode_radio,
             clb.Mode.FIXED_RANGE: self.ui.fixed_mode_radio,
             clb.Mode.DETUNING: self.ui.detuning_radio,
@@ -47,114 +61,181 @@ class SourceModeWindow(QtWidgets.QWidget):
         self.clb_check_timer.timeout.connect(self.sync_clb_parameters)
         self.clb_check_timer.start(10)
 
-        self.block_signals = False
+    def __del__(self):
+        print("source mode deleted")
 
+    # noinspection DuplicatedCode
     def connect_signals(self):
         self.ui.clb_list_combobox.currentTextChanged.connect(self.connect_to_clb)
-        self.ui.amplitude_edit.textChanged.connect(self.amplitude_edit_text_changed)
-        self.ui.frequency_spinbox.valueChanged.connect(self.set_frequency)
+
+        self.ui.enable_button.clicked.connect(self.enable_signal)
 
         self.ui.aci_radio.clicked.connect(self.aci_radio_checked)
         self.ui.acv_radio.clicked.connect(self.acv_radio_checked)
         self.ui.dci_radio.clicked.connect(self.dci_radio_checked)
         self.ui.dcv_radio.clicked.connect(self.dcv_radio_checked)
 
-        self.ui.polarity_button.clicked.connect(self.polarity_button_clicked)
+        self.ui.detuning_radio.clicked.connect(self.detuning_radio_checked)
+        self.ui.fixed_mode_radio.clicked.connect(self.fixed_radio_checked)
+        self.ui.source_mode_radio.clicked.connect(self.source_radio_checked)
 
-        self.ui.source_mode_radio.toggled.connect(self.source_radio_checked)
-        self.ui.fixed_mode_radio.toggled.connect(self.fixed_radio_checked)
-        self.ui.detuning_radio.toggled.connect(self.detuning_radio_checked)
+        self.ui.amplitude_edit.textEdited.connect(self.amplitude_edit_text_changed)
+        self.ui.apply_amplitude_button.clicked.connect(self.apply_amplitude_button_clicked)
+        self.ui.amplitude_edit.returnPressed.connect(self.apply_amplitude_button_clicked)
 
-        self.ui.enable_button.clicked.connect(self.signal_enable)
+        self.ui.frequency_edit.textEdited.connect(self.frequency_edit_text_changed)
+        self.ui.apply_frequency_button.clicked.connect(self.apply_frequency_button_clicked)
+        self.ui.frequency_edit.returnPressed.connect(self.apply_frequency_button_clicked)
 
-    @pyqtSlot(list)
     def update_clb_list(self, a_clb_list: list):
         self.ui.clb_list_combobox.clear()
         for clb_name in a_clb_list:
             self.ui.clb_list_combobox.addItem(clb_name)
 
-    @pyqtSlot(clb.State)
     def update_clb_status(self, a_status: clb.State):
-        self.ui.usb_state_label.setText(clb.enum_to_state[a_status])
+        self.clb_state = a_status
+        self.ui.clb_state_label.setText(clb.enum_to_state[a_status])
 
     def connect_to_clb(self, a_clb_name):
         self.calibrator.connect(a_clb_name)
 
     def sync_clb_parameters(self):
-        self.block_signals = True
-
         if self.calibrator.amplitude_changed():
-            self.ui.amplitude_edit.setText(f"{self.calibrator.amplitude:.9f}")
+            self.set_amplitude(self.calibrator.amplitude)
 
         if self.calibrator.frequency_changed():
-            self.ui.frequency_spinbox.setValue(self.calibrator.frequency)
+            self.set_frequency(self.calibrator.frequency)
 
         if self.calibrator.signal_type_changed():
-            print(self.int_to_signal_type[self.calibrator.signal_type].text())
-            self.int_to_signal_type[self.calibrator.signal_type].setChecked(True)
-
-        # Эта переменная синхронизируется в startwindow.py
-        if self.calibrator.signal_enable:
-            self.ui.enable_button.setChecked(True)
-            self.ui.enable_button.setText("Disable")
-        else:
-            self.ui.enable_button.setChecked(False)
-            self.ui.enable_button.setText("Enable")
+            self.signal_type = self.calibrator.signal_type
+            self.signal_type_to_radio[self.signal_type].setChecked(True)
+            self.update_signal_type(self.signal_type)
 
         if self.calibrator.mode_changed():
-            self.int_to_mode[self.calibrator.mode].setChecked(True)
+            self.mode = self.calibrator.mode
+            self.mode_to_radio[self.mode].setChecked(True)
 
-        self.block_signals = False
+    def enable_signal(self, a_signal_enable):
+        self.calibrator.signal_enable = a_signal_enable
+        self.update_signal_enable_state(a_signal_enable)
+
+    def signal_enable_changed(self, a_enable):
+        if a_enable:
+            self.update_signal_enable_state(True)
+        else:
+            self.update_signal_enable_state(False)
+
+    def update_signal_enable_state(self, a_signal_enabled: bool):
+        if a_signal_enabled:
+            self.ui.enable_button.setText("Стоп")
+        else:
+            self.ui.enable_button.setText("Старт")
+
+        self.ui.enable_button.setChecked(a_signal_enabled)
+
+        self.ui.dcv_radio.setDisabled(a_signal_enabled)
+        self.ui.dci_radio.setDisabled(a_signal_enabled)
+        self.ui.acv_radio.setDisabled(a_signal_enabled)
+        self.ui.aci_radio.setDisabled(a_signal_enabled)
+
+        self.ui.fixed_mode_radio.setDisabled(a_signal_enabled)
+        self.ui.detuning_radio.setDisabled(a_signal_enabled)
+        self.ui.source_mode_radio.setDisabled(a_signal_enabled)
+
+    # noinspection PyTypeChecker
+    def wheelEvent(self, event: QtGui.QWheelEvent):
+        steps = qt_utils.get_wheel_steps(event)
+        steps = -steps if self.settings.mouse_inversion else steps
+
+        keys = event.modifiers()
+        if keys & QtCore.Qt.ShiftModifier:
+            self.tune_amplitude(self.settings.exact_step * steps)
+        elif keys & QtCore.Qt.ControlModifier:
+            self.tune_amplitude(self.settings.rough_step * steps)
+        else:
+            self.tune_amplitude(self.settings.common_step * steps)
+
+        event.accept()
+
+    def set_amplitude(self, a_amplitude: float):
+        self.calibrator.amplitude = clb.bound_amplitude(a_amplitude, self.signal_type)
+        self.ui.amplitude_edit.setText(self.value_to_user(self.calibrator.amplitude))
+        self.amplitude_edit_text_changed()
+
+    def tune_amplitude(self, a_step):
+        self.set_amplitude(utils.relative_step_change(self.calibrator.amplitude, a_step,
+                                                      clb.signal_type_to_min_step[self.signal_type],
+                                                      a_normalize_value=self.calibrator.amplitude))
 
     def amplitude_edit_text_changed(self):
-        if not self.block_signals:
-            pass
-            # qt_utils.update_edit_color(self.calibrator.amplitude, self.ui.amplitude_edit)
+        try:
+            parsed = utils.parse_input(self.ui.amplitude_edit.text())
+        except ValueError:
+            parsed = ""
+        qt_utils.update_edit_color(self.calibrator.amplitude, parsed, self.ui.amplitude_edit)
 
-    def set_frequency(self):
-        if not self.block_signals:
-            self.calibrator.frequency = self.ui.frequency_spinbox.value()
+    def apply_amplitude_button_clicked(self):
+        try:
+            new_amplitude = utils.parse_input(self.ui.amplitude_edit.text())
+            self.set_amplitude(new_amplitude)
+        except ValueError:
+            # Отлавливает некорректный ввод
+            pass
+
+    def set_frequency(self, a_frequency):
+        self.calibrator.frequency = a_frequency
+        current_frequency = 0 if clb.is_dc_signal[self.signal_type] else self.calibrator.frequency
+        self.ui.frequency_edit.setText(utils.float_to_string(current_frequency))
+
+    def frequency_edit_text_changed(self):
+        qt_utils.update_edit_color(self.calibrator.frequency, self.ui.frequency_edit.text().replace(",", "."),
+                                   self.ui.frequency_edit)
+
+    def apply_frequency_button_clicked(self):
+        try:
+            new_frequency = utils.parse_input(self.ui.frequency_edit.text())
+            self.set_frequency(new_frequency)
+            self.frequency_edit_text_changed()
+        except ValueError:
+            # Отлавливает некорректный ввод
+            pass
 
     def aci_radio_checked(self):
-        if not self.block_signals:
-            self.calibrator.signal_type = clb.SignalType.ACI
+        self.update_signal_type(clb.SignalType.ACI)
 
     def acv_radio_checked(self):
-        if not self.block_signals:
-            self.calibrator.signal_type = clb.SignalType.ACV
+        self.update_signal_type(clb.SignalType.ACV)
 
     def dci_radio_checked(self):
-        if not self.block_signals:
-            self.calibrator.signal_type = clb.SignalType.DCI
+        self.update_signal_type(clb.SignalType.DCI)
 
     def dcv_radio_checked(self):
-        if not self.block_signals:
-            self.calibrator.signal_type = clb.SignalType.DCV
-
-    def polarity_button_clicked(self, a_checked):
-        if not self.block_signals:
-            if a_checked:
-                self.calibrator.polarity = clb.Polatiry.NEG
-                self.ui.polarity_button.setText(clb.int_to_polarity[clb.Polatiry.NEG])
-            else:
-                self.calibrator.polarity = clb.Polatiry.POS
-                self.ui.polarity_button.setText(clb.int_to_polarity[clb.Polatiry.POS])
-
-    def signal_enable(self, a_enable):
-        if not self.block_signals:
-            self.calibrator.signal_enable = int(a_enable)
+        self.update_signal_type(clb.SignalType.DCV)
 
     def source_radio_checked(self):
-        if not self.block_signals:
-            self.calibrator.mode = clb.Mode.SOURCE
+        self.update_mode(clb.Mode.SOURCE)
 
     def fixed_radio_checked(self):
-        if not self.block_signals:
-            self.calibrator.mode = clb.Mode.FIXED_RANGE
+        self.update_mode(clb.Mode.FIXED_RANGE)
 
     def detuning_radio_checked(self):
-        if not self.block_signals:
-            self.calibrator.mode = clb.Mode.DETUNING
+        self.update_mode(clb.Mode.DETUNING)
+
+    def update_signal_type(self, a_signal_type: clb.SignalType):
+        if not self.calibrator.signal_enable:
+            self.calibrator.signal_type = a_signal_type
+            self.signal_type = a_signal_type
+
+            self.units = clb.signal_type_to_units[self.signal_type]
+            self.value_to_user = utils.value_to_user_with_units(self.units)
+
+            self.set_amplitude(self.calibrator.amplitude)
+            self.set_frequency(self.calibrator.frequency)
+
+    def update_mode(self, a_mode: clb.Mode):
+        if not self.calibrator.signal_enable:
+            self.calibrator.mode = a_mode
+            self.mode = a_mode
 
     def ask_for_close(self):
         self.calibrator.signal_enable = False

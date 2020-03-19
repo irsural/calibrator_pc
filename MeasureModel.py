@@ -107,7 +107,10 @@ class MeasureModel(QAbstractTableModel):
                                            a_approach_side=PointData.ApproachSide.DOWN))
 
     def appendPoint(self, a_point_data: PointData) -> int:
+        a_point_data.amplitude = clb.bound_amplitude(a_point_data.amplitude, self.signal_type)
+        a_point_data.frequency = clb.bound_frequency(a_point_data.frequency, self.signal_type)
         a_point_data.round_data()
+
         row_idx = self.__find_point(a_point_data.amplitude, a_point_data.frequency)
         point_row = self.rowCount() if row_idx is None else row_idx
 

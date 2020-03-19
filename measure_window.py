@@ -13,6 +13,7 @@ from db_measures import Measure, MeasuresDB
 from settings_ini_parser import Settings
 from MeasureModel import PointData
 import calibrator_constants as clb
+import constants as cfg
 import qt_utils
 import clb_dll
 import utils
@@ -116,8 +117,7 @@ class MeasureWindow(QtWidgets.QWidget):
         self.current_point = PointData()
 
         self.highest_amplitude = clb.bound_amplitude(utils.increase_by_percent(
-            self.current_case.limit, 15), self.current_case.signal_type)
-            # self.current_case.limit, self.settings.start_deviation), self.current_case.signal_type)
+            self.current_case.limit, cfg.FIRST_POINT_START_DEVIATION_PERCENT), self.current_case.signal_type)
         self.lowest_amplitude = -self.highest_amplitude if clb.is_dc_signal[self.current_case.signal_type] else 0
 
     def fill_fixed_step_combobox(self):
@@ -272,6 +272,7 @@ class MeasureWindow(QtWidgets.QWidget):
                 # Чтобы обновились единицы измерения
                 self.set_amplitude(self.calibrator.amplitude)
                 self.set_frequency(self.calibrator.frequency)
+                self.calibrator.signal_type = self.current_case.signal_type
                 self.fill_fixed_step_combobox()
 
                 self.stop_measure_timer.stop()
@@ -347,8 +348,7 @@ class MeasureWindow(QtWidgets.QWidget):
 
     def set_frequency(self, a_frequency):
         self.calibrator.frequency = a_frequency
-        current_frequency = 0 if clb.is_dc_signal[self.current_case.signal_type] else \
-            self.calibrator.frequency
+        current_frequency = 0 if clb.is_dc_signal[self.current_case.signal_type] else self.calibrator.frequency
         self.ui.frequency_edit.setText(utils.float_to_string(current_frequency))
 
         self.update_current_frequency(current_frequency)
