@@ -101,7 +101,6 @@ class SourceModeWindow(QtWidgets.QWidget):
 
     def sync_clb_parameters(self):
         if self.calibrator.amplitude_changed():
-            print(1)
             self.set_amplitude(self.calibrator.amplitude)
 
         if self.calibrator.frequency_changed():

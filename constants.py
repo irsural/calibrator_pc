@@ -5,6 +5,7 @@ from calibrator_constants import SignalType, is_dc_signal
 
 
 FLOAT_EPSILON = 1e-9
+FIRST_POINT_START_DEVIATION_PERCENT = 15
 
 
 class DeviceSystem(IntEnum):
