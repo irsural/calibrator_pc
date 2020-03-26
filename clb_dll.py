@@ -9,19 +9,21 @@ import utils
 # path = "C:\\Users\\503.IRS\\Desktop\\Qt Projects\\clb_driver_dll\\" \
 #        "build-clb_driver_dll-Desktop_Qt_5_12_2_MSVC2017_32bit-Release\\release\\clb_driver_dll.dll"
 path = "C:\\Users\\503.IRS\\Desktop\\Qt Projects\\clb_driver_dll\\" \
-       "build-clb_driver_dll-Desktop_Qt_5_14_1_MSVC2017_32bit-Release\\clb_driver_dll.dll"
+       "build-clb_driver_dll-Desktop_Qt_5_14_1_MSVC2017_32bit-Release\\release\\clb_driver_dll.dll"
+
 
 # noinspection DuplicatedCode
 def set_up_driver(a_full_path):
     if os.path.exists(a_full_path):
         clb_driver_lib = ctypes.CDLL(a_full_path)
+        print("debug dll")
     else:
         clb_driver_lib = ctypes.CDLL("clb_driver_dll.dll")
 
     # Возвращает список калибраторов, разделенных ';'
-    clb_driver_lib.get_usb_devices.restype = ctypes.c_wchar_p
+    clb_driver_lib.get_usb_devices.restype = ctypes.c_char_p
 
-    clb_driver_lib.connect_usb.argtypes = [ctypes.c_wchar_p]
+    clb_driver_lib.connect_usb.argtypes = [ctypes.c_char_p]
 
     clb_driver_lib.set_amplitude.argtypes = [ctypes.c_double]
     clb_driver_lib.get_amplitude.restype = ctypes.c_double
@@ -82,7 +84,9 @@ class UsbDrv:
         if self.clb_dll.usb_devices_changed():
             self.clb_dev_list.clear()
 
-            clb_names_list: str = self.clb_dll.get_usb_devices()
+            clb_names_char: bytes = self.clb_dll.get_usb_devices()
+            clb_names_list = clb_names_char.decode("ascii")
+
             for clb_name in clb_names_list.split(';'):
                 if clb_name:
                     self.clb_dev_list.append(clb_name)
@@ -136,9 +140,8 @@ class ClbDrv:
         self.__signal_ready = False
 
         if a_clb_name:
-            self.__clb_dll.connect_usb(a_clb_name)
+            self.__clb_dll.connect_usb(a_clb_name.encode("ascii"))
         else:
-            
             self.__clb_dll.disconnect_usb()
 
     def amplitude_changed(self):
@@ -158,6 +161,7 @@ class ClbDrv:
     @amplitude.setter
     def amplitude(self, a_amplitude: float):
         self.__amplitude = clb.bound_amplitude(a_amplitude, self.__signal_type)
+        print("set")
         self.__clb_dll.set_amplitude(abs(self.__amplitude))
         self.__set_polarity_by_amplitude_sign(self.__amplitude)
 
