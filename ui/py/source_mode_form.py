@@ -13,7 +13,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_Form(object):
     def setupUi(self, Form):
         Form.setObjectName("Form")
-        Form.resize(362, 318)
+        Form.resize(362, 328)
         font = QtGui.QFont()
         font.setPointSize(10)
         Form.setFont(font)
@@ -216,7 +216,7 @@ class Ui_Form(object):
 
     def retranslateUi(self, Form):
         _translate = QtCore.QCoreApplication.translate
-        Form.setWindowTitle(_translate("Form", "Form"))
+        Form.setWindowTitle(_translate("Form", "Режим источника"))
         self.label_4.setText(_translate("Form", "Статус:"))
         self.clb_state_label.setText(_translate("Form", "Остановлен"))
         self.aci_radio.setText(_translate("Form", "I~"))

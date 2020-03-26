@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>362</width>
-    <height>318</height>
+    <height>328</height>
    </rect>
   </property>
   <property name="font">
@@ -16,7 +16,7 @@
    </font>
   </property>
   <property name="windowTitle">
-   <string>Form</string>
+   <string>Режим источника</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_2">
    <item>
@@ -412,7 +412,7 @@
  </resources>
  <connections/>
  <buttongroups>
-  <buttongroup name="mode_group"/>
   <buttongroup name="signal_group"/>
+  <buttongroup name="mode_group"/>
  </buttongroups>
 </ui>
