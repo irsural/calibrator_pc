@@ -161,7 +161,6 @@ class ClbDrv:
     @amplitude.setter
     def amplitude(self, a_amplitude: float):
         self.__amplitude = clb.bound_amplitude(a_amplitude, self.__signal_type)
-        print("set")
         self.__clb_dll.set_amplitude(abs(self.__amplitude))
         self.__set_polarity_by_amplitude_sign(self.__amplitude)
 
