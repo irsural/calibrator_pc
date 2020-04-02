@@ -1,6 +1,6 @@
 from re import compile as re_compile
 from sqlite3 import Connection
-from typing import List, Tuple, Union
+from typing import Tuple, Union
 import os
 
 from PyQt5 import QtCore, QtGui, QtWidgets
@@ -61,7 +61,7 @@ class CreateProtocolDialog(QtWidgets.QDialog):
         self.ui.reject_button.clicked.connect(self.reject)
 
     def get_default_marks_widgets(self):
-        default_marks_widgets: List[Tuple[QtWidgets.QLabel, QtWidgets.QWidget]] = [
+        default_marks_widgets = [
             (self.ui.date_label, self.ui.date_edit),
             (self.ui.name_label, self.ui.device_name_edit),
             (self.ui.device_creator_label, self.ui.device_creator_edit),
@@ -98,7 +98,7 @@ class CreateProtocolDialog(QtWidgets.QDialog):
 
     def copy_label_mark(self):
         # noinspection PyTypeChecker
-        label: QtWidgets.QLabel = self.sender().parent().parent()
+        label = self.sender().parent().parent()
         assert isinstance(label, QtWidgets.QLabel), "This slot must be called by Qmenu of QLabel!!"
 
         mark_text = self.extract_mark_from_label(label)
@@ -196,7 +196,7 @@ class CreateProtocolDialog(QtWidgets.QDialog):
         if paths is not None:
             src_file, dst_file = paths
 
-            marks_map: list = self.marks_widget.get_marks_map()
+            marks_map = self.marks_widget.get_marks_map()
             for widgets in self.default_marks_widgets:
                 marks_map.append((self.extract_mark_from_label(widgets[0]), self.extract_value_from_widget(widgets[1])))
 

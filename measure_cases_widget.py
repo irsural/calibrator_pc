@@ -123,7 +123,7 @@ class MeasureCases(QtWidgets.QWidget):
             if self.cases_bar.count() > 2:
                 tab_name = self.cases_bar.tabText(self.cases_bar.currentIndex())
                 res = QtWidgets.QMessageBox.question(self, "Подтвердите действие",
-                                                     f"Вы действительно хотите удалить измерение {tab_name}?",
+                                                     "Вы действительно хотите удалить измерение {0}?".format(tab_name),
                                                      QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
                                                      QtWidgets.QMessageBox.No)
                 if res == QtWidgets.QMessageBox.Yes:

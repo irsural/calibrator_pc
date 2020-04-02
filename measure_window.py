@@ -1,5 +1,4 @@
 from sqlite3 import Connection
-from typing import List, Union
 
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QTimer, Qt
 from PyQt5 import QtCore, QtGui, QtWidgets
@@ -29,7 +28,7 @@ class MeasureWindow(QtWidgets.QWidget):
 
         self.ui = MeasureForm()
         self.ui.setupUi(self)
-        self.setWindowTitle(f"Калибратор N4-25. Измерение")
+        self.setWindowTitle("Калибратор N4-25. Измерение")
 
         self.parent = a_parent
 
@@ -50,7 +49,7 @@ class MeasureWindow(QtWidgets.QWidget):
         self.calibrator = a_calibrator
         self.clb_state = clb.State.DISCONNECTED
 
-        self.measure_config: Measure = a_measure_config
+        self.measure_config = a_measure_config
         self.measures_db = MeasuresDB(self.db_connection)
         # Нужно создать заранее, чтобы было id для сохранения меток
         self.measure_config.id = self.measures_db.new_measure(self.measure_config)
@@ -71,7 +70,7 @@ class MeasureWindow(QtWidgets.QWidget):
         self.start_measure_timer = QTimer(self)
         # Нужен, чтобы убедиться, что сигнал выключен, после чего менять параметры сигнала
         self.stop_measure_timer = QTimer(self)
-        self.wait_dialog: Union[QtWidgets.QDialog, None] = None
+        self.wait_dialog = None
 
         self.units_text = "В"
         self.value_to_user = utils.value_to_user_with_units(self.units_text)
@@ -121,7 +120,7 @@ class MeasureWindow(QtWidgets.QWidget):
         self.lowest_amplitude = -self.highest_amplitude if clb.is_dc_signal[self.current_case.signal_type] else 0
 
     def fill_fixed_step_combobox(self):
-        values: List[float] = self.settings.fixed_step_list
+        values = self.settings.fixed_step_list
 
         self.ui.fixed_step_combobox.clear()
         for val in values:
@@ -220,14 +219,15 @@ class MeasureWindow(QtWidgets.QWidget):
             self.ask_for_close()
 
     def ask_for_start_measure(self):
-        message = f"Начать поверку?\n\n" \
-                  f"На калибраторе будет включен сигнал и установлены следующие параметры:\n\n" \
-                  f"Режим измерения: Фиксированный диапазон\n" \
-                  f"Тип сигнала: {clb.enum_to_signal_type[self.current_case.signal_type]}\n" \
-                  f"Амплитуда: {self.value_to_user(self.highest_amplitude)}"
+        message = "Начать поверку?\n\n" \
+                  "На калибраторе будет включен сигнал и установлены следующие параметры:\n\n" \
+                  "Режим измерения: Фиксированный диапазон\n" \
+                  "Тип сигнала: {0}\n" \
+                  "Амплитуда: {1}".format(
+            clb.enum_to_signal_type[self.current_case.signal_type], self.value_to_user(self.highest_amplitude))
 
         if clb.is_ac_signal[self.current_case.signal_type]:
-            message += f"\nЧастота: {utils.float_to_string(self.calibrator.frequency)} Гц"
+            message += "\nЧастота: {0} Гц".format(utils.float_to_string(self.calibrator.frequency))
 
         reply = QMessageBox.question(self, "Подтвердите действие", message, QMessageBox.Yes | QMessageBox.No,
                                      QMessageBox.No)
@@ -392,13 +392,14 @@ class MeasureWindow(QtWidgets.QWidget):
                     side_text = "СНИЗУ" if self.current_point.approach_side == PointData.ApproachSide.DOWN \
                         else "СВЕРХУ"
 
-                    point_text = f"{self.value_to_user(self.current_point.amplitude)}"
+                    point_text = "{0}".format(self.value_to_user(self.current_point.amplitude))
                     if clb.is_ac_signal[self.current_case.signal_type]:
-                        point_text += f" : {utils.float_to_string(self.current_point.frequency)} Гц"
+                        point_text += " : {0} Гц".format(utils.float_to_string(self.current_point.frequency))
 
-                    reply = QMessageBox.question(self, "Подтвердите действие", f"Значение {side_text} уже измерено "
-                                                 f"для точки {point_text} и не превышает допустимую погрешность. "
-                                                 f"Перезаписать значение {side_text} для точки {point_text}?",
+                    reply = QMessageBox.question(self, "Подтвердите действие", "Значение {0} уже измерено "
+                                                 "для точки {1} и не превышает допустимую погрешность. "
+                                                 "Перезаписать значение {2} для точки {3}?".format(
+                                                 side_text, point_text, side_text, point_text),
                                                  QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
                     if reply == QMessageBox.Yes:
                         self.measure_manager.view().append(self.current_point)
@@ -475,10 +476,10 @@ class MeasureWindow(QtWidgets.QWidget):
             deleted_points = ""
             for index_model in rows:
                 point_str = self.measure_manager.view().get_point_by_row(index_model.row())
-                deleted_points += f"\n{point_str}"
+                deleted_points += "\n{0}".format(point_str)
                 if clb.is_ac_signal[self.current_case.signal_type]:
                     freq = self.measure_manager.view().get_frequency_by_row(index_model.row())
-                    deleted_points += f" : {utils.float_to_string(float(freq))} Гц"
+                    deleted_points += " : {0} Гц".format(utils.float_to_string(float(freq)))
 
                 row_indexes.append(index_model.row())
 

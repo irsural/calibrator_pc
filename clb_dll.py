@@ -84,7 +84,7 @@ class UsbDrv:
         if self.clb_dll.usb_devices_changed():
             self.clb_dev_list.clear()
 
-            clb_names_char: bytes = self.clb_dll.get_usb_devices()
+            clb_names_char = self.clb_dll.get_usb_devices()
             clb_names_list = clb_names_char.decode("ascii")
 
             for clb_name in clb_names_list.split(';'):

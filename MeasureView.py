@@ -1,5 +1,3 @@
-from typing import Union
-
 from PyQt5 import QtCore, QtWidgets
 
 from custom_widgets.QTableDelegates import NonOverlappingDoubleClick
@@ -13,8 +11,8 @@ class MeasureView:
     def __init__(self, a_table_view: QtWidgets.QTableView, a_measure_case: Measure.Case):
 
         self.table = a_table_view
-        self.measure_case: Union[Measure.Case, None] = None
-        self.measure_model: Union[MeasureModel, None] = None
+        self.measure_case = None
+        self.measure_model = None
 
         # Нужен, чтобы сохранять в него точки, перед self.reset
         self.reset(a_measure_case)

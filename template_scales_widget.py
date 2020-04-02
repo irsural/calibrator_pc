@@ -22,7 +22,7 @@ class ScalesWidget(QtWidgets.QWidget):
         self.ui.setupUi(self)
         self.parent = a_parent
 
-        self.scales_id: dict = {}
+        self.scales_id = {}
 
         self.template_id = 0
         self.templates_db = a_templates_db
@@ -83,7 +83,7 @@ class ScalesWidget(QtWidgets.QWidget):
         try:
             if self.ui.tabWidget.count() > 2:
                 res = QtWidgets.QMessageBox.question(self, "Подтвердите действие",
-                                                     f"Вы действительно хотите удалить шкалу №{a_idx + 1}?",
+                                                     "Вы действительно хотите удалить шкалу №{0}?".format(a_idx + 1),
                                                      QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
                                                      QtWidgets.QMessageBox.No)
                 if res == QtWidgets.QMessageBox.Yes:
@@ -111,7 +111,7 @@ class ScalesWidget(QtWidgets.QWidget):
         try:
             current_scale_number = self.ui.tabWidget.currentIndex() + 1
             scale_id = self.scales_id[current_scale_number]
-            limits: List[cfg.Scale.Limit] = self.templates_db.get_limits(scale_id)
+            limits = self.templates_db.get_limits(scale_id)
 
             scale_limits_dialog = ScaleLimitsDialog(limits, self)
 
@@ -135,7 +135,7 @@ class ScalesWidget(QtWidgets.QWidget):
         return scales
 
     def get_scale_by_tab_idx(self, a_tab_idx):
-        scale_points_list: EditedListOnlyNumbers = self.ui.tabWidget.widget(a_tab_idx)
+        scale_points_list = self.ui.tabWidget.widget(a_tab_idx)
         scale_number = a_tab_idx + 1
         # Пределы обновляются в базе сразу после изменения, их передавать не нужно
         return cfg.Scale(a_id=self.scales_id[scale_number], a_number=scale_number,

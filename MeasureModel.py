@@ -30,10 +30,10 @@ class PointData:
         self.approach_side = round(self.approach_side, 9)
 
     def __str__(self):
-        return f"Point: {self.amplitude}\n" \
-            f"Frequency: {self.frequency}" \
-            f"Value: {self.value}\n" \
-            f"Side: {self.approach_side.name}"
+        return "Point: {0}\n" \
+            "Frequency: {1}" \
+            "Value: {2}\n" \
+            "Side: {3}".format(self.amplitude, self.frequency, self.value, self.approach_side.name)
 
 
 class MeasureModel(QAbstractTableModel):
@@ -86,7 +86,7 @@ class MeasureModel(QAbstractTableModel):
         self.__raw_columns = (self.Column.SCALE_POINT, self.Column.FREQUENCY, self.Column.DOWN_DEVIATION_PERCENT,
                               self.Column.UP_DEVIATION_PERCENT)
 
-        self.__points: List[List[float]] = []
+        self.__points = []
 
         self.signal_type = a_signal_type
         self.value_to_user = utils.value_to_user_with_units(clb.signal_type_to_units[self.signal_type])
@@ -253,7 +253,7 @@ class MeasureModel(QAbstractTableModel):
         if role == Qt.BackgroundRole:
             return self.__get_cell_color(index.row(), index.column())
         else:
-            value: float = self.__points[index.row()][index.column()]
+            value = self.__points[index.row()][index.column()]
             if index.column() not in self.__raw_columns:
                 value = self.value_to_user(value)
             else:

@@ -1,5 +1,3 @@
-from typing import Union
-
 from PyQt5 import QtWidgets, QtCore, QtGui
 
 from new_fast_measure_dialog import NewFastMeasureDialog, FastMeasureParams
@@ -58,7 +56,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.usb_check_timer.timeout.connect(self.usb_tick)
             self.usb_check_timer.start(10)
 
-            self.fast_config: Union[FastMeasureParams, None] = None
+            self.fast_config = None
 
             self.ui.enter_settings_action.triggered.connect(self.open_settings)
 
@@ -156,7 +154,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def start_fast_measure(self):
         try:
-            measure_config = Measure.fromFastParams(self.fast_config)
+            measure_config = Measure.from_fast_params(self.fast_config)
 
             self.hide()
             self.active_window.close()
@@ -178,7 +176,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def start_template_measure(self, a_template_params: TemplateParams, a_variable_params: VariableTemplateParams):
         try:
-            measure_config = Measure.fromTemplate(a_template_params, a_variable_params)
+            measure_config = Measure.from_template(a_template_params, a_variable_params)
 
             self.hide()
             self.active_window.close()

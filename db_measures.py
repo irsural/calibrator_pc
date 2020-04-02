@@ -70,10 +70,10 @@ class Measure:
 
         self.comment = a_comment
 
-        self.cases: List[Measure.Case] = a_cases
+        self.cases = a_cases
 
     @classmethod
-    def fromFastParams(cls, a_params: FastMeasureParams):
+    def from_fast_params(cls, a_params: FastMeasureParams):
         if a_params.frequency:
             frequency_list = (float(f) for f in a_params.frequency.split(';'))
         else:
@@ -90,7 +90,7 @@ class Measure:
         return cls(a_comment=a_params.comment, a_cases=[measure_case])
 
     @classmethod
-    def fromTemplate(cls, a_params: TemplateParams, a_var_params: VariableTemplateParams):
+    def from_template(cls, a_params: TemplateParams, a_var_params: VariableTemplateParams):
         measure_cases = []
         for scale in a_params.scales:
             for limit in scale.limits:
@@ -127,53 +127,53 @@ class MeasuresDB:
         connection = sqlite3.connect(a_db_name)
         cursor = connection.cursor()
         with connection:
-            cursor.execute(f"CREATE TABLE IF NOT EXISTS measures "
-                           f"(id integer primary key autoincrement, datetime text, device_name text, "
-                           f"device_creator text, device_system integer, owner text, user text, "
-                           f"serial_number text, comment text)")
+            cursor.execute("CREATE TABLE IF NOT EXISTS measures "
+                           "(id integer primary key autoincrement, datetime text, device_name text, "
+                           "device_creator text, device_system integer, owner text, user text, "
+                           "serial_number text, comment text)")
 
-            cursor.execute(f"CREATE TABLE IF NOT EXISTS measure_cases "
-                           f"(id integer primary key autoincrement, measure_limit real, device_class real, "
-                           f"signal_type int, measure_id int, "
-                           f"foreign key (measure_id) references measures(id))")
+            cursor.execute("CREATE TABLE IF NOT EXISTS measure_cases "
+                           "(id integer primary key autoincrement, measure_limit real, device_class real, "
+                           "signal_type int, measure_id int, "
+                           "foreign key (measure_id) references measures(id))")
 
-            cursor.execute(f"CREATE TABLE IF NOT EXISTS results "
-                           f"(id integer primary key autoincrement, scale_point real, amplitude real, frequency real, "
-                           f"up_value real, down_value real, measure_case_id int,"
-                           f"foreign key (measure_case_id) references measure_cases(id))")
+            cursor.execute("CREATE TABLE IF NOT EXISTS results "
+                           "(id integer primary key autoincrement, scale_point real, amplitude real, frequency real, "
+                           "up_value real, down_value real, measure_case_id int,"
+                           "foreign key (measure_case_id) references measure_cases(id))")
 
-            cursor.execute(f"CREATE TABLE IF NOT EXISTS marks "
-                           f"(name text primary key, tag text unique, default_value text)")
+            cursor.execute("CREATE TABLE IF NOT EXISTS marks "
+                           "(name text primary key, tag text unique, default_value text)")
 
-            cursor.execute(f"CREATE TABLE IF NOT EXISTS mark_values "
-                           f"(id integer primary key autoincrement, value text, mark_name text,  measure_id int, "
-                           f"unique (mark_name, measure_id), "
-                           f"foreign key (mark_name) references marks (name),"
-                           f"foreign key (measure_id) references measures(id))")
+            cursor.execute("CREATE TABLE IF NOT EXISTS mark_values "
+                           "(id integer primary key autoincrement, value text, mark_name text,  measure_id int, "
+                           "unique (mark_name, measure_id), "
+                           "foreign key (mark_name) references marks (name),"
+                           "foreign key (measure_id) references measures(id))")
 
             # Таблицы соответствий системы прибора и типа сигнала
-            cursor.execute(f"CREATE TABLE IF NOT EXISTS system (id integer primary key, name text unique)")
+            cursor.execute("CREATE TABLE IF NOT EXISTS system (id integer primary key, name text unique)")
             systems_table = [(system, enum_to_device_system[system]) for system in DeviceSystem]
-            cursor.executemany(f"insert or ignore into system (id, name) values (?, ?)", systems_table)
+            cursor.executemany("insert or ignore into system (id, name) values (?, ?)", systems_table)
 
-            cursor.execute(f"CREATE TABLE IF NOT EXISTS signal_type (id integer primary key, name text unique)")
+            cursor.execute("CREATE TABLE IF NOT EXISTS signal_type (id integer primary key, name text unique)")
             signal_types = [(signal_type, clb.enum_to_signal_type_short[signal_type]) for signal_type in clb.SignalType]
-            cursor.executemany(f"insert or ignore into signal_type (id, name) values (?, ?)", signal_types)
+            cursor.executemany("insert or ignore into signal_type (id, name) values (?, ?)", signal_types)
 
         return connection
 
     def new_measure(self, a_measure: Measure):
         with self.connection:
-            self.cursor.execute(f"insert into measures (datetime, device_name, device_creator, device_system, owner, "
-                                f"user, serial_number, comment) values (?, ?, ?, ?, ?, ?, ?, ?)",
+            self.cursor.execute("insert into measures (datetime, device_name, device_creator, device_system, owner, "
+                                "user, serial_number, comment) values (?, ?, ?, ?, ?, ?, ?, ?)",
                                 (' '.join([a_measure.date, a_measure.time]), a_measure.device_name,
                                  a_measure.device_creator, a_measure.device_system, a_measure.owner, a_measure.user,
                                  a_measure.serial_num, a_measure.comment))
             measure_id = self.cursor.lastrowid
             # Копируем все дефолтные значения в измерение, если дефолтное значение заполнено
-            self.cursor.execute(f"insert into mark_values (mark_name, value, measure_id) "
-                                f"select name, default_value, {measure_id} from marks  "
-                                f"where default_value != ''")
+            self.cursor.execute("insert into mark_values (mark_name, value, measure_id) "
+                                "select name, default_value, {0} from marks  "
+                                "where default_value != ''".format(measure_id))
         return measure_id
 
     def update_measure(self, a_measure: Measure):
@@ -181,16 +181,16 @@ class MeasuresDB:
 
         with self.connection:
             self.cursor.execute(
-                f"update measures set datetime = ?, device_name = ?, device_creator = ?, device_system = ?, "
-                f"owner = ?, user = ?, serial_number = ?, comment = ? where id = {a_measure.id}",
+                "update measures set datetime = ?, device_name = ?, device_creator = ?, device_system = ?, "
+                "owner = ?, user = ?, serial_number = ?, comment = ? where id = {0}".format(a_measure.id),
                 (' '.join([a_measure.date, a_measure.time]), a_measure.device_name, a_measure.device_creator,
                  a_measure.device_system, a_measure.owner, a_measure.user, a_measure.serial_num, a_measure.comment)
             )
 
     def new_case(self, a_measure_id, a_case: Measure.Case):
         with self.connection:
-            self.cursor.execute(f"insert into measure_cases (measure_limit, device_class, signal_type, measure_id) "
-                                f"values (?, ?, ?, ?)",
+            self.cursor.execute("insert into measure_cases (measure_limit, device_class, signal_type, measure_id) "
+                                "values (?, ?, ?, ?)",
                                 (a_case.limit, a_case.device_class, a_case.signal_type, a_measure_id))
             case_id = self.cursor.lastrowid
         return case_id
@@ -198,8 +198,8 @@ class MeasuresDB:
     def update_case(self, a_case: Measure.Case):
         assert a_case.id != 0, "Case id must not be zero!!!"
         with self.connection:
-            self.cursor.execute(f"update measure_cases set measure_limit = ?, device_class = ?, signal_type = ? "
-                                f"where id = {a_case.id}",
+            self.cursor.execute("update measure_cases set measure_limit = ?, device_class = ?, signal_type = ? "
+                                "where id = {0}".format(a_case.id),
                                 (a_case.limit, a_case.device_class, a_case.signal_type))
 
     # def delete_case(self, a_case_id: int):
@@ -211,8 +211,8 @@ class MeasuresDB:
     def save_points(self, a_measure: Measure):
         assert a_measure.id != 0, "Measure id must not be zero"
         with self.connection:
-            self.cursor.executemany(f"insert into results (scale_point, amplitude, frequency, up_value, down_value, "
-                                    f"measure_case_id) values (?, ?, ?, ?, ?, ?)",
+            self.cursor.executemany("insert into results (scale_point, amplitude, frequency, up_value, down_value, "
+                                    "measure_case_id) values (?, ?, ?, ?, ?, ?)",
                                     ((point.scale_point, point.amplitude, point.frequency, point.up_value,
                                       point.down_value, case.id)
                                      for case in a_measure.cases for point in case.points))
@@ -224,7 +224,7 @@ class MeasuresDB:
         self.save_points(a_measure)
 
     def get(self, a_id: int) -> Measure:
-        self.cursor.execute(f"select * from measures where id={a_id}")
+        self.cursor.execute("select * from measures where id={0}".format(a_id))
         measure_data = self.cursor.fetchone()
         date, time = measure_data[MeasureColumn.DATETIME].split(' ')
 
@@ -239,14 +239,14 @@ class MeasuresDB:
                           a_time=time
                           )
 
-        self.cursor.execute(f"select * from measure_cases where measure_id = {measure.id}")
+        self.cursor.execute("select * from measure_cases where measure_id = {0}".format(measure.id))
         case_data = self.cursor.fetchall()
 
         for case_row in case_data:
             case_id = case_row[0]
 
-            self.cursor.execute(f"select scale_point, amplitude, frequency, up_value, down_value from results "
-                                f"where measure_case_id={case_id}")
+            self.cursor.execute("select scale_point, amplitude, frequency, up_value, down_value from results "
+                                "where measure_case_id={0}".format(case_id))
             points = [MeasuredPoint(*point_data) for point_data in self.cursor.fetchall()]
 
             measure.cases.append(Measure.Case(a_id=case_id, a_limit=case_row[1], a_class=case_row[2],
@@ -257,15 +257,16 @@ class MeasuresDB:
     def delete(self, a_measure_id: int):
         assert self.is_measure_exist(a_measure_id), "deleted id must exist!"
         with self.connection:
-            self.cursor.execute(f"delete from mark_values where measure_id={a_measure_id}")
+            self.cursor.execute("delete from mark_values where measure_id={0}".format(a_measure_id))
 
-            self.cursor.execute(f"delete from results where measure_case_id in "
-                                f"(select id from measure_cases where measure_cases.measure_id={a_measure_id})")
+            self.cursor.execute("delete from results where measure_case_id in "
+                                "(select id from measure_cases where "
+                                "measure_cases.measure_id={0})".format(a_measure_id))
 
-            self.cursor.execute(f"delete from measure_cases where measure_id={a_measure_id}")
-            self.cursor.execute(f"delete from measures where id={a_measure_id}")
+            self.cursor.execute("delete from measure_cases where measure_id={0}".format(a_measure_id))
+            self.cursor.execute("delete from measures where id={0}".format(a_measure_id))
 
     def is_measure_exist(self, a_id: int):
-        self.cursor.execute(f"SELECT EXISTS(SELECT 1 FROM measures WHERE id='{a_id}')")
+        self.cursor.execute("SELECT EXISTS(SELECT 1 FROM measures WHERE id='{0}')".format(a_id))
         res = self.cursor.fetchone()
         return res[0]

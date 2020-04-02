@@ -60,7 +60,7 @@ class StartWindow(QtWidgets.QWidget):
     def config_measure_table(self, a_db_name: str):
         self.display_db_connection.setDatabaseName(a_db_name)
         res = self.display_db_connection.open()
-        assert res, f"Can't open database {a_db_name}!"
+        assert res, "Can't open database {0}!".format(a_db_name)
 
         self.display_db_model.setTable("measures")
         self.display_db_model.setRelation(MeasureColumn.DEVICE_SYSTEM,

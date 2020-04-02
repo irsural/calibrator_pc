@@ -8,6 +8,7 @@ icons_rc.py
 /build
 /dist
 /venv
+/venv3.5
 /Lib
 /Scripts
 /resources/py
