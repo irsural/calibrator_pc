@@ -34,7 +34,7 @@ class QEditCopyButton(QEditDoubleClick):
         self.copy_button.setIcon(QtGui.QIcon(pixmap))
         self.copy_button.setIconSize(pixmap.size())
         self.copy_button.setCursor(QtCore.Qt.ArrowCursor)
-        self.copy_button.setStyleSheet("QPushButton {{ border: none; padding: 0px; }}")
+        self.copy_button.setStyleSheet("QPushButton { border: none; padding: 0px; }")
         self.copy_button.setFlat(True)
         self.copy_button.clicked.connect(self.copy)
 
