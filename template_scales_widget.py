@@ -119,13 +119,10 @@ class ScalesWidget(QtWidgets.QWidget):
             if new_limits is not None:
                 # Вносим изменения в базу, только если пользователь подтвердил ввод
                 self.templates_db.delete_limits(deleted_ids)
-                print(deleted_ids)
                 for limit in new_limits:
                     if limit.id != 0:
-                        print("update", limit.id)
                         self.templates_db.update_limit(limit)
                     else:
-                        print("insert", limit.id)
                         self.templates_db.new_limit(scale_id, limit)
         except Exception as err:
             utils.exception_handler(err)

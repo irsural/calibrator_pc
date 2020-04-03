@@ -180,7 +180,6 @@ class ScaleLimitsDialog(QtWidgets.QDialog):
             rows = self.ui.limits_table.selectionModel().selectedRows()
             if rows:
                 for idx_model in reversed(rows):
-                    print("deleted", idx_model.row())
                     deleted_row = idx_model.row()
                     deleted_id = int(self.ui.limits_table.item(deleted_row, ScaleLimitsDialog.Column.ID).text())
                     self.ui.limits_table.removeRow(deleted_row)
