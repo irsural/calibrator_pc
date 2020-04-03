@@ -46,7 +46,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.clb_signal_off_timer.timeout.connect(self.close)
             self.SIGNAL_OFF_TIME_MS = 200
 
-            self.clb_driver = clb_dll.set_up_driver(clb_dll.path)
+            self.clb_driver = clb_dll.set_up_driver(clb_dll.debug_dll_path)
             self.usb_driver = clb_dll.UsbDrv(self.clb_driver)
             self.usb_state = clb_dll.UsbDrv.UsbState.DISABLED
             self.calibrator = clb_dll.ClbDrv(self.clb_driver)

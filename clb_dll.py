@@ -1,15 +1,21 @@
 import ctypes
 import enum
 import os.path
+from platform import system as cur_system
 
 import calibrator_constants as clb
 import utils
 
-
-# path = "C:\\Users\\503.IRS\\Desktop\\Qt Projects\\clb_driver_dll\\" \
-#        "build-clb_driver_dll-Desktop_Qt_5_12_2_MSVC2017_32bit-Release\\release\\clb_driver_dll.dll"
-path = "C:\\Users\\503.IRS\\Desktop\\Qt Projects\\clb_driver_dll\\" \
-       "build-clb_driver_dll-Desktop_Qt_5_14_1_MSVC2017_32bit-Release\\release\\clb_driver_dll.dll"
+if cur_system() == "Windows":
+    dll_name = "clb_driver_dll.dll"
+    debug_dll_path = "C:\\Users\\503.IRS\\Desktop\\Qt Projects\\clb_driver_dll\\" \
+                     "build-clb_driver_dll-Desktop_Qt_5_14_1_MSVC2017_32bit-Release\\release\\clb_driver_dll.dll"
+elif cur_system() == "Linux":
+    dll_name = "libclb_driver_dll.so"
+    debug_dll_path = "/home/astra/Загрузки/clb_driver_dll/build-clb_driver_dll-Desktop-Release/libclb_driver_dll.so"
+else:
+    dll_name = ""
+    debug_dll_path = ""
 
 
 # noinspection DuplicatedCode
@@ -18,7 +24,7 @@ def set_up_driver(a_full_path):
         clb_driver_lib = ctypes.CDLL(a_full_path)
         print("debug dll")
     else:
-        clb_driver_lib = ctypes.CDLL("clb_driver_dll.dll")
+        clb_driver_lib = ctypes.CDLL("./" + dll_name)
 
     # Возвращает список калибраторов, разделенных ';'
     clb_driver_lib.get_usb_devices.restype = ctypes.c_char_p
