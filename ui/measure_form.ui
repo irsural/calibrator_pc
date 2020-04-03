@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>915</width>
-    <height>544</height>
+    <height>566</height>
    </rect>
   </property>
   <property name="font">
@@ -1082,6 +1082,11 @@
         <widget class="QTableView" name="measure_table">
          <property name="enabled">
           <bool>true</bool>
+         </property>
+         <property name="font">
+          <font>
+           <pointsize>9</pointsize>
+          </font>
          </property>
          <property name="contextMenuPolicy">
           <enum>Qt::CustomContextMenu</enum>

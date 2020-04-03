@@ -13,7 +13,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_main_widget(object):
     def setupUi(self, main_widget):
         main_widget.setObjectName("main_widget")
-        main_widget.resize(915, 544)
+        main_widget.resize(915, 566)
         font = QtGui.QFont()
         font.setPointSize(10)
         main_widget.setFont(font)
@@ -424,8 +424,8 @@ class Ui_main_widget(object):
         self.apply_amplitude_button.setFont(font)
         self.apply_amplitude_button.setText("")
         icon3 = QtGui.QIcon()
-        icon3.addPixmap(QtGui.QPixmap(":/icons/icons/ok.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         icon3.addPixmap(QtGui.QPixmap(":/icons/icons/ok.png"), QtGui.QIcon.Selected, QtGui.QIcon.On)
+        icon3.addPixmap(QtGui.QPixmap(":/icons/icons/ok.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         icon3.addPixmap(QtGui.QPixmap(":/icons/icons/ok.png"), QtGui.QIcon.Normal, QtGui.QIcon.On)
         icon3.addPixmap(QtGui.QPixmap(":/icons/icons/ok.png"), QtGui.QIcon.Active, QtGui.QIcon.On)
         icon3.addPixmap(QtGui.QPixmap(":/icons/icons/ok.png"), QtGui.QIcon.Selected, QtGui.QIcon.Off)
@@ -495,6 +495,9 @@ class Ui_main_widget(object):
         self.gridLayout_2.setObjectName("gridLayout_2")
         self.measure_table = QtWidgets.QTableView(self.frame_7)
         self.measure_table.setEnabled(True)
+        font = QtGui.QFont()
+        font.setPointSize(9)
+        self.measure_table.setFont(font)
         self.measure_table.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.measure_table.setStyleSheet("selection-color: rgb(0, 0, 0);\n"
 "selection-background-color: rgb(170, 170, 255);")

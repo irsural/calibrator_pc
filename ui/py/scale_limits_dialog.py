@@ -55,8 +55,12 @@ class Ui_Dialog(object):
         self.horizontalLayout_3 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_3.setObjectName("horizontalLayout_3")
         self.limits_table = QtWidgets.QTableWidget(Dialog)
+        font = QtGui.QFont()
+        font.setPointSize(9)
+        self.limits_table.setFont(font)
         self.limits_table.setStyleSheet("selection-color: rgb(0, 0, 0);\n"
 "selection-background-color: rgb(170, 170, 255);")
+        self.limits_table.setAlternatingRowColors(True)
         self.limits_table.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
         self.limits_table.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
         self.limits_table.setObjectName("limits_table")

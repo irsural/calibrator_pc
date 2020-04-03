@@ -73,7 +73,7 @@ class StartWindow(QtWidgets.QWidget):
         self.ui.measures_table.setModel(self.sort_proxy_model)
 
         # Чтобы был приятный цвет выделения
-        self.ui.measures_table.setItemDelegate(NonOverlappingDoubleClick(self))
+        self.ui.measures_table.setItemDelegate(NonOverlappingDoubleClick(self.ui.measures_table))
 
         self.ui.measures_table.selectionModel().currentChanged.connect(self.current_selection_changed)
         self.ui.measures_table.selectionModel().modelChanged.connect(self.current_selection_changed)

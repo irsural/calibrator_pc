@@ -13,7 +13,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_Dialog(object):
     def setupUi(self, Dialog):
         Dialog.setObjectName("Dialog")
-        Dialog.resize(573, 449)
+        Dialog.resize(716, 637)
         font = QtGui.QFont()
         font.setPointSize(10)
         Dialog.setFont(font)
@@ -185,6 +185,9 @@ class Ui_Dialog(object):
         self.gridLayout_5.setVerticalSpacing(0)
         self.gridLayout_5.setObjectName("gridLayout_5")
         self.points_table = QtWidgets.QTableView(self.points_tab)
+        font = QtGui.QFont()
+        font.setPointSize(9)
+        self.points_table.setFont(font)
         self.points_table.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.points_table.setStyleSheet("selection-color: rgb(0, 0, 0);\n"
 "selection-background-color: rgb(170, 170, 255);")

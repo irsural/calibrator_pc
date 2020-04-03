@@ -13,6 +13,7 @@ from utils import exception_handler
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
+    app.setStyle("Fusion")
 
     translator = QtCore.QTranslator(app)
     path = QtCore.QLibraryInfo.location(QtCore.QLibraryInfo.TranslationsPath)

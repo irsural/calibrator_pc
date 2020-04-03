@@ -199,6 +199,8 @@ class MeasureModel(QAbstractTableModel):
                     return QVariant(QBrush(self.__good_color))
                 else:
                     return QVariant(QBrush(self.__bad_color))
+            else:
+                return QVariant(QBrush(QColor(Qt.white)))
         else:
             return QVariant(QBrush(QColor(Qt.white)))
 

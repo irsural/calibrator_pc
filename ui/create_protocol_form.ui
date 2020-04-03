@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>573</width>
-    <height>449</height>
+    <width>716</width>
+    <height>637</height>
    </rect>
   </property>
   <property name="font">
@@ -312,6 +312,11 @@
        </property>
        <item row="1" column="0">
         <widget class="QTableView" name="points_table">
+         <property name="font">
+          <font>
+           <pointsize>9</pointsize>
+          </font>
+         </property>
          <property name="contextMenuPolicy">
           <enum>Qt::CustomContextMenu</enum>
          </property>
