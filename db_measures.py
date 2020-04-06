@@ -99,14 +99,19 @@ class Measure:
                 else:
                     frequency_list = [0] if clb.is_dc_signal[limit.signal_type] else [50]
 
-                scale_coef = limit.limit / max(scale.points)
-                minimal_discrete = round(utils.get_array_min_diff(sorted(scale.points)) * scale_coef, 9)
+                if scale.points:
+                    scale_coef = limit.limit / max(scale.points)
+                    minimal_discrete = round(utils.get_array_min_diff(sorted(scale.points)) * scale_coef, 9)
 
-                points = [MeasuredPoint(scale_point=p,
-                                        amplitude=clb.bound_amplitude(p * scale_coef, limit.signal_type),
-                                        frequency=clb.bound_frequency(float(f), limit.signal_type),
-                                        up_value=0, down_value=0)
-                          for f in frequency_list for p in scale.points]
+                    points = [MeasuredPoint(scale_point=p,
+                                            amplitude=clb.bound_amplitude(p * scale_coef, limit.signal_type),
+                                            frequency=clb.bound_frequency(float(f), limit.signal_type),
+                                            up_value=0, down_value=0)
+                              for f in frequency_list for p in scale.points]
+                else:
+                    scale_coef = 1
+                    minimal_discrete = 1
+                    points = []
 
                 measure_cases.append(Measure.Case(a_id=0, a_limit=limit.limit, a_class=limit.device_class,
                                                   a_signal_type=limit.signal_type, a_minimal_discrete=minimal_discrete,
