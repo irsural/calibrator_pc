@@ -134,9 +134,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def open_source_mode_window(self):
         try:
-            # self.close_active_window()
-            # self.change_window(SourceModeDialog(self.settings, self.calibrator, self))
             source_mode_dialog = SourceModeDialog(self.settings, self.calibrator, self)
+            self.attach_calibrator_to_window(source_mode_dialog)
             source_mode_dialog.exec()
         except Exception as err:
             utils.exception_handler(err)
