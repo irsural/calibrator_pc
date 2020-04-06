@@ -362,6 +362,16 @@ selection-background-color: rgb(170, 170, 255);</string>
        <property name="text">
         <string>Скопировать в формате Excel</string>
        </property>
+       <property name="icon">
+        <iconset resource="../resources/icons.qrc">
+         <normaloff>:/icons/icons/excel.png</normaloff>:/icons/icons/excel.png</iconset>
+       </property>
+       <property name="iconSize">
+        <size>
+         <width>20</width>
+         <height>20</height>
+        </size>
+       </property>
       </widget>
      </item>
      <item>
@@ -420,6 +430,8 @@ selection-background-color: rgb(170, 170, 255);</string>
   <tabstop>reject_button</tabstop>
   <tabstop>default_button</tabstop>
  </tabstops>
- <resources/>
+ <resources>
+  <include location="../resources/icons.qrc"/>
+ </resources>
  <connections/>
 </ui>
