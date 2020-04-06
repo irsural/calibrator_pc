@@ -64,7 +64,7 @@ class NewFastMeasureDialog(QDialog):
         self.ui = NewFastMeasureForm()
         self.ui.setupUi(self)
         self.ui.invisible_default_button.hide()
-        self.setBaseSize(self.width(), self.height())
+        self.setFixedSize(self.width(), self.height())
 
         self.fast_params = a_fast_params if a_fast_params is not None else FastMeasureParams()
         self.value_to_user = utils.value_to_user_with_units("А")

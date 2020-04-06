@@ -67,21 +67,6 @@ class MainWindow(QtWidgets.QMainWindow):
         if hasattr(self, "display_db_connection"):
             self.db_connection.close()
 
-    def show_start_window(self):
-        try:
-            self.hide()
-            if self.active_window is not None:
-                self.active_window.close()
-
-            self.active_window = StartWindow(self.db_connection, self.db_name, self.settings, self)
-            self.setCentralWidget(self.active_window)
-            self.active_window.source_mode_chosen.connect(self.open_source_mode_window)
-            self.active_window.no_template_mode_chosen.connect(self.open_config_no_template_mode)
-            self.active_window.template_mode_chosen.connect(self.template_mode_chosen)
-            self.setWindowTitle(self.active_window.windowTitle())
-        except Exception as err:
-            utils.exception_handler(err)
-
     def usb_tick(self):
         self.usb_driver.tick()
 
@@ -107,6 +92,25 @@ class MainWindow(QtWidgets.QMainWindow):
             self.clb_state = current_state
             self.usb_status_changed.emit(self.clb_state)
 
+    def close_active_window(self):
+        self.hide()
+        if self.active_window is not None:
+            self.active_window.close()
+
+
+    def show_start_window(self):
+        try:
+            self.close_active_window()
+
+            self.active_window = StartWindow(self.db_connection, self.db_name, self.settings, self)
+            self.setCentralWidget(self.active_window)
+            self.active_window.source_mode_chosen.connect(self.open_source_mode_window)
+            self.active_window.no_template_mode_chosen.connect(self.open_config_no_template_mode)
+            self.active_window.template_mode_chosen.connect(self.template_mode_chosen)
+            self.setWindowTitle(self.active_window.windowTitle())
+        except Exception as err:
+            utils.exception_handler(err)
+
     def attach_calibrator_to_window(self, a_window):
         assert hasattr(a_window, "update_clb_list"), "no method update_clb_list"
         assert hasattr(a_window, "update_clb_status"), "no method update_clb_status"
@@ -131,8 +135,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def open_source_mode_window(self):
         try:
-            self.hide()
-            self.active_window.close()
+            self.close_active_window()
             self.change_window(SourceModeWindow(self.settings, self.calibrator, self))
         except Exception as err:
             utils.exception_handler(err)
@@ -156,8 +159,7 @@ class MainWindow(QtWidgets.QMainWindow):
         try:
             measure_config = Measure.from_fast_params(self.fast_config)
 
-            self.hide()
-            self.active_window.close()
+            self.close_active_window()
             self.change_window(MeasureWindow(a_calibrator=self.calibrator,
                                              a_measure_config=measure_config,
                                              a_db_connection=self.db_connection,
@@ -178,8 +180,7 @@ class MainWindow(QtWidgets.QMainWindow):
         try:
             measure_config = Measure.from_template(a_template_params, a_variable_params)
 
-            self.hide()
-            self.active_window.close()
+            self.close_active_window()
             self.change_window(MeasureWindow(a_calibrator=self.calibrator,
                                              a_measure_config=measure_config,
                                              a_db_connection=self.db_connection,

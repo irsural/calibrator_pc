@@ -315,9 +315,6 @@ class Settings(QtCore.QObject):
         self.__disable_scroll_on_table = a_enable
         self.__disable_scroll_on_table = utils.bound(self.__disable_scroll_on_table, 0, 1)
 
-    def __restore_next_line_symbols(self, state_bytes):
-        pass
-
     @property
     def template_filepath(self):
         return self.__template_filepath

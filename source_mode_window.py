@@ -18,6 +18,7 @@ class SourceModeWindow(QtWidgets.QWidget):
 
         self.ui = SourceModeForm()
         self.ui.setupUi(self)
+        self.show()
 
         pause_icon = QtGui.QIcon()
         pause_icon.addPixmap(QtGui.QPixmap(":/icons/icons/pause.png"), QtGui.QIcon.Normal, QtGui.QIcon.On)
