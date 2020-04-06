@@ -126,9 +126,17 @@ class MarksWidget(QtWidgets.QWidget):
 
     def get_marks_map(self):
         """
-        :return: Кортеж (метка, значение)
+        :return: Список кортежей (тэг, значение)
         """
         return [(self.ui.marks_table.item(row, MarksWidget.MarkColumns.TAG).text(),
+                 self.ui.marks_table.item(row, MarksWidget.MarkColumns.VALUE).text())
+                for row in range(self.ui.marks_table.rowCount())]
+
+    def get_names_map(self):
+        """
+        :return: Список кортежей (имя, значение)
+        """
+        return [(self.ui.marks_table.item(row, MarksWidget.MarkColumns.NAME).text(),
                  self.ui.marks_table.item(row, MarksWidget.MarkColumns.VALUE).text())
                 for row in range(self.ui.marks_table.rowCount())]
 

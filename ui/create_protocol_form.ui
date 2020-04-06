@@ -259,7 +259,7 @@
             <enum>Qt::CustomContextMenu</enum>
            </property>
            <property name="text">
-            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Комментарий(&lt;span style=&quot; color:#ff557f;&quot;&gt;%comment__&lt;/span&gt;)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Комментарий (&lt;span style=&quot; color:#ff557f;&quot;&gt;%comment__&lt;/span&gt;)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
            </property>
           </widget>
          </item>
@@ -278,7 +278,7 @@
       </sizepolicy>
      </property>
      <property name="currentIndex">
-      <number>1</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="marks_widget_tab">
       <attribute name="title">
@@ -354,6 +354,13 @@ selection-background-color: rgb(170, 170, 255);</string>
        </property>
        <property name="default">
         <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="to_excel_button">
+       <property name="text">
+        <string>Скопировать в формате Excel</string>
        </property>
       </widget>
      </item>

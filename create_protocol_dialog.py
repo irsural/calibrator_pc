@@ -57,18 +57,20 @@ class CreateProtocolDialog(QtWidgets.QDialog):
         self.ui.choose_protocol_template_button.clicked.connect(self.choose_template_pattern_file)
         self.ui.choose_save_folder_button.clicked.connect(self.choose_save_protocol_folder)
 
+        self.ui.to_excel_button.clicked.connect(self.copy_to_excel)
+
         self.ui.accept_button.clicked.connect(self.save_pressed)
         self.ui.reject_button.clicked.connect(self.reject)
 
     def get_default_marks_widgets(self):
         default_marks_widgets = [
-            (self.ui.date_label, self.ui.date_edit),
             (self.ui.name_label, self.ui.device_name_edit),
             (self.ui.device_creator_label, self.ui.device_creator_edit),
             (self.ui.system_label, self.ui.system_combobox),
-            (self.ui.owner_label, self.ui.owner_edit),
             (self.ui.user_label, self.ui.user_name_edit),
             (self.ui.serial_number_label, self.ui.serial_number_edit),
+            (self.ui.owner_label, self.ui.owner_edit),
+            (self.ui.date_label, self.ui.date_edit),
             (self.ui.comment_label, self.ui.comment_edit)
         ]
         return default_marks_widgets
@@ -109,6 +111,10 @@ class CreateProtocolDialog(QtWidgets.QDialog):
         assert mark_match is not None, "Label must contain mark in format %*__ !!"
         mark_text = mark_match.group(0)
         return mark_text
+
+    @staticmethod
+    def extract_name_from_label(label: QtWidgets.QLabel) -> str:
+        return label.text()[label.text().find("<p>") + 3 : label.text().find(" (")]
 
     # noinspection PyUnresolvedReferences
     def extract_value_from_widget(self, a_widget: QtWidgets.QWidget):
@@ -225,6 +231,30 @@ class CreateProtocolDialog(QtWidgets.QDialog):
                 table_to_draw.add_point(row[-1], row[:-1])
             exported_tables.append(table_to_draw)
         return exported_tables
+
+    def copy_to_excel(self):
+        parameters = ""
+        for widgets in self.default_marks_widgets:
+            parameters += "{0}\t{1}\n".format(self.extract_name_from_label(widgets[0]),
+                                              self.extract_value_from_widget(widgets[1]))
+        for _map in self.marks_widget.get_names_map():
+            parameters += "{0}\t{1}\n".format(_map[0], _map[1])
+
+        parameters += "\nРезультаты измерений:\n\n"
+        for measure in self.create_tables_to_export():
+            parameters += "Тип сигнала: {0}\nПредел измерения: {1}\nДопустимая погрешность: {2}\n".format(
+                measure.signal_type, measure.limit, measure.error_limit)
+
+            for frequency in measure.points.keys():
+                if int(frequency) != 0:
+                    parameters += ' '.join(["Частота:", str(frequency), "Гц\n"])
+
+                for points in measure.points[frequency]:
+                    for point in points:
+                        parameters += str(point) + "\t"
+                    parameters += "\n"
+            parameters += "\n"
+        QtWidgets.QApplication.clipboard().setText(parameters)
 
     def closeEvent(self, a_event: QtGui.QCloseEvent) -> None:
         self.settings.save_geometry(self.__class__.__name__, self.saveGeometry())
