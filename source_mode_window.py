@@ -2,7 +2,7 @@ from PyQt5 import QtCore, QtWidgets, QtGui
 from PyQt5.QtCore import pyqtSignal, QTimer
 
 
-from ui.py.source_mode_form import Ui_Form as SourceModeForm
+from ui.py.source_mode_form import Ui_Dialog as SourceModeForm
 import calibrator_constants as clb
 from settings_ini_parser import Settings
 import qt_utils
@@ -10,7 +10,7 @@ import clb_dll
 import utils
 
 
-class SourceModeWindow(QtWidgets.QWidget):
+class SourceModeDialog(QtWidgets.QDialog):
     close_confirmed = pyqtSignal()
 
     def __init__(self, a_settings: Settings, a_calibrator: clb_dll.ClbDrv, a_parent=None):
@@ -18,7 +18,6 @@ class SourceModeWindow(QtWidgets.QWidget):
 
         self.ui = SourceModeForm()
         self.ui.setupUi(self)
-        self.show()
 
         pause_icon = QtGui.QIcon()
         pause_icon.addPixmap(QtGui.QPixmap(":/icons/icons/pause.png"), QtGui.QIcon.Normal, QtGui.QIcon.On)
@@ -26,13 +25,7 @@ class SourceModeWindow(QtWidgets.QWidget):
         self.ui.enable_button.setIcon(pause_icon)
         self.ui.enable_button.setIconSize(QtCore.QSize(25, 25))
 
-        self.parent = a_parent
         self.settings = a_settings
-
-        self.parent.restoreGeometry(self.settings.get_last_geometry(self.__class__.__name__))
-        self.parent.show()
-        # По каким то причинам restoreGeometry не восстанавливает размер MainWindow, если оно скрыто
-        self.parent.restoreGeometry(self.settings.get_last_geometry(self.__class__.__name__))
 
         self.setWindowTitle("Режим источника")
 
@@ -238,7 +231,5 @@ class SourceModeWindow(QtWidgets.QWidget):
             self.calibrator.mode = a_mode
             self.mode = a_mode
 
-    def ask_for_close(self):
+    def closeEvent(self, a_event: QtGui.QCloseEvent) -> None:
         self.calibrator.signal_enable = False
-        self.settings.save_geometry(self.__class__.__name__, self.parent.saveGeometry())
-        self.close_confirmed.emit()

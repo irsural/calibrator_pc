@@ -20,6 +20,9 @@
    <string>Измерение без шаблона</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
+   <property name="sizeConstraint">
+    <enum>QLayout::SetFixedSize</enum>
+   </property>
    <item>
     <widget class="QLabel" name="label">
      <property name="font">

@@ -170,13 +170,19 @@ class MarksWidget(QtWidgets.QWidget):
                                                     (data[self.MarkColumns.NAME], data[self.MarkColumns.TAG], ""))
                             if data[self.MarkColumns.VALUE]:
                                 # Если значение не пусто, добавляем его в таблицу значений
-                                self.cursor.execute("insert into mark_values "
-                                                    "(value, mark_name, measure_id) values(?,?,?)"
-                                                    "on conflict (mark_name, measure_id) do update set value = ?",
-                                                    (data[self.MarkColumns.VALUE],
-                                                     data[self.MarkColumns.NAME],
-                                                     self.measure_id,
-                                                     data[self.MarkColumns.VALUE]))
+                                self.cursor.execute("select * from mark_values where mark_name = ? and measure_id = ?",
+                                                    (data[self.MarkColumns.NAME], self.measure_id))
+                                if not self.cursor.fetchone():
+                                    self.cursor.execute("insert into mark_values "
+                                                        "(value, mark_name, measure_id) values(?,?,?) ",
+                                                        (data[self.MarkColumns.VALUE], data[self.MarkColumns.NAME],
+                                                         self.measure_id))
+                                else:
+                                    self.cursor.execute("update mark_values set value = ? "
+                                                        "where mark_name = ? and measure_id = ?",
+                                                        (data[self.MarkColumns.VALUE], data[self.MarkColumns.NAME],
+                                                         self.measure_id))
+
                             else:
                                 self.cursor.execute("delete from mark_values "
                                                     "where mark_name = ? and measure_id = ?",

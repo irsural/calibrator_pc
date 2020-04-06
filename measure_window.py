@@ -37,9 +37,13 @@ class MeasureWindow(QtWidgets.QWidget):
 
         self.settings = a_settings
 
-        self.parent.restoreGeometry(self.settings.get_last_geometry(self.__class__.__name__))
         self.parent.show()
-        self.parent.restoreGeometry(self.settings.get_last_geometry(self.__class__.__name__))
+        geometry = self.settings.get_last_geometry(self.__class__.__name__)
+        if not geometry.isEmpty():
+            self.parent.restoreGeometry(geometry)
+        else:
+            self.parent.resize(self.size())
+
         # Вызывать после self.parent.show() !!! Иначе состояние столбцов не восстановится
         self.ui.measure_table.horizontalHeader().restoreState(self.settings.get_last_header_state(
             self.__class__.__name__))

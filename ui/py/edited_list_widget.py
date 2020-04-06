@@ -13,7 +13,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_Form(object):
     def setupUi(self, Form):
         Form.setObjectName("Form")
-        Form.resize(218, 288)
+        Form.resize(225, 292)
         font = QtGui.QFont()
         font.setPointSize(10)
         Form.setFont(font)
@@ -23,6 +23,7 @@ class Ui_Form(object):
         self.verticalLayout.setObjectName("verticalLayout")
         self.horizontalLayout_2 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_2.setContentsMargins(-1, 5, -1, 5)
+        self.horizontalLayout_2.setSpacing(7)
         self.horizontalLayout_2.setObjectName("horizontalLayout_2")
         self.optional_widget_layout = QtWidgets.QVBoxLayout()
         self.optional_widget_layout.setObjectName("optional_widget_layout")

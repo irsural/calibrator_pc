@@ -20,6 +20,7 @@ class Ui_Dialog(object):
         sizePolicy.setHeightForWidth(Dialog.sizePolicy().hasHeightForWidth())
         Dialog.setSizePolicy(sizePolicy)
         self.verticalLayout = QtWidgets.QVBoxLayout(Dialog)
+        self.verticalLayout.setSizeConstraint(QtWidgets.QLayout.SetFixedSize)
         self.verticalLayout.setObjectName("verticalLayout")
         self.label = QtWidgets.QLabel(Dialog)
         font = QtGui.QFont()

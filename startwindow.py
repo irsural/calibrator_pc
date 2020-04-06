@@ -44,10 +44,12 @@ class StartWindow(QtWidgets.QWidget):
         self.ui.create_protocol_button.clicked.connect(self.create_protocol)
         self.ui.measures_table.doubleClicked.connect(self.create_protocol)
 
-        self.parent.restoreGeometry(self.settings.get_last_geometry(self.__class__.__name__))
         self.parent.show()
-        # По каким то причинам restoreGeometry не восстанавливает размер MainWindow, если оно скрыто
-        self.parent.restoreGeometry(self.settings.get_last_geometry(self.__class__.__name__))
+        geometry = self.settings.get_last_geometry(self.__class__.__name__)
+        if not geometry.isEmpty():
+            self.parent.restoreGeometry(geometry)
+        else:
+            self.parent.resize(self.size())
 
         self.control_db_connection = a_control_db_connection
         self.measure_db = MeasuresDB(a_control_db_connection)

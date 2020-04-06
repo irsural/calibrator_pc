@@ -13,7 +13,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_main_widget(object):
     def setupUi(self, main_widget):
         main_widget.setObjectName("main_widget")
-        main_widget.resize(927, 566)
+        main_widget.resize(1131, 566)
         font = QtGui.QFont()
         font.setPointSize(10)
         main_widget.setFont(font)
@@ -394,10 +394,10 @@ class Ui_main_widget(object):
         self.apply_amplitude_button.setText("")
         icon3 = QtGui.QIcon()
         icon3.addPixmap(QtGui.QPixmap(":/icons/icons/ok.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
-        icon3.addPixmap(QtGui.QPixmap(":/icons/icons/ok.png"), QtGui.QIcon.Active, QtGui.QIcon.On)
-        icon3.addPixmap(QtGui.QPixmap(":/icons/icons/ok.png"), QtGui.QIcon.Selected, QtGui.QIcon.Off)
-        icon3.addPixmap(QtGui.QPixmap(":/icons/icons/ok.png"), QtGui.QIcon.Normal, QtGui.QIcon.On)
         icon3.addPixmap(QtGui.QPixmap(":/icons/icons/ok.png"), QtGui.QIcon.Selected, QtGui.QIcon.On)
+        icon3.addPixmap(QtGui.QPixmap(":/icons/icons/ok.png"), QtGui.QIcon.Selected, QtGui.QIcon.Off)
+        icon3.addPixmap(QtGui.QPixmap(":/icons/icons/ok.png"), QtGui.QIcon.Active, QtGui.QIcon.On)
+        icon3.addPixmap(QtGui.QPixmap(":/icons/icons/ok.png"), QtGui.QIcon.Normal, QtGui.QIcon.On)
         self.apply_amplitude_button.setIcon(icon3)
         self.apply_amplitude_button.setIconSize(QtCore.QSize(35, 35))
         self.apply_amplitude_button.setFlat(False)

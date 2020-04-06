@@ -1,30 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>Form</class>
- <widget class="QWidget" name="Form">
+ <class>Dialog</class>
+ <widget class="QDialog" name="Dialog">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>459</width>
+    <width>451</width>
     <height>398</height>
    </rect>
   </property>
-  <property name="sizePolicy">
-   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-    <horstretch>0</horstretch>
-    <verstretch>0</verstretch>
-   </sizepolicy>
-  </property>
-  <property name="font">
-   <font>
-    <pointsize>10</pointsize>
-   </font>
-  </property>
   <property name="windowTitle">
-   <string>Режим источника</string>
+   <string>Dialog</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout_2">
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <property name="sizeConstraint">
+    <enum>QLayout::SetFixedSize</enum>
+   </property>
    <item>
     <widget class="QFrame" name="frame">
      <property name="frameShape">
@@ -124,9 +116,6 @@
        <property name="checked">
         <bool>true</bool>
        </property>
-       <attribute name="buttonGroup">
-        <string notr="true">signal_group</string>
-       </attribute>
       </widget>
      </item>
      <item>
@@ -142,9 +131,6 @@
        <property name="checked">
         <bool>false</bool>
        </property>
-       <attribute name="buttonGroup">
-        <string notr="true">signal_group</string>
-       </attribute>
       </widget>
      </item>
      <item>
@@ -157,9 +143,6 @@
        <property name="text">
         <string>I=</string>
        </property>
-       <attribute name="buttonGroup">
-        <string notr="true">signal_group</string>
-       </attribute>
       </widget>
      </item>
      <item>
@@ -172,49 +155,12 @@
        <property name="text">
         <string>U=</string>
        </property>
-       <attribute name="buttonGroup">
-        <string notr="true">signal_group</string>
-       </attribute>
       </widget>
      </item>
     </layout>
    </item>
    <item>
     <layout class="QGridLayout" name="gridLayout">
-     <item row="5" column="1">
-      <widget class="QPushButton" name="apply_frequency_button">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="maximumSize">
-        <size>
-         <width>40</width>
-         <height>40</height>
-        </size>
-       </property>
-       <property name="font">
-        <font>
-         <pointsize>20</pointsize>
-        </font>
-       </property>
-       <property name="text">
-        <string/>
-       </property>
-       <property name="icon">
-        <iconset resource="../resources/icons.qrc">
-         <normaloff>:/icons/icons/ok.png</normaloff>:/icons/icons/ok.png</iconset>
-       </property>
-       <property name="iconSize">
-        <size>
-         <width>35</width>
-         <height>35</height>
-        </size>
-       </property>
-      </widget>
-     </item>
      <item row="3" column="1">
       <widget class="QPushButton" name="apply_amplitude_button">
        <property name="maximumSize">
@@ -289,6 +235,40 @@
        </property>
       </widget>
      </item>
+     <item row="5" column="1">
+      <widget class="QPushButton" name="apply_frequency_button">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>40</width>
+         <height>40</height>
+        </size>
+       </property>
+       <property name="font">
+        <font>
+         <pointsize>20</pointsize>
+        </font>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+       <property name="icon">
+        <iconset resource="../resources/icons.qrc">
+         <normaloff>:/icons/icons/ok.png</normaloff>:/icons/icons/ok.png</iconset>
+       </property>
+       <property name="iconSize">
+        <size>
+         <width>35</width>
+         <height>35</height>
+        </size>
+       </property>
+      </widget>
+     </item>
      <item row="4" column="0">
       <widget class="QLabel" name="label_6">
        <property name="font">
@@ -342,9 +322,6 @@
        <property name="checked">
         <bool>true</bool>
        </property>
-       <attribute name="buttonGroup">
-        <string notr="true">mode_group</string>
-       </attribute>
       </widget>
      </item>
      <item>
@@ -357,9 +334,6 @@
        <property name="text">
         <string>Фиксир.</string>
        </property>
-       <attribute name="buttonGroup">
-        <string notr="true">mode_group</string>
-       </attribute>
       </widget>
      </item>
      <item>
@@ -372,9 +346,6 @@
        <property name="text">
         <string>Расстройка</string>
        </property>
-       <attribute name="buttonGroup">
-        <string notr="true">mode_group</string>
-       </attribute>
       </widget>
      </item>
     </layout>
@@ -409,22 +380,8 @@
    <header>custom_widgets.CustomLineEdit</header>
   </customwidget>
  </customwidgets>
- <tabstops>
-  <tabstop>aci_radio</tabstop>
-  <tabstop>acv_radio</tabstop>
-  <tabstop>dci_radio</tabstop>
-  <tabstop>dcv_radio</tabstop>
-  <tabstop>source_mode_radio</tabstop>
-  <tabstop>fixed_mode_radio</tabstop>
-  <tabstop>detuning_radio</tabstop>
-  <tabstop>enable_button</tabstop>
- </tabstops>
  <resources>
   <include location="../resources/icons.qrc"/>
  </resources>
  <connections/>
- <buttongroups>
-  <buttongroup name="signal_group"/>
-  <buttongroup name="mode_group"/>
- </buttongroups>
 </ui>

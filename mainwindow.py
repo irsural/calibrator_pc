@@ -6,7 +6,7 @@ from variable_template_fields_dialog import VariableTemplateParams
 from settings_ini_parser import Settings, BadIniException
 from ui.py.mainwindow import Ui_MainWindow as MainForm
 from db_measures import Measure, MeasuresDB
-from source_mode_window import SourceModeWindow
+from source_mode_window import SourceModeDialog
 from settings_dialog import SettingsDialog
 from measure_window import MeasureWindow
 from startwindow import StartWindow
@@ -97,7 +97,6 @@ class MainWindow(QtWidgets.QMainWindow):
         if self.active_window is not None:
             self.active_window.close()
 
-
     def show_start_window(self):
         try:
             self.close_active_window()
@@ -135,8 +134,10 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def open_source_mode_window(self):
         try:
-            self.close_active_window()
-            self.change_window(SourceModeWindow(self.settings, self.calibrator, self))
+            # self.close_active_window()
+            # self.change_window(SourceModeDialog(self.settings, self.calibrator, self))
+            source_mode_dialog = SourceModeDialog(self.settings, self.calibrator, self)
+            source_mode_dialog.exec()
         except Exception as err:
             utils.exception_handler(err)
 
