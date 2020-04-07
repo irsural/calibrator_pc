@@ -87,6 +87,8 @@ class MeasureModel(QAbstractTableModel):
                               self.Column.UP_DEVIATION_PERCENT)
 
         self.__points = []
+        # Нужен для хранения количества усреднений одной точки
+        self.__repeat_count = [0] * self.Column.COUNT
 
         self.signal_type = a_signal_type
         self.value_to_user = utils.value_to_user_with_units(clb.signal_type_to_units[self.signal_type])
@@ -106,7 +108,12 @@ class MeasureModel(QAbstractTableModel):
                 self.appendPoint(PointData(a_scale_point=s_p, a_point=a, a_frequency=f, a_value=down_v,
                                            a_approach_side=PointData.ApproachSide.DOWN))
 
-    def appendPoint(self, a_point_data: PointData) -> int:
+    def appendPoint(self, a_point_data: PointData, a_average: bool) -> int:
+        """
+        Добавляет точку в таблицу
+        :param a_point_data: Данные точки
+        :param a_average: Если равно True, то существующее значение не перезаписывается, а усредняется
+        """
         a_point_data.amplitude = clb.bound_amplitude(a_point_data.amplitude, self.signal_type)
         a_point_data.frequency = clb.bound_frequency(a_point_data.frequency, self.signal_type)
         a_point_data.round_data()
@@ -249,10 +256,11 @@ class MeasureModel(QAbstractTableModel):
 
     def data(self, index, role=Qt.DisplayRole):
         if not index.isValid() or (len(self.__points) < index.row()) or \
-                (role != Qt.DisplayRole and role != Qt.EditRole and role != Qt.BackgroundRole):
+                (role != Qt.DisplayRole and role != Qt.EditRole and role != Qt.BackgroundRole and role != Qt.UserRole):
             return QVariant()
-
-        if role == Qt.BackgroundRole:
+        if role == Qt.UserRole:
+            return self.__repeat_count[index.column()]
+        elif role == Qt.BackgroundRole:
             return self.__get_cell_color(index.row(), index.column())
         else:
             value = self.__points[index.row()][index.column()]

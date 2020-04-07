@@ -400,21 +400,28 @@ class MeasureWindow(QtWidgets.QWidget):
                     if clb.is_ac_signal[self.current_case.signal_type]:
                         point_text += " : {0} Гц".format(utils.float_to_string(self.current_point.frequency))
 
-                    reply = QMessageBox.question(self, "Подтвердите действие", "Значение {0} уже измерено "
-                                                 "для точки {1} и не превышает допустимую погрешность. "
-                                                 "Перезаписать значение {2} для точки {3}?".format(
-                                                 side_text, point_text, side_text, point_text),
-                                                 QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
-                    if reply == QMessageBox.Yes:
+                    ask_dlg = QMessageBox(self)
+                    ask_dlg.setWindowTitle("Выберите действие")
+                    ask_dlg.setText("Значение {0} уже измерено для точки {1} и не превышает допустимую погрешность. "
+                                    "Выберите действие для точки {3}({2})?".format(side_text, point_text,
+                                                                                   side_text, point_text))
+                    average_btn = ask_dlg.addButton("Усреднить", QMessageBox.ActionRole)
+                    overwrite_btn = ask_dlg.addButton("Перезаписать", QMessageBox.YesRole)
+                    ask_dlg.addButton("Отменить", QMessageBox.NoRole)
+                    ask_dlg.exec()
+
+                    if ask_dlg.clickedButton() == overwrite_btn:
                         self.measure_manager.view().append(self.current_point)
+                    elif ask_dlg.clickedButton() == average_btn:
+                        self.measure_manager.view().append(self.current_point, a_average=True)
                 else:
                     if self.clb_state == clb.State.READY:
                         self.measure_manager.view().append(self.current_point)
                     else:
                         self.measure_manager.view().append(PointData(a_point=self.current_point.amplitude,
                                                                      a_frequency=self.current_point.frequency))
-            except AssertionError as err:
-                print(err)
+            except Exception as err:
+                utils.exception_handler(err)
         else:
             self.clb_not_ready_warning()
 

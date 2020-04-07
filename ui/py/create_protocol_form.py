@@ -209,6 +209,10 @@ class Ui_Dialog(object):
         self.default_button.setObjectName("default_button")
         self.horizontalLayout_2.addWidget(self.default_button)
         self.to_excel_button = QtWidgets.QPushButton(Dialog)
+        icon = QtGui.QIcon()
+        icon.addPixmap(QtGui.QPixmap(":/icons/icons/excel.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.to_excel_button.setIcon(icon)
+        self.to_excel_button.setIconSize(QtCore.QSize(20, 20))
         self.to_excel_button.setObjectName("to_excel_button")
         self.horizontalLayout_2.addWidget(self.to_excel_button)
         spacerItem = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
@@ -268,3 +272,4 @@ class Ui_Dialog(object):
         self.to_excel_button.setText(_translate("Dialog", "Скопировать в формате Excel"))
         self.accept_button.setText(_translate("Dialog", "Сохранить и создать отчет"))
         self.reject_button.setText(_translate("Dialog", "Отмена"))
+import icons_rc

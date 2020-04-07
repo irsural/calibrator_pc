@@ -1,10 +1,27 @@
-from PyQt5 import QtCore, QtWidgets
+from PyQt5 import QtCore, QtWidgets, QtGui
 
 from custom_widgets.QTableDelegates import NonOverlappingDoubleClick
 from MeasureModel import MeasureModel, PointData
 from db_measures import Measure
 import calibrator_constants as clb
 import qt_utils
+
+
+class CornerButtonPainter(NonOverlappingDoubleClick):
+    def __init__(self, a_parent):
+        super().__init__(a_parent)
+
+    def paint(self, painter: QtGui.QPainter, option, index: QtCore.QModelIndex):
+        super().paint(painter, option, index)
+        repeat_count = index.data(QtCore.Qt.UserRole)
+        if repeat_count > 1:
+            btn = QtWidgets.QStyleOptionButton()
+            w = 25
+            h = 25
+            btn.rect = QtCore.QRect(option.rect.right() - w, option.rect.top() + 1, w, h)
+            btn.text = str(repeat_count)
+            btn.state = QtWidgets.QStyle.State_Enabled
+            QtWidgets.QApplication.style().drawControl(QtWidgets.QStyle.CE_PushButton, btn, painter)
 
 
 class MeasureView:
@@ -17,7 +34,7 @@ class MeasureView:
         # Нужен, чтобы сохранять в него точки, перед self.reset
         self.reset(a_measure_case)
 
-        self.table.setItemDelegate(NonOverlappingDoubleClick(self.table))
+        self.table.setItemDelegate(CornerButtonPainter(self.table))
         self.table.customContextMenuRequested.connect(self.show_table_custom_menu)
 
         self.header_context = qt_utils.TableHeaderContextMenu(self.table, self.table)
@@ -82,8 +99,8 @@ class MeasureView:
     def is_point_measured(self, a_row_idx, a_approach_side: PointData.ApproachSide):
         return self.measure_model.isPointMeasured(a_row_idx, a_approach_side)
 
-    def append(self, a_point: PointData):
-        point_row = self.measure_model.appendPoint(a_point)
+    def append(self, a_point: PointData, a_average=False):
+        point_row = self.measure_model.appendPoint(a_point, a_average)
         self.table.selectRow(point_row)
 
     def view(self):
