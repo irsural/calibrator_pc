@@ -93,11 +93,11 @@ class MeasureView:
         index = self.measure_model.index(a_row, a_column)
         return self.measure_model.getText(index)
 
-    def is_point_good(self, a_amplitude: float, a_frequency: float, a_approach_side: PointData.ApproachSide):
-        return self.measure_model.isPointGood(a_amplitude, a_frequency, a_approach_side)
+    def is_point_measured(self, a_amplitude: float, a_frequency: float, a_approach_side: PointData.ApproachSide):
+        return self.measure_model.isPointMeasured(a_amplitude, a_frequency, a_approach_side)
 
-    def is_point_measured(self, a_row_idx, a_approach_side: PointData.ApproachSide):
-        return self.measure_model.isPointMeasured(a_row_idx, a_approach_side)
+    def is_point_measured_by_row(self, a_row_idx, a_approach_side: PointData.ApproachSide):
+        return self.measure_model.isPointMeasuredByRow(a_row_idx, a_approach_side)
 
     def append(self, a_point: PointData, a_average=False):
         point_row = self.measure_model.appendPoint(a_point, a_average)

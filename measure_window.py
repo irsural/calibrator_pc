@@ -390,8 +390,8 @@ class MeasureWindow(QtWidgets.QWidget):
     def save_point(self):
         if self.clb_state != clb.State.WAITING_SIGNAL:
             try:
-                if self.measure_manager.view().is_point_good(self.current_point.amplitude, self.current_point.frequency,
-                                                             self.current_point.approach_side):
+                if self.measure_manager.view().is_point_measured(self.current_point.amplitude, self.current_point.frequency,
+                                                                 self.current_point.approach_side):
 
                     side_text = "СНИЗУ" if self.current_point.approach_side == PointData.ApproachSide.DOWN \
                         else "СВЕРХУ"
@@ -402,10 +402,10 @@ class MeasureWindow(QtWidgets.QWidget):
 
                     ask_dlg = QMessageBox(self)
                     ask_dlg.setWindowTitle("Выберите действие")
-                    ask_dlg.setText("Значение {0} уже измерено для точки {1} и не превышает допустимую погрешность. "
-                                    "Выберите действие для точки {3}({2})?".format(side_text, point_text,
+                    ask_dlg.setText("Значение {0} уже измерено для точки {1}.\n"
+                                    "Выберите действие для точки {3}({2})".format(side_text, point_text,
                                                                                    side_text, point_text))
-                    average_btn = ask_dlg.addButton("Усреднить", QMessageBox.ActionRole)
+                    average_btn = ask_dlg.addButton("Усреднить", QMessageBox.YesRole)
                     overwrite_btn = ask_dlg.addButton("Перезаписать", QMessageBox.YesRole)
                     ask_dlg.addButton("Отменить", QMessageBox.NoRole)
                     ask_dlg.exec()
@@ -420,7 +420,7 @@ class MeasureWindow(QtWidgets.QWidget):
                     else:
                         self.measure_manager.view().append(PointData(a_point=self.current_point.amplitude,
                                                                      a_frequency=self.current_point.frequency))
-            except Exception as err:
+            except AssertionError as err:
                 utils.exception_handler(err)
         else:
             self.clb_not_ready_warning()
@@ -438,8 +438,8 @@ class MeasureWindow(QtWidgets.QWidget):
             target_frequency = float(self.measure_manager.view().get_frequency_by_row(row_idx).replace(',', '.'))
 
             if target_amplitude != self.calibrator.amplitude:
-                measured_up = self.measure_manager.view().is_point_measured(row_idx, PointData.ApproachSide.UP)
-                measured_down = self.measure_manager.view().is_point_measured(row_idx, PointData.ApproachSide.DOWN)
+                measured_up = self.measure_manager.view().is_point_measured_by_row(row_idx, PointData.ApproachSide.UP)
+                measured_down = self.measure_manager.view().is_point_measured_by_row(row_idx, PointData.ApproachSide.DOWN)
 
                 if measured_down == measured_up:
                     # Точка измерена полностью либо совсем не измерена, подходим с ближайшей стороны

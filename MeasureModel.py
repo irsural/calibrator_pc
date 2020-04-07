@@ -82,13 +82,15 @@ class MeasureModel(QAbstractTableModel):
         super().__init__(a_parent)
 
         self.__row_count = 0
-        self.__column_count = self.Column.COUNT
-        self.__raw_columns = (self.Column.SCALE_POINT, self.Column.FREQUENCY, self.Column.DOWN_DEVIATION_PERCENT,
-                              self.Column.UP_DEVIATION_PERCENT)
+        self.__column_count = MeasureModel.Column.COUNT
+        self.__raw_columns = (MeasureModel.Column.SCALE_POINT, MeasureModel.Column.FREQUENCY,
+                              MeasureModel.Column.DOWN_DEVIATION_PERCENT, MeasureModel.Column.UP_DEVIATION_PERCENT)
 
         self.__points = []
-        # Нужен для хранения количества усреднений одной точки
-        self.__repeat_count = [0] * self.Column.COUNT
+
+        self.AVERAGE_SUM_IDX = 0
+        self.AVERAGE_COUNT_IDX = 1
+        self.__average_data = [[[0, 1]] * MeasureModel.Column.COUNT]
 
         self.signal_type = a_signal_type
         self.value_to_user = utils.value_to_user_with_units(clb.signal_type_to_units[self.signal_type])
@@ -103,10 +105,10 @@ class MeasureModel(QAbstractTableModel):
             # Формат a_init_points - кортеж, который формируется в self.exportPoints
             for s_p, a, f, up_v, down_v in a_init_points:
                 self.appendPoint(PointData(a_scale_point=s_p, a_point=a, a_frequency=f, a_value=up_v,
-                                           a_approach_side=PointData.ApproachSide.UP))
+                                           a_approach_side=PointData.ApproachSide.UP), a_average=False)
 
                 self.appendPoint(PointData(a_scale_point=s_p, a_point=a, a_frequency=f, a_value=down_v,
-                                           a_approach_side=PointData.ApproachSide.DOWN))
+                                           a_approach_side=PointData.ApproachSide.DOWN), a_average=False)
 
     def appendPoint(self, a_point_data: PointData, a_average: bool) -> int:
         """
@@ -118,22 +120,36 @@ class MeasureModel(QAbstractTableModel):
         a_point_data.frequency = clb.bound_frequency(a_point_data.frequency, self.signal_type)
         a_point_data.round_data()
 
+        value_column = self.__side_to_value_column[a_point_data.approach_side]
+        value = a_point_data.value
+
         row_idx = self.__find_point(a_point_data.amplitude, a_point_data.frequency)
         point_row = self.rowCount() if row_idx is None else row_idx
 
         if point_row == self.rowCount():
+            assert not a_average, "appendPoint must be called only for existing points"
             # Добавляемой точки еще нет в списке
             point_data = [a_point_data.scale_point, clb.bound_amplitude(a_point_data.amplitude, self.signal_type),
                           clb.bound_frequency(a_point_data.frequency, self.signal_type), 0, 0, 0, 0, 0, 0, 0]
-            assert len(point_data) == self.Column.COUNT, "Размер point_data не соответствует количеству колонок таблицы"
+            assert len(point_data) == MeasureModel.Column.COUNT, "Размер point_data не соответствует количеству " \
+                                                                 "колонок таблицы"
+            self.__average_data += [[[0, 1]] * MeasureModel.Column.COUNT]
 
             new_row = self.rowCount()
             self.beginInsertRows(QModelIndex(), new_row, new_row)
             self.__points.append(point_data)
             self.endInsertRows()
+        elif a_average:
+            self.__average_data[point_row][value_column][self.AVERAGE_SUM_IDX] += value
+            self.__average_data[point_row][value_column][self.AVERAGE_COUNT_IDX] += 1
 
-        value_column = self.__side_to_value_column[a_point_data.approach_side]
-        self.setData(self.index(point_row, value_column), str(a_point_data.value))
+            value = self.__average_data[point_row][value_column][self.AVERAGE_SUM_IDX] / \
+                self.__average_data[point_row][value_column][self.AVERAGE_COUNT_IDX]
+
+        if not a_average:
+            self.__average_data[point_row][self.__side_to_value_column[a_point_data.approach_side]] = [value, 1]
+
+        self.setData(self.index(point_row, value_column), str(value))
         self.__recalculate_parameters(point_row, a_point_data.approach_side)
         return point_row
 
@@ -158,7 +174,7 @@ class MeasureModel(QAbstractTableModel):
             table_data.append([self.data(QModelIndex(self.index(row, column))) for column in a_columns])
         return table_data
 
-    def isPointGood(self, a_point: float, a_frequency: float, a_approach_side: PointData.ApproachSide) -> bool:
+    def isPointMeasured(self, a_point: float, a_frequency: float, a_approach_side: PointData.ApproachSide) -> bool:
         """
         Проверяет, есть ли точка в массиве, если точка есть, то проверяет ее состояние (входит в погрешность или нет)
         Если точки нет, или она не входит в погрешность, возвращает False, иначе возвращает True
@@ -171,11 +187,12 @@ class MeasureModel(QAbstractTableModel):
         if row_idx is None:
             return False
         else:
-            row_data = self.__points[row_idx]
-            if self.isPointMeasured(row_idx, a_approach_side):
-                return abs(row_data[self.__side_to_error_percent_column[a_approach_side]]) <= self.error_limit
-            else:
-                return False
+            return self.isPointMeasuredByRow(row_idx, a_approach_side)
+            # row_data = self.__points[row_idx]
+            # if self.isPointMeasuredByRow(row_idx, a_approach_side):
+                # return abs(row_data[self.__side_to_error_percent_column[a_approach_side]]) <= self.error_limit
+            # else:
+            #     return False
 
     def __find_point(self, a_point: float, a_frequency: float):
         for idx, row_data in enumerate(self.__points):
@@ -183,7 +200,7 @@ class MeasureModel(QAbstractTableModel):
                 return idx
         return None
 
-    def isPointMeasured(self, a_point_row, a_approach_side: PointData.ApproachSide):
+    def isPointMeasuredByRow(self, a_point_row, a_approach_side: PointData.ApproachSide):
         data_row = self.__points[a_point_row]
 
         val, err, err_percent = (self.__side_to_value_column[a_approach_side],
@@ -200,7 +217,7 @@ class MeasureModel(QAbstractTableModel):
             approach_side = PointData.ApproachSide.UP if a_column == self.Column.UP_VALUE \
                 else PointData.ApproachSide.DOWN
 
-            if self.isPointMeasured(a_row, approach_side):
+            if self.isPointMeasuredByRow(a_row, approach_side):
                 if abs(self.__points[a_row][self.__side_to_error_percent_column[approach_side]]) <= self.error_limit:
                     # Если отклонение в процентах не превышает предела погрешности
                     return QVariant(QBrush(self.__good_color))
@@ -259,7 +276,7 @@ class MeasureModel(QAbstractTableModel):
                 (role != Qt.DisplayRole and role != Qt.EditRole and role != Qt.BackgroundRole and role != Qt.UserRole):
             return QVariant()
         if role == Qt.UserRole:
-            return self.__repeat_count[index.column()]
+            return self.__average_data[index.row()][index.column()][self.AVERAGE_COUNT_IDX]
         elif role == Qt.BackgroundRole:
             return self.__get_cell_color(index.row(), index.column())
         else:
@@ -309,6 +326,7 @@ class MeasureModel(QAbstractTableModel):
         # Работает только для последовательного выделения
         self.beginRemoveRows(QModelIndex(), a_row_indexes[0], a_row_indexes[-1])
         del self.__points[a_row_indexes[0]:a_row_indexes[-1] + 1]
+        del self.__average_data[a_row_indexes[0]:a_row_indexes[-1] + 1]
         self.endRemoveRows()
 
     @staticmethod
