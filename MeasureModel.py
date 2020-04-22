@@ -129,11 +129,10 @@ class MeasureModel(QAbstractTableModel):
         if point_row == self.rowCount():
             assert not a_average, "appendPoint must be called only for existing points"
             # Добавляемой точки еще нет в списке
-            point_data = [a_point_data.scale_point, clb.bound_amplitude(a_point_data.amplitude, self.signal_type),
-                          clb.bound_frequency(a_point_data.frequency, self.signal_type), 0, 0, 0, 0, 0, 0, 0]
+            point_data = [a_point_data.scale_point, a_point_data.amplitude, a_point_data.frequency, 0, 0, 0, 0, 0, 0, 0]
             assert len(point_data) == MeasureModel.Column.COUNT, "Размер point_data не соответствует количеству " \
                                                                  "колонок таблицы"
-            self.__average_data += [[[0, 1]] * MeasureModel.Column.COUNT]
+            self.__average_data += [[[a_point_data.amplitude, 1]] * MeasureModel.Column.COUNT]
 
             new_row = self.rowCount()
             self.beginInsertRows(QModelIndex(), new_row, new_row)

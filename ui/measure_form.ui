@@ -125,7 +125,7 @@
          </font>
         </property>
         <property name="text">
-         <string>Изменить параметры измерения</string>
+         <string>Изменить параметры поверки</string>
         </property>
        </widget>
       </item>

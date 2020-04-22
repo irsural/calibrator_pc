@@ -1,7 +1,7 @@
 from sys import float_info
 from typing import List
 
-from PyQt5 import QtCore, QtWidgets
+from PyQt5 import QtCore, QtWidgets, QtGui
 
 from ui.py.template_scales_tabwidget import Ui_Form as ScalesWidgetForm
 from custom_widgets.EditListDialog import EditedListOnlyNumbers
@@ -33,7 +33,8 @@ class ScalesWidget(QtWidgets.QWidget):
         print("scales widget deleted")
 
     def set_up_tab_widget(self):
-        plus_button = QtWidgets.QPushButton("+")
+        plus_button = QtWidgets.QPushButton()
+        plus_button.setIcon(QtGui.QIcon(QtGui.QPixmap(":/icons/icons/plus.png")))
         plus_button.setFlat(True)
         plus_button.setFixedSize(20, 20)
         self.ui.tabWidget.addTab(QtWidgets.QWidget(), "")

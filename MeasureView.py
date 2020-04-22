@@ -16,8 +16,8 @@ class CornerButtonPainter(NonOverlappingDoubleClick):
         repeat_count = index.data(QtCore.Qt.UserRole)
         if repeat_count > 1:
             btn = QtWidgets.QStyleOptionButton()
-            w = 25
-            h = 25
+            w = option.rect.height() / 1.5
+            h = option.rect.height() / 1.5
             btn.rect = QtCore.QRect(option.rect.right() - w, option.rect.top() + 1, w, h)
             btn.text = str(repeat_count)
             btn.state = QtWidgets.QStyle.State_Enabled
