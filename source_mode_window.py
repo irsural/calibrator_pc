@@ -19,10 +19,8 @@ class SourceModeDialog(QtWidgets.QDialog):
         self.ui = SourceModeForm()
         self.ui.setupUi(self)
 
-        pause_icon = QtGui.QIcon()
-        pause_icon.addPixmap(QtGui.QPixmap(":/icons/icons/pause.png"), QtGui.QIcon.Normal, QtGui.QIcon.On)
-        pause_icon.addPixmap(QtGui.QPixmap(":/icons/icons/play.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
-        self.ui.enable_button.setIcon(pause_icon)
+        self.pause_icon = QtGui.QIcon(QtGui.QPixmap(":/icons/icons/pause.png"))
+        self.play_icon = QtGui.QIcon(QtGui.QPixmap(":/icons/icons/play.png"))
         self.ui.enable_button.setIconSize(QtCore.QSize(25, 25))
 
         self.settings = a_settings
@@ -50,6 +48,8 @@ class SourceModeDialog(QtWidgets.QDialog):
             clb.Mode.FIXED_RANGE: self.ui.fixed_mode_radio,
             clb.Mode.DETUNING: self.ui.detuning_radio,
         }
+
+        self.update_signal_enable_state(self.calibrator.signal_enable)
 
         self.clb_check_timer = QTimer()
         self.clb_check_timer.timeout.connect(self.sync_clb_parameters)
@@ -122,8 +122,10 @@ class SourceModeDialog(QtWidgets.QDialog):
     def update_signal_enable_state(self, a_signal_enabled: bool):
         if a_signal_enabled:
             self.ui.enable_button.setText("Стоп")
+            self.ui.enable_button.setIcon(self.pause_icon)
         else:
             self.ui.enable_button.setText("Старт")
+            self.ui.enable_button.setIcon(self.play_icon)
 
         self.ui.enable_button.setChecked(a_signal_enabled)
 

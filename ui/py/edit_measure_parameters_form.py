@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file './ui/edit_measure_parameters_form.ui'
 #
-# Created by: PyQt5 UI code generator 5.13.1
+# Created by: PyQt5 UI code generator 5.14.1
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -171,7 +171,7 @@ class Ui_Dialog(object):
 
     def retranslateUi(self, Dialog):
         _translate = QtCore.QCoreApplication.translate
-        Dialog.setWindowTitle(_translate("Dialog", "Dialog"))
+        Dialog.setWindowTitle(_translate("Dialog", "Изменение параметров поверки"))
         self.label_5.setText(_translate("Dialog", "Изготовитель"))
         self.system_combobox.setItemText(0, _translate("Dialog", "Магнитоэлектрическая"))
         self.system_combobox.setItemText(1, _translate("Dialog", "Электродинамическая"))

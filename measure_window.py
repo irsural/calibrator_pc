@@ -33,6 +33,10 @@ class MeasureWindow(QtWidgets.QWidget):
         self.parent = a_parent
 
         self.warning_animation = None
+        self.pause_icon = QtGui.QIcon(QtGui.QPixmap(":/icons/icons/pause.png"))
+        self.play_icon = QtGui.QIcon(QtGui.QPixmap(":/icons/icons/play.png"))
+        self.ui.pause_button.setIconSize(QtCore.QSize(21, 21))
+
         self.set_up_icons()
 
         self.settings = a_settings
@@ -51,6 +55,7 @@ class MeasureWindow(QtWidgets.QWidget):
         self.db_connection = a_db_connection
 
         self.calibrator = a_calibrator
+        self.calibrator.signal_enable = False
         self.clb_state = clb.State.DISCONNECTED
 
         self.measure_config = a_measure_config
@@ -97,12 +102,6 @@ class MeasureWindow(QtWidgets.QWidget):
         self.clb_check_timer.start(10)
 
     def set_up_icons(self):
-        pause_icon = QtGui.QIcon()
-        pause_icon.addPixmap(QtGui.QPixmap(":/icons/icons/pause.png"), QtGui.QIcon.Normal, QtGui.QIcon.On)
-        pause_icon.addPixmap(QtGui.QPixmap(":/icons/icons/play.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
-        self.ui.pause_button.setIcon(pause_icon)
-        self.ui.pause_button.setIconSize(QtCore.QSize(21, 21))
-
         self.ui.status_warning_label.hide()
         self.warning_animation = QtGui.QMovie(":/icons/gif/warning.gif")
         self.ui.status_warning_label.setMovie(self.warning_animation)
@@ -253,9 +252,11 @@ class MeasureWindow(QtWidgets.QWidget):
         if a_signal_enabled:
             self.ui.pause_button.setChecked(a_signal_enabled)
             self.ui.pause_button.setText("Пауза")
+            self.ui.pause_button.setIcon(self.pause_icon)
         else:
             self.ui.pause_button.setChecked(a_signal_enabled)
             self.ui.pause_button.setText("Возобновить")
+            self.ui.pause_button.setIcon(self.play_icon)
 
     def check_fixed_range(self):
         if self.calibrator.mode == clb.Mode.FIXED_RANGE and self.calibrator.amplitude == self.highest_amplitude:

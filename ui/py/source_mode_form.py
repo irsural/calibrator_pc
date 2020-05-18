@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file './ui/source_mode_form.ui'
 #
-# Created by: PyQt5 UI code generator 5.13.1
+# Created by: PyQt5 UI code generator 5.14.1
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -101,9 +101,9 @@ class Ui_Dialog(object):
         self.apply_amplitude_button.setFont(font)
         self.apply_amplitude_button.setText("")
         icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap(":/icons/icons/ok.png"), QtGui.QIcon.Selected, QtGui.QIcon.Off)
         icon.addPixmap(QtGui.QPixmap(":/icons/icons/ok.png"), QtGui.QIcon.Active, QtGui.QIcon.On)
         icon.addPixmap(QtGui.QPixmap(":/icons/icons/ok.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon.addPixmap(QtGui.QPixmap(":/icons/icons/ok.png"), QtGui.QIcon.Selected, QtGui.QIcon.Off)
         icon.addPixmap(QtGui.QPixmap(":/icons/icons/ok.png"), QtGui.QIcon.Selected, QtGui.QIcon.On)
         icon.addPixmap(QtGui.QPixmap(":/icons/icons/ok.png"), QtGui.QIcon.Normal, QtGui.QIcon.On)
         self.apply_amplitude_button.setIcon(icon)
