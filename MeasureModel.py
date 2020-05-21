@@ -189,7 +189,7 @@ class MeasureModel(QAbstractTableModel):
             return self.isPointMeasuredByRow(row_idx, a_approach_side)
             # row_data = self.__points[row_idx]
             # if self.isPointMeasuredByRow(row_idx, a_approach_side):
-                # return abs(row_data[self.__side_to_error_percent_column[a_approach_side]]) <= self.error_limit
+            #     return abs(row_data[self.__side_to_error_percent_column[a_approach_side]]) <= self.error_limit
             # else:
             #     return False
 
