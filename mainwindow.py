@@ -1,5 +1,3 @@
-from typing import Union
-
 from PyQt5 import QtWidgets, QtCore, QtGui
 
 from new_fast_measure_dialog import NewFastMeasureDialog, FastMeasureParams
@@ -8,7 +6,7 @@ from variable_template_fields_dialog import VariableTemplateParams
 from settings_ini_parser import Settings, BadIniException
 from ui.py.mainwindow import Ui_MainWindow as MainForm
 from db_measures import Measure, MeasuresDB
-from source_mode_window import SourceModeWindow
+from source_mode_window import SourceModeDialog
 from settings_dialog import SettingsDialog
 from measure_window import MeasureWindow
 from startwindow import StartWindow
@@ -48,7 +46,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.clb_signal_off_timer.timeout.connect(self.close)
             self.SIGNAL_OFF_TIME_MS = 200
 
-            self.clb_driver = clb_dll.set_up_driver(clb_dll.path)
+            self.clb_driver = clb_dll.set_up_driver(clb_dll.debug_dll_path)
             self.usb_driver = clb_dll.UsbDrv(self.clb_driver)
             self.usb_state = clb_dll.UsbDrv.UsbState.DISABLED
             self.calibrator = clb_dll.ClbDrv(self.clb_driver)
@@ -58,7 +56,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.usb_check_timer.timeout.connect(self.usb_tick)
             self.usb_check_timer.start(10)
 
-            self.fast_config: Union[FastMeasureParams, None] = None
+            self.fast_config = None
 
             self.ui.enter_settings_action.triggered.connect(self.open_settings)
 
@@ -68,21 +66,6 @@ class MainWindow(QtWidgets.QMainWindow):
     def __del__(self):
         if hasattr(self, "display_db_connection"):
             self.db_connection.close()
-
-    def show_start_window(self):
-        try:
-            self.hide()
-            if self.active_window is not None:
-                self.active_window.close()
-
-            self.active_window = StartWindow(self.db_connection, self.db_name, self.settings, self)
-            self.setCentralWidget(self.active_window)
-            self.active_window.source_mode_chosen.connect(self.open_source_mode_window)
-            self.active_window.no_template_mode_chosen.connect(self.open_config_no_template_mode)
-            self.active_window.template_mode_chosen.connect(self.template_mode_chosen)
-            self.setWindowTitle(self.active_window.windowTitle())
-        except Exception as err:
-            utils.exception_handler(err)
 
     def usb_tick(self):
         self.usb_driver.tick()
@@ -109,6 +92,24 @@ class MainWindow(QtWidgets.QMainWindow):
             self.clb_state = current_state
             self.usb_status_changed.emit(self.clb_state)
 
+    def close_active_window(self):
+        self.hide()
+        if self.active_window is not None:
+            self.active_window.close()
+
+    def show_start_window(self):
+        try:
+            self.close_active_window()
+
+            self.active_window = StartWindow(self.db_connection, self.db_name, self.settings, self)
+            self.setCentralWidget(self.active_window)
+            self.active_window.source_mode_chosen.connect(self.open_source_mode_window)
+            self.active_window.no_template_mode_chosen.connect(self.open_config_no_template_mode)
+            self.active_window.template_mode_chosen.connect(self.template_mode_chosen)
+            self.setWindowTitle(self.active_window.windowTitle())
+        except Exception as err:
+            utils.exception_handler(err)
+
     def attach_calibrator_to_window(self, a_window):
         assert hasattr(a_window, "update_clb_list"), "no method update_clb_list"
         assert hasattr(a_window, "update_clb_status"), "no method update_clb_status"
@@ -133,9 +134,9 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def open_source_mode_window(self):
         try:
-            self.hide()
-            self.active_window.close()
-            self.change_window(SourceModeWindow(self.settings, self.calibrator, self))
+            source_mode_dialog = SourceModeDialog(self.settings, self.calibrator, self)
+            self.attach_calibrator_to_window(source_mode_dialog)
+            source_mode_dialog.exec()
         except Exception as err:
             utils.exception_handler(err)
 
@@ -156,10 +157,9 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def start_fast_measure(self):
         try:
-            measure_config = Measure.fromFastParams(self.fast_config)
+            measure_config = Measure.from_fast_params(self.fast_config)
 
-            self.hide()
-            self.active_window.close()
+            self.close_active_window()
             self.change_window(MeasureWindow(a_calibrator=self.calibrator,
                                              a_measure_config=measure_config,
                                              a_db_connection=self.db_connection,
@@ -178,10 +178,9 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def start_template_measure(self, a_template_params: TemplateParams, a_variable_params: VariableTemplateParams):
         try:
-            measure_config = Measure.fromTemplate(a_template_params, a_variable_params)
+            measure_config = Measure.from_template(a_template_params, a_variable_params)
 
-            self.hide()
-            self.active_window.close()
+            self.close_active_window()
             self.change_window(MeasureWindow(a_calibrator=self.calibrator,
                                              a_measure_config=measure_config,
                                              a_db_connection=self.db_connection,

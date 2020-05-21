@@ -1,5 +1,4 @@
 from sqlite3 import Connection
-from typing import List, Union
 
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QTimer, Qt
 from PyQt5 import QtCore, QtGui, QtWidgets
@@ -29,18 +28,26 @@ class MeasureWindow(QtWidgets.QWidget):
 
         self.ui = MeasureForm()
         self.ui.setupUi(self)
-        self.setWindowTitle(f"Калибратор N4-25. Измерение")
+        self.setWindowTitle("Калибратор N4-25. Измерение")
 
         self.parent = a_parent
 
         self.warning_animation = None
+        self.pause_icon = QtGui.QIcon(QtGui.QPixmap(":/icons/icons/pause.png"))
+        self.play_icon = QtGui.QIcon(QtGui.QPixmap(":/icons/icons/play.png"))
+        self.ui.pause_button.setIconSize(QtCore.QSize(21, 21))
+
         self.set_up_icons()
 
         self.settings = a_settings
 
-        self.parent.restoreGeometry(self.settings.get_last_geometry(self.__class__.__name__))
         self.parent.show()
-        self.parent.restoreGeometry(self.settings.get_last_geometry(self.__class__.__name__))
+        geometry = self.settings.get_last_geometry(self.__class__.__name__)
+        if not geometry.isEmpty():
+            self.parent.restoreGeometry(geometry)
+        else:
+            self.parent.resize(self.size())
+
         # Вызывать после self.parent.show() !!! Иначе состояние столбцов не восстановится
         self.ui.measure_table.horizontalHeader().restoreState(self.settings.get_last_header_state(
             self.__class__.__name__))
@@ -48,9 +55,10 @@ class MeasureWindow(QtWidgets.QWidget):
         self.db_connection = a_db_connection
 
         self.calibrator = a_calibrator
+        self.calibrator.signal_enable = False
         self.clb_state = clb.State.DISCONNECTED
 
-        self.measure_config: Measure = a_measure_config
+        self.measure_config = a_measure_config
         self.measures_db = MeasuresDB(self.db_connection)
         # Нужно создать заранее, чтобы было id для сохранения меток
         self.measure_config.id = self.measures_db.new_measure(self.measure_config)
@@ -71,7 +79,7 @@ class MeasureWindow(QtWidgets.QWidget):
         self.start_measure_timer = QTimer(self)
         # Нужен, чтобы убедиться, что сигнал выключен, после чего менять параметры сигнала
         self.stop_measure_timer = QTimer(self)
-        self.wait_dialog: Union[QtWidgets.QDialog, None] = None
+        self.wait_dialog = None
 
         self.units_text = "В"
         self.value_to_user = utils.value_to_user_with_units(self.units_text)
@@ -94,12 +102,6 @@ class MeasureWindow(QtWidgets.QWidget):
         self.clb_check_timer.start(10)
 
     def set_up_icons(self):
-        pause_icon = QtGui.QIcon()
-        pause_icon.addPixmap(QtGui.QPixmap(":/icons/icons/pause.png"), QtGui.QIcon.Normal, QtGui.QIcon.On)
-        pause_icon.addPixmap(QtGui.QPixmap(":/icons/icons/play.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
-        self.ui.pause_button.setIcon(pause_icon)
-        self.ui.pause_button.setIconSize(QtCore.QSize(21, 21))
-
         self.ui.status_warning_label.hide()
         self.warning_animation = QtGui.QMovie(":/icons/gif/warning.gif")
         self.ui.status_warning_label.setMovie(self.warning_animation)
@@ -121,7 +123,7 @@ class MeasureWindow(QtWidgets.QWidget):
         self.lowest_amplitude = -self.highest_amplitude if clb.is_dc_signal[self.current_case.signal_type] else 0
 
     def fill_fixed_step_combobox(self):
-        values: List[float] = self.settings.fixed_step_list
+        values = self.settings.fixed_step_list
 
         self.ui.fixed_step_combobox.clear()
         for val in values:
@@ -220,14 +222,15 @@ class MeasureWindow(QtWidgets.QWidget):
             self.ask_for_close()
 
     def ask_for_start_measure(self):
-        message = f"Начать поверку?\n\n" \
-                  f"На калибраторе будет включен сигнал и установлены следующие параметры:\n\n" \
-                  f"Режим измерения: Фиксированный диапазон\n" \
-                  f"Тип сигнала: {clb.enum_to_signal_type[self.current_case.signal_type]}\n" \
-                  f"Амплитуда: {self.value_to_user(self.highest_amplitude)}"
+        message = "Начать поверку?\n\n" \
+                  "На калибраторе будет включен сигнал и установлены следующие параметры:\n\n" \
+                  "Режим измерения: Фиксированный диапазон\n" \
+                  "Тип сигнала: {0}\n" \
+                  "Амплитуда: {1}".format(
+            clb.enum_to_signal_type[self.current_case.signal_type], self.value_to_user(self.highest_amplitude))
 
         if clb.is_ac_signal[self.current_case.signal_type]:
-            message += f"\nЧастота: {utils.float_to_string(self.calibrator.frequency)} Гц"
+            message += "\nЧастота: {0} Гц".format(utils.float_to_string(self.calibrator.frequency))
 
         reply = QMessageBox.question(self, "Подтвердите действие", message, QMessageBox.Yes | QMessageBox.No,
                                      QMessageBox.No)
@@ -249,9 +252,11 @@ class MeasureWindow(QtWidgets.QWidget):
         if a_signal_enabled:
             self.ui.pause_button.setChecked(a_signal_enabled)
             self.ui.pause_button.setText("Пауза")
+            self.ui.pause_button.setIcon(self.pause_icon)
         else:
             self.ui.pause_button.setChecked(a_signal_enabled)
             self.ui.pause_button.setText("Возобновить")
+            self.ui.pause_button.setIcon(self.play_icon)
 
     def check_fixed_range(self):
         if self.calibrator.mode == clb.Mode.FIXED_RANGE and self.calibrator.amplitude == self.highest_amplitude:
@@ -386,22 +391,30 @@ class MeasureWindow(QtWidgets.QWidget):
     def save_point(self):
         if self.clb_state != clb.State.WAITING_SIGNAL:
             try:
-                if self.measure_manager.view().is_point_good(self.current_point.amplitude, self.current_point.frequency,
-                                                             self.current_point.approach_side):
+                if self.measure_manager.view().is_point_measured(self.current_point.amplitude, self.current_point.frequency,
+                                                                 self.current_point.approach_side):
 
                     side_text = "СНИЗУ" if self.current_point.approach_side == PointData.ApproachSide.DOWN \
                         else "СВЕРХУ"
 
-                    point_text = f"{self.value_to_user(self.current_point.amplitude)}"
+                    point_text = "{0}".format(self.value_to_user(self.current_point.amplitude))
                     if clb.is_ac_signal[self.current_case.signal_type]:
-                        point_text += f" : {utils.float_to_string(self.current_point.frequency)} Гц"
+                        point_text += " : {0} Гц".format(utils.float_to_string(self.current_point.frequency))
 
-                    reply = QMessageBox.question(self, "Подтвердите действие", f"Значение {side_text} уже измерено "
-                                                 f"для точки {point_text} и не превышает допустимую погрешность. "
-                                                 f"Перезаписать значение {side_text} для точки {point_text}?",
-                                                 QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
-                    if reply == QMessageBox.Yes:
+                    ask_dlg = QMessageBox(self)
+                    ask_dlg.setWindowTitle("Выберите действие")
+                    ask_dlg.setText("Значение {0} уже измерено для точки {1}.\n"
+                                    "Выберите действие для точки {3}({2})".format(side_text, point_text,
+                                                                                   side_text, point_text))
+                    average_btn = ask_dlg.addButton("Усреднить", QMessageBox.YesRole)
+                    overwrite_btn = ask_dlg.addButton("Перезаписать", QMessageBox.YesRole)
+                    ask_dlg.addButton("Отменить", QMessageBox.NoRole)
+                    ask_dlg.exec()
+
+                    if ask_dlg.clickedButton() == overwrite_btn:
                         self.measure_manager.view().append(self.current_point)
+                    elif ask_dlg.clickedButton() == average_btn:
+                        self.measure_manager.view().append(self.current_point, a_average=True)
                 else:
                     if self.clb_state == clb.State.READY:
                         self.measure_manager.view().append(self.current_point)
@@ -409,7 +422,7 @@ class MeasureWindow(QtWidgets.QWidget):
                         self.measure_manager.view().append(PointData(a_point=self.current_point.amplitude,
                                                                      a_frequency=self.current_point.frequency))
             except AssertionError as err:
-                print(err)
+                utils.exception_handler(err)
         else:
             self.clb_not_ready_warning()
 
@@ -426,8 +439,8 @@ class MeasureWindow(QtWidgets.QWidget):
             target_frequency = float(self.measure_manager.view().get_frequency_by_row(row_idx).replace(',', '.'))
 
             if target_amplitude != self.calibrator.amplitude:
-                measured_up = self.measure_manager.view().is_point_measured(row_idx, PointData.ApproachSide.UP)
-                measured_down = self.measure_manager.view().is_point_measured(row_idx, PointData.ApproachSide.DOWN)
+                measured_up = self.measure_manager.view().is_point_measured_by_row(row_idx, PointData.ApproachSide.UP)
+                measured_down = self.measure_manager.view().is_point_measured_by_row(row_idx, PointData.ApproachSide.DOWN)
 
                 if measured_down == measured_up:
                     # Точка измерена полностью либо совсем не измерена, подходим с ближайшей стороны
@@ -475,10 +488,10 @@ class MeasureWindow(QtWidgets.QWidget):
             deleted_points = ""
             for index_model in rows:
                 point_str = self.measure_manager.view().get_point_by_row(index_model.row())
-                deleted_points += f"\n{point_str}"
+                deleted_points += "\n{0}".format(point_str)
                 if clb.is_ac_signal[self.current_case.signal_type]:
                     freq = self.measure_manager.view().get_frequency_by_row(index_model.row())
-                    deleted_points += f" : {utils.float_to_string(float(freq))} Гц"
+                    deleted_points += " : {0} Гц".format(utils.float_to_string(float(freq)))
 
                 row_indexes.append(index_model.row())
 

@@ -42,7 +42,7 @@ class EditedListWidget(QtWidgets.QWidget):
         if self.ui.list_widget.hasFocus():
             key = event.key()
             if key == QtCore.Qt.Key_Return or key == QtCore.Qt.Key_Enter:
-                rows: List[QtWidgets.QListWidgetItem] = self.ui.list_widget.selectedItems()
+                rows = self.ui.list_widget.selectedItems()
                 if rows:
                     self.ui.list_widget.editItem(rows[0])
         else:
@@ -116,7 +116,7 @@ class EditedListOnlyNumbers(EditedListWidget):
         return utils.float_to_string(value)
 
     def get_list(self):
-        out_list: List[float] = []
+        out_list = []
         for idx in range(self.ui.list_widget.count()):
             item = float(self.ui.list_widget.item(idx).text().replace(',', '.'))
             if item not in out_list:

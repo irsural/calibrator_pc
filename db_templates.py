@@ -21,28 +21,24 @@ class TemplatesDB:
         self.connection = sqlite3.connect(a_db_name)
         self.cursor = self.connection.cursor()
 
-        self.templates_tab = "templates"
-        self.scales_tab = "scales"
-        self.limits_tab = "limits"
-
         with self.connection:
             self.cursor.execute(
-                f"CREATE TABLE IF NOT EXISTS {self.templates_tab} "
-                f"(id integer primary key autoincrement, name text, device_name text, device_creator text, "
-                f"device_system integer)"
+                "CREATE TABLE IF NOT EXISTS templates "
+                "(id integer primary key autoincrement, name text, device_name text, device_creator text, "
+                "device_system integer)"
             )
 
             self.cursor.execute(
-                f"CREATE TABLE IF NOT EXISTS {self.scales_tab} "
-                f"(id integer primary key autoincrement, scale_number int, points text, template_id int,"
-                f"foreign key (template_id) references {self.templates_tab}(id))"
+                "CREATE TABLE IF NOT EXISTS scales "
+                "(id integer primary key autoincrement, scale_number int, points text, template_id int,"
+                "foreign key (template_id) references templates(id))"
             )
 
             self.cursor.execute(
-                f"CREATE TABLE IF NOT EXISTS {self.limits_tab} "
-                f"(id integer primary key autoincrement, scale_limit real, device_class real, signal_type int,"
-                f"frequency text, scale_id int, "
-                f"foreign key (scale_id) references {self.scales_tab}(id))"
+                "CREATE TABLE IF NOT EXISTS limits "
+                "(id integer primary key autoincrement, scale_limit real, device_class real, signal_type int,"
+                "frequency text, scale_id int, "
+                "foreign key (scale_id) references scales(id))"
             )
 
     def __del__(self):
@@ -54,8 +50,8 @@ class TemplatesDB:
         ИЗМЕНЯЕТ a_prams.id !!!
         """
         self.cursor.execute(
-            f"insert into {self.templates_tab}(name, device_name, device_creator, device_system) "
-            f"values (?,?,?,?)",
+            "insert into templates(name, device_name, device_creator, device_system) "
+            "values (?,?,?,?)",
             (a_params.name, a_params.device_name, a_params.device_creator, a_params.device_system)
         )
         a_params.id = self.cursor.lastrowid
@@ -65,21 +61,21 @@ class TemplatesDB:
 
     def get(self, a_id: int) -> TemplateParams:
         try:
-            self.cursor.execute(f"select * from {self.templates_tab} WHERE id={a_id}")
+            self.cursor.execute("select * from templates WHERE id={0}".format(a_id))
             template_rec = self.cursor.fetchone()
 
             template_id = template_rec[0]
 
-            self.cursor.execute(f"select * from {self.scales_tab} WHERE template_id={template_id}")
+            self.cursor.execute("select * from scales WHERE template_id={0}".format(template_id))
             scales_recs = self.cursor.fetchall()
 
             template_scales = []
             for s_id, s_number, s_points, _ in scales_recs:
                 points = s_points.split(';')
-                scale_points: List[float] = [float(p) for p in points] if points[0] else []
+                scale_points = [float(p) for p in points] if points[0] else []
 
-                self.cursor.execute(f"select * from {self.limits_tab} WHERE scale_id={s_id}")
-                scale_limits: List[Scale.Limit] = [Scale.Limit(*rec[0:-1]) for rec in self.cursor.fetchall()]
+                self.cursor.execute("select * from limits WHERE scale_id={0}".format(s_id))
+                scale_limits = [Scale.Limit(*rec[0:-1]) for rec in self.cursor.fetchall()]
 
                 template_scales.append(Scale(s_id, s_number, scale_points, scale_limits))
 
@@ -98,13 +94,13 @@ class TemplatesDB:
         Обновляет запись и фиксирует изменения в БД
         """
         self.cursor.executemany(
-            f"update {self.scales_tab} set scale_number = ?, points = ? where id = ?",
+            "update scales set scale_number = ?, points = ? where id = ?",
             ((scale.number, ';'.join((str(p) for p in scale.points)), scale.id) for scale in a_params.scales)
         )
 
         self.cursor.execute(
-            f"update {self.templates_tab} set name = ?, device_name = ?, device_creator = ?, device_system = ?"
-            f"where id = {a_params.id}",
+            "update templates set name = ?, device_name = ?, device_creator = ?, device_system = ?"
+            "where id = {0}".format(a_params.id),
             (a_params.name, a_params.device_name, a_params.device_creator, a_params.device_system)
         )
         self.connection.commit()
@@ -116,17 +112,17 @@ class TemplatesDB:
         with self.connection:
             scale_ids = ','.join([str(scale.id) for scale in a_params.scales])
 
-            self.cursor.execute(f"delete from {self.limits_tab} where scale_id in ({scale_ids})")
-            self.cursor.execute(f"delete from {self.scales_tab} where id in ({scale_ids})")
-            self.cursor.execute(f"delete from {self.templates_tab} where id = {a_params.id}")
+            self.cursor.execute("delete from limits where scale_id in ({0})".format(scale_ids))
+            self.cursor.execute("delete from scales where id in ({0})".format(scale_ids))
+            self.cursor.execute("delete from templates where id = {0}".format(a_params.id))
             return True
 
     def new_scale(self, a_template_id: int, a_scale=None):
         scale = a_scale if a_scale is not None else Scale()
 
-        self.cursor.execute(f"insert into {self.scales_tab} (scale_number, points, template_id) "
-                            f"values (?, ?, ?)", (scale.number, ';'.join([str(p) for p in scale.points]),
-                                                  a_template_id))
+        self.cursor.execute("insert into scales (scale_number, points, template_id) "
+                            "values (?, ?, ?)", (scale.number, ';'.join([str(p) for p in scale.points]),
+                                                 a_template_id))
 
         scale.id = self.cursor.lastrowid
 
@@ -136,16 +132,16 @@ class TemplatesDB:
         return scale
 
     def delete_scale(self, a_scale_id: int):
-        self.cursor.execute(f"delete from {self.limits_tab} where scale_id in ({a_scale_id})")
+        self.cursor.execute("delete from limits where scale_id in ({0})".format(a_scale_id))
 
-        self.cursor.execute(f"delete from {self.scales_tab} where id in ({a_scale_id})")
+        self.cursor.execute("delete from scales where id in ({0})".format(a_scale_id))
 
     def new_limit(self, a_scale_id: int, a_limit: Scale.Limit = None):
         limit = a_limit if a_limit is not None else Scale.Limit()
 
         self.cursor.execute(
-            f"insert into {self.limits_tab} (scale_limit, device_class, signal_type, frequency, scale_id) "
-            f"values (?, ?, ?, ?, ?)", (limit.limit, limit.device_class, limit.signal_type, limit.frequency, a_scale_id)
+            "insert into limits (scale_limit, device_class, signal_type, frequency, scale_id) "
+            "values (?, ?, ?, ?, ?)", (limit.limit, limit.device_class, limit.signal_type, limit.frequency, a_scale_id)
         )
 
         limit.id = self.cursor.lastrowid
@@ -154,33 +150,33 @@ class TemplatesDB:
 
     def update_limit(self, a_limit: Scale.Limit):
         self.cursor.execute(
-            f"update {self.limits_tab} set scale_limit = ?, device_class = ?, signal_type = ?, frequency = ? "
-            f"where id = ?",
+            "update limits set scale_limit = ?, device_class = ?, signal_type = ?, frequency = ? "
+            "where id = ?",
             (a_limit.limit, a_limit.device_class, a_limit.signal_type, a_limit.frequency, a_limit.id)
         )
 
     def get_limits(self, a_scale_id):
-        self.cursor.execute(f"select * from {self.limits_tab} where scale_id = {a_scale_id}")
+        self.cursor.execute("select * from limits where scale_id = {0}".format(a_scale_id))
         return [Scale.Limit(*rec[:-1]) for rec in self.cursor.fetchall()]
 
     def delete_limits(self, a_deleted_ids: Iterable[int]):
         self.cursor.execute(
-            f"delete from {self.limits_tab} where id in ({','.join(str(d_id) for d_id in a_deleted_ids)})"
+            "delete from limits where id in ({0})".format(','.join(str(d_id) for d_id in a_deleted_ids))
         )
 
     def is_name_exist(self, a_name: str):
-        c = self.cursor.execute(f"SELECT EXISTS(SELECT 1 FROM {self.templates_tab} where name='{a_name}')")
+        c = self.cursor.execute("SELECT EXISTS(SELECT 1 FROM templates where name='{0}')".format(a_name))
         res = c.fetchone()
         return res[0]
 
     def is_id_exist(self, a_id: int):
-        c = self.cursor.execute(f"SELECT EXISTS(SELECT 1 FROM {self.templates_tab} where id={a_id})")
+        c = self.cursor.execute("SELECT EXISTS(SELECT 1 FROM templates where id={0})".format(a_id))
         res = c.fetchone()
         return res[0]
 
     def __iter__(self):
         # Итерация по именам БД
-        self.cursor.execute(f"select id, name from {self.templates_tab} order by name")
+        self.cursor.execute("select id, name from templates order by name")
         return self
 
     def __next__(self):

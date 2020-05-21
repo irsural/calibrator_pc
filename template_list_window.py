@@ -27,7 +27,7 @@ class TemplateListWindow(QtWidgets.QDialog):
         self.settings = a_settings
         self.restoreGeometry(self.settings.get_last_geometry(self.__class__.__name__))
 
-        self.current_template: TemplateParams = TemplateParams()
+        self.current_template = TemplateParams()
 
         for template_id, name in self.templates_db:
             list_item = QtWidgets.QListWidgetItem(name)
@@ -60,7 +60,7 @@ class TemplateListWindow(QtWidgets.QDialog):
         menu = QtWidgets.QMenu()
         menu.addAction("Новый шаблон", self.add_template_clicked)
 
-        template_chosen: bool = self.ui.templates_list.currentRow() != -1
+        template_chosen = self.ui.templates_list.currentRow() != -1
         duplicate_act = menu.addAction("Дублировать", self.duplicate_template)
         duplicate_act.setEnabled(template_chosen)
 
@@ -88,7 +88,7 @@ class TemplateListWindow(QtWidgets.QDialog):
         try:
             if a_current is not None:
                 new_template_id = a_current.data(QtCore.Qt.UserRole)
-                self.current_template: TemplateParams = self.templates_db.get(new_template_id)
+                self.current_template = self.templates_db.get(new_template_id)
                 assert self.current_template is not None, "database operation 'get' has failed!"
                 self.fill_template_info_to_ui(self.current_template)
         except AssertionError as err:
@@ -113,7 +113,7 @@ class TemplateListWindow(QtWidgets.QDialog):
         source_template_name = self.current_template.name
         while self.templates_db.is_name_exist(self.current_template.name):
             copy_number += 1
-            self.current_template.name = f"{source_template_name}_{copy_number}"
+            self.current_template.name = "{0}_{1}".format(source_template_name, copy_number)
 
         self.templates_db.new(self.current_template)
 
@@ -125,7 +125,7 @@ class TemplateListWindow(QtWidgets.QDialog):
 
     def duplicate_template(self):
         try:
-            current_template_id: int = self.ui.templates_list.currentItem().data(QtCore.Qt.UserRole)
+            current_template_id = self.ui.templates_list.currentItem().data(QtCore.Qt.UserRole)
             duplicate_template = self.templates_db.get(current_template_id)
             assert duplicate_template is not None, "database operation 'get' has failed!"
 
@@ -161,8 +161,8 @@ class TemplateListWindow(QtWidgets.QDialog):
 
     def delete_current_template(self):
         deleted_item = self.ui.templates_list.currentItem()
-        reply = QtWidgets.QMessageBox.question(self, "Подтвердите действие", f"Вы действительно хотите удалить "
-                                               f"шаблон '{deleted_item.text()}'?", QtWidgets.QMessageBox.Yes |
+        reply = QtWidgets.QMessageBox.question(self, "Подтвердите действие", "Вы действительно хотите удалить "
+                                               "шаблон '{0}'?".format(deleted_item.text()), QtWidgets.QMessageBox.Yes |
                                                QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)
         if reply == QtWidgets.QMessageBox.Yes:
             self.templates_db.delete(self.current_template)
@@ -173,7 +173,7 @@ class TemplateListWindow(QtWidgets.QDialog):
             item = self.ui.templates_list.currentItem()
             if item is not None:
                 variable_params_dialog = VariableTemplateFieldsDialog(self)
-                params: VariableTemplateParams = variable_params_dialog.exec_and_get_params()
+                params = variable_params_dialog.exec_and_get_params()
                 if params is not None:
                     self.config_ready.emit(self.current_template, params)
                     self.reject()

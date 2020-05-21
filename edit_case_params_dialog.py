@@ -35,7 +35,7 @@ class EditCaseParamsDialog(QtWidgets.QDialog):
 
     def edit_text_edited(self):
         try:
-            edit: QtCore.QObject = self.sender()
+            edit = self.sender()
             assert isinstance(edit, QtWidgets.QLineEdit), "edit_text_edited must be connected to QLineEdit event!"
 
             self.update_edit_color(edit)
@@ -52,7 +52,7 @@ class EditCaseParamsDialog(QtWidgets.QDialog):
 
     def editing_finished(self):
         try:
-            edit: QtCore.QObject = self.sender()
+            edit = self.sender()
             assert isinstance(edit, QtWidgets.QLineEdit), "editinig_finished must be connected to QLineEdit event!"
             self.normalize_edit_value(edit)
         except AssertionError as err:

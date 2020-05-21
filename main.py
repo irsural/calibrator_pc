@@ -4,8 +4,8 @@ ui_to_py.convert_resources("./resources", ".")
 
 import sys
 
-from PyQt5.QtWidgets import QApplication
 from PyQt5 import QtCore
+from PyQt5.QtWidgets import QApplication
 
 from mainwindow import MainWindow
 from utils import exception_handler
@@ -13,6 +13,7 @@ from utils import exception_handler
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
+    app.setStyle("Fusion")
 
     translator = QtCore.QTranslator(app)
     path = QtCore.QLibraryInfo.location(QtCore.QLibraryInfo.TranslationsPath)

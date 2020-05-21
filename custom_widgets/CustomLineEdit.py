@@ -1,7 +1,6 @@
 from PyQt5 import QtWidgets, QtGui, QtCore
 
 import utils
-import constants as cfg
 
 
 class QEditDoubleClick(QtWidgets.QLineEdit):
@@ -35,13 +34,13 @@ class QEditCopyButton(QEditDoubleClick):
         self.copy_button.setIcon(QtGui.QIcon(pixmap))
         self.copy_button.setIconSize(pixmap.size())
         self.copy_button.setCursor(QtCore.Qt.ArrowCursor)
-        self.copy_button.setStyleSheet(f"QPushButton {{ border: none; padding: 0px; }}")
+        self.copy_button.setStyleSheet("QPushButton { border: none; padding: 0px; }")
         self.copy_button.setFlat(True)
         self.copy_button.clicked.connect(self.copy)
 
         frame_width = self.style().pixelMetric(QtWidgets.QStyle.PM_DefaultFrameWidth)
-        self.style_padding = f"padding-right:{self.copy_button.sizeHint().width() + frame_width + 1}px;"
-        self.setStyleSheet(f"QLineEdit{{{self.style_padding}}}")
+        self.style_padding = "padding-right:{0}px;".format(self.copy_button.sizeHint().width() + frame_width + 1)
+        self.setStyleSheet("QLineEdit{{{0}}}".format(self.style_padding))
         msh = self.minimumSizeHint()
         self.setMinimumSize(max(msh.width(), self.copy_button.sizeHint().height() + frame_width * 2 + 2),
                             max(msh.height(), self.copy_button.sizeHint().height() + frame_width * 2 + 2))

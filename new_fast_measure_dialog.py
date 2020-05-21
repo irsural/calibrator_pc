@@ -1,4 +1,3 @@
-from typing import Union
 import enum
 
 from PyQt5.QtWidgets import QDialog, QMessageBox
@@ -28,7 +27,7 @@ class FastMeasureParams:
         self.points_step = 0.1
         self.start_point_side = self.StartPoint.LOWER
         self.amplitudes = []
-        self.frequency: str = ""
+        self.frequency = ""
 
 
 class NewFastMeasureDialog(QDialog):
@@ -52,10 +51,10 @@ class NewFastMeasureDialog(QDialog):
         InputStatus.upper_less_than_zero: "В режиме переменного тока напряжение/сила тока должны быть положительными",
         InputStatus.step_is_zero: "Шаг поверки не должен быть равен нулю",
         InputStatus.empty_fields: "Необходимо заполнить все поля",
-        InputStatus.current_too_big: f"Значение тока не должно превышать |{clb.MAX_CURRENT}| А",
-        InputStatus.voltage_too_big: f"Значение напряжения не должно превышать |{clb.MAX_VOLTAGE}| В",
-        InputStatus.bad_input: f"Некорректный ввод. Необходимо исправить поля, отмеченные красным цветом",
-        InputStatus.zero_minimal_discrete: f"Минимальный дискрет не должен быть равен нулю",
+        InputStatus.current_too_big: "Значение тока не должно превышать |{0}| А".format(clb.MAX_CURRENT),
+        InputStatus.voltage_too_big: "Значение напряжения не должно превышать |{0}| В".format(clb.MAX_VOLTAGE),
+        InputStatus.bad_input: "Некорректный ввод. Необходимо исправить поля, отмеченные красным цветом",
+        InputStatus.zero_minimal_discrete: "Минимальный дискрет не должен быть равен нулю",
         InputStatus.no_frequency: "Значения частоты не заданы"
     }
 
@@ -65,7 +64,6 @@ class NewFastMeasureDialog(QDialog):
         self.ui = NewFastMeasureForm()
         self.ui.setupUi(self)
         self.ui.invisible_default_button.hide()
-        self.setFixedSize(self.width(), self.height())
 
         self.fast_params = a_fast_params if a_fast_params is not None else FastMeasureParams()
         self.value_to_user = utils.value_to_user_with_units("А")
@@ -77,7 +75,7 @@ class NewFastMeasureDialog(QDialog):
         self.normalize_edit_value(self.ui.lower_bound_edit)
         self.normalize_edit_value(self.ui.step_edit)
 
-        self.edit_frequency_widget: Union[EditedListOnlyNumbers, None] = None
+        self.edit_frequency_widget = None
 
     def __del__(self):
         print("new fast deleted")
@@ -110,7 +108,7 @@ class NewFastMeasureDialog(QDialog):
 
     def edit_text_edited(self):
         try:
-            edit: QtCore.QObject = self.sender()
+            edit = self.sender()
             assert isinstance(edit, QtWidgets.QLineEdit), "edit_text_edited must be connected to QLineEdit event!"
 
             self.update_edit_color(edit)
@@ -127,7 +125,7 @@ class NewFastMeasureDialog(QDialog):
 
     def editing_finished(self):
         try:
-            edit: QtCore.QObject = self.sender()
+            edit = self.sender()
             assert isinstance(edit, QtWidgets.QLineEdit), "editinig_finished must be connected to QLineEdit event!"
             self.normalize_edit_value(edit)
         except AssertionError as err:

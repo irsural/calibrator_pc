@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file './ui/startform.ui'
 #
-# Created by: PyQt5 UI code generator 5.13.1
+# Created by: PyQt5 UI code generator 5.14.1
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -13,13 +13,14 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_Form(object):
     def setupUi(self, Form):
         Form.setObjectName("Form")
-        Form.resize(674, 378)
+        Form.resize(1027, 458)
         font = QtGui.QFont()
         font.setPointSize(13)
         Form.setFont(font)
         self.verticalLayout = QtWidgets.QVBoxLayout(Form)
         self.verticalLayout.setObjectName("verticalLayout")
         self.horizontalLayout = QtWidgets.QHBoxLayout()
+        self.horizontalLayout.setSpacing(7)
         self.horizontalLayout.setObjectName("horizontalLayout")
         self.label = QtWidgets.QLabel(Form)
         self.label.setObjectName("label")
@@ -88,6 +89,9 @@ class Ui_Form(object):
         self.horizontalLayout.addWidget(self.template_mode_button)
         self.verticalLayout.addLayout(self.horizontalLayout)
         self.measures_table = QtWidgets.QTableView(Form)
+        font = QtGui.QFont()
+        font.setPointSize(9)
+        self.measures_table.setFont(font)
         self.measures_table.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.measures_table.setStyleSheet("selection-color: rgb(0, 0, 0);\n"
 "selection-background-color: rgb(170, 170, 255);")

@@ -46,7 +46,7 @@ class FrequencyWidget(QtWidgets.QWidget):
 
     def frequency_editing_finished(self):
         # noinspection PyUnresolvedReferences
-        edit_widget: EditedListOnlyNumbers = self.sender().get_main_widget()
+        edit_widget = self.sender().get_main_widget()
         frequency_list = edit_widget.get_list()
         self.edit.setText(";".join(utils.float_to_string(f) for f in frequency_list))
 
@@ -180,7 +180,6 @@ class ScaleLimitsDialog(QtWidgets.QDialog):
             rows = self.ui.limits_table.selectionModel().selectedRows()
             if rows:
                 for idx_model in reversed(rows):
-                    print("deleted", idx_model.row())
                     deleted_row = idx_model.row()
                     deleted_id = int(self.ui.limits_table.item(deleted_row, ScaleLimitsDialog.Column.ID).text())
                     self.ui.limits_table.removeRow(deleted_row)

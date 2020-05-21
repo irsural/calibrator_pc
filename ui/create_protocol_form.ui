@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>573</width>
-    <height>449</height>
+    <width>1052</width>
+    <height>595</height>
    </rect>
   </property>
   <property name="font">
@@ -259,7 +259,7 @@
             <enum>Qt::CustomContextMenu</enum>
            </property>
            <property name="text">
-            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Комментарий(&lt;span style=&quot; color:#ff557f;&quot;&gt;%comment__&lt;/span&gt;)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Комментарий (&lt;span style=&quot; color:#ff557f;&quot;&gt;%comment__&lt;/span&gt;)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
            </property>
           </widget>
          </item>
@@ -278,7 +278,7 @@
       </sizepolicy>
      </property>
      <property name="currentIndex">
-      <number>1</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="marks_widget_tab">
       <attribute name="title">
@@ -312,6 +312,11 @@
        </property>
        <item row="1" column="0">
         <widget class="QTableView" name="points_table">
+         <property name="font">
+          <font>
+           <pointsize>9</pointsize>
+          </font>
+         </property>
          <property name="contextMenuPolicy">
           <enum>Qt::CustomContextMenu</enum>
          </property>
@@ -349,6 +354,23 @@ selection-background-color: rgb(170, 170, 255);</string>
        </property>
        <property name="default">
         <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="to_excel_button">
+       <property name="text">
+        <string>Скопировать в формате Excel</string>
+       </property>
+       <property name="icon">
+        <iconset resource="../resources/icons.qrc">
+         <normaloff>:/icons/icons/excel.png</normaloff>:/icons/icons/excel.png</iconset>
+       </property>
+       <property name="iconSize">
+        <size>
+         <width>20</width>
+         <height>20</height>
+        </size>
        </property>
       </widget>
      </item>
@@ -408,6 +430,8 @@ selection-background-color: rgb(170, 170, 255);</string>
   <tabstop>reject_button</tabstop>
   <tabstop>default_button</tabstop>
  </tabstops>
- <resources/>
+ <resources>
+  <include location="../resources/icons.qrc"/>
+ </resources>
  <connections/>
 </ui>

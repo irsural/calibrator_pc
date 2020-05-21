@@ -1,6 +1,4 @@
-from typing import Union
-
-from PyQt5 import QtCore, QtWidgets
+from PyQt5 import QtCore, QtWidgets, QtGui
 
 from custom_widgets.QTableDelegates import NonOverlappingDoubleClick
 from MeasureModel import MeasureModel, PointData
@@ -9,17 +7,34 @@ import calibrator_constants as clb
 import qt_utils
 
 
+class CornerButtonPainter(NonOverlappingDoubleClick):
+    def __init__(self, a_parent):
+        super().__init__(a_parent)
+
+    def paint(self, painter: QtGui.QPainter, option, index: QtCore.QModelIndex):
+        super().paint(painter, option, index)
+        repeat_count = index.data(QtCore.Qt.UserRole)
+        if repeat_count > 1:
+            btn = QtWidgets.QStyleOptionButton()
+            w = option.rect.height() / 1.5
+            h = option.rect.height() / 1.5
+            btn.rect = QtCore.QRect(option.rect.right() - w, option.rect.top() + 1, w, h)
+            btn.text = str(repeat_count)
+            btn.state = QtWidgets.QStyle.State_Enabled
+            QtWidgets.QApplication.style().drawControl(QtWidgets.QStyle.CE_PushButton, btn, painter)
+
+
 class MeasureView:
     def __init__(self, a_table_view: QtWidgets.QTableView, a_measure_case: Measure.Case):
 
         self.table = a_table_view
-        self.measure_case: Union[Measure.Case, None] = None
-        self.measure_model: Union[MeasureModel, None] = None
+        self.measure_case = None
+        self.measure_model = None
 
         # Нужен, чтобы сохранять в него точки, перед self.reset
         self.reset(a_measure_case)
 
-        self.table.setItemDelegate(NonOverlappingDoubleClick(self.table))
+        self.table.setItemDelegate(CornerButtonPainter(self.table))
         self.table.customContextMenuRequested.connect(self.show_table_custom_menu)
 
         self.header_context = qt_utils.TableHeaderContextMenu(self.table, self.table)
@@ -78,14 +93,14 @@ class MeasureView:
         index = self.measure_model.index(a_row, a_column)
         return self.measure_model.getText(index)
 
-    def is_point_good(self, a_amplitude: float, a_frequency: float, a_approach_side: PointData.ApproachSide):
-        return self.measure_model.isPointGood(a_amplitude, a_frequency, a_approach_side)
+    def is_point_measured(self, a_amplitude: float, a_frequency: float, a_approach_side: PointData.ApproachSide):
+        return self.measure_model.isPointMeasured(a_amplitude, a_frequency, a_approach_side)
 
-    def is_point_measured(self, a_row_idx, a_approach_side: PointData.ApproachSide):
-        return self.measure_model.isPointMeasured(a_row_idx, a_approach_side)
+    def is_point_measured_by_row(self, a_row_idx, a_approach_side: PointData.ApproachSide):
+        return self.measure_model.isPointMeasuredByRow(a_row_idx, a_approach_side)
 
-    def append(self, a_point: PointData):
-        point_row = self.measure_model.appendPoint(a_point)
+    def append(self, a_point: PointData, a_average=False):
+        point_row = self.measure_model.appendPoint(a_point, a_average)
         self.table.selectRow(point_row)
 
     def view(self):

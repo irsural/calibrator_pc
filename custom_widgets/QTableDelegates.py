@@ -1,25 +1,28 @@
 from PyQt5 import QtGui, QtCore, QtWidgets
-from PyQt5.QtWidgets import QStyle
 from PyQt5.QtWidgets import QWidget
 
 from custom_widgets.CustomLineEdit import QEditDoubleClick
 
 
 class NonOverlappingPainter(QtWidgets.QStyledItemDelegate):
-    """
-    По каким то причинам это делает цвет выбранной ячейки прозрачным
-    """
     def __init__(self, a_parent=None):
         super().__init__(a_parent)
 
-    def paint(self, painter: QtGui.QPainter, option: QtWidgets.QStyleOptionViewItem, index: QtCore.QModelIndex):
-        item_option = QtWidgets.QStyleOptionViewItem(option)
-        self.initStyleOption(item_option, index)
-
-        # if item_option.state & QStyle.State_Selected and not (item_option.state & QStyle.State_Active):
-        #     item_option.palette.setColor(QtGui.QPalette.Inactive, QtGui.QPalette.Highlight, QtCore.Qt.red)
-
-        QtWidgets.QApplication.style().drawControl(QStyle.CE_ItemViewItem, item_option, painter)
+    def paint(self, painter: QtGui.QPainter, option, index: QtCore.QModelIndex):
+        background = index.data(QtCore.Qt.BackgroundRole)
+        if isinstance(background, QtGui.QBrush):
+            if background.color() != QtCore.Qt.white:
+                # WARNING Чтобы drawText работал правильно, нужно чтобы в ui форме в QTable
+                # был явно прописан размер шрифта!!!
+                painter.fillRect(option.rect, background)
+                text_rect = option.rect
+                # Не знаю как получить нормальный прямоугольник для отрисовки текста, поэтому только так
+                text_rect.setLeft(text_rect.left() + 3)
+                painter.drawText(text_rect, option.displayAlignment, index.data())
+            else:
+                super().paint(painter, option, index)
+        else:
+            super().paint(painter, option, index)
 
 
 class TableEditDoubleClick(QtWidgets.QItemDelegate):

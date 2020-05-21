@@ -6,14 +6,38 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>322</width>
-    <height>412</height>
+    <width>394</width>
+    <height>505</height>
    </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
   </property>
   <property name="windowTitle">
    <string>Измерение без шаблона</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
+   <property name="spacing">
+    <number>7</number>
+   </property>
+   <property name="sizeConstraint">
+    <enum>QLayout::SetFixedSize</enum>
+   </property>
+   <property name="leftMargin">
+    <number>11</number>
+   </property>
+   <property name="topMargin">
+    <number>11</number>
+   </property>
+   <property name="rightMargin">
+    <number>11</number>
+   </property>
+   <property name="bottomMargin">
+    <number>11</number>
+   </property>
    <item>
     <widget class="QLabel" name="label">
      <property name="font">
@@ -139,6 +163,12 @@
     <layout class="QGridLayout" name="params_grid">
      <item row="3" column="1">
       <widget class="QLineEdit" name="comment_edit">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
        <property name="font">
         <font>
          <pointsize>10</pointsize>
@@ -205,6 +235,12 @@
      </item>
      <item row="1" column="0">
       <widget class="QEditDoubleClick" name="upper_bound_edit">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
        <property name="minimumSize">
         <size>
          <width>0</width>
@@ -229,6 +265,12 @@
      </item>
      <item row="3" column="0">
       <widget class="QDoubleSpinBox" name="accuracy_class_spinbox">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
        <property name="font">
         <font>
          <pointsize>10</pointsize>
@@ -253,6 +295,12 @@
      </item>
      <item row="1" column="1">
       <widget class="QEditDoubleClick" name="minimal_discrete">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
        <property name="minimumSize">
         <size>
          <width>0</width>
@@ -301,10 +349,19 @@
      </property>
      <layout class="QGridLayout" name="gridLayout">
       <property name="leftMargin">
-       <number>0</number>
+       <number>5</number>
+      </property>
+      <property name="topMargin">
+       <number>11</number>
       </property>
       <property name="rightMargin">
-       <number>0</number>
+       <number>5</number>
+      </property>
+      <property name="bottomMargin">
+       <number>11</number>
+      </property>
+      <property name="spacing">
+       <number>7</number>
       </property>
       <item row="0" column="0">
        <widget class="QLabel" name="label_3">
@@ -332,6 +389,12 @@
       </item>
       <item row="1" column="0">
        <widget class="QEditDoubleClick" name="lower_bound_edit">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
         <property name="minimumSize">
          <size>
           <width>0</width>
@@ -442,7 +505,7 @@
       <item row="4" column="0" colspan="2">
        <layout class="QHBoxLayout" name="horizontalLayout_2">
         <property name="spacing">
-         <number>0</number>
+         <number>3</number>
         </property>
         <item>
          <widget class="QLineEdit" name="frequency_edit">
@@ -495,7 +558,7 @@
       <item row="2" column="0">
        <widget class="QPushButton" name="invisible_default_button">
         <property name="text">
-         <string>invisible_default_button</string>
+         <string>default_button</string>
         </property>
         <property name="autoDefault">
          <bool>true</bool>

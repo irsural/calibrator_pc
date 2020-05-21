@@ -22,7 +22,7 @@ def update_edit_color(a_actual_value, a_current_value, a_edit: QtWidgets.QLineEd
 
 def get_wheel_steps(event: QtGui.QWheelEvent):
     degrees_num = event.angleDelta() / 8
-    steps_num: QtCore.QPoint = degrees_num / 15
+    steps_num = degrees_num / 15
     return steps_num.y()
 
 

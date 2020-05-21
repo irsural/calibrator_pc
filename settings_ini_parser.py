@@ -185,7 +185,7 @@ class Settings(QtCore.QObject):
 
     def get_last_geometry(self, a_window_name: str):
         try:
-            geometry_bytes: str = self.settings[self.GEOMETRY_SECTION][a_window_name]
+            geometry_bytes = self.settings[self.GEOMETRY_SECTION][a_window_name]
             return QtCore.QByteArray(self.__from_base64(geometry_bytes))
         except (KeyError, ValueError):
             return QtCore.QByteArray()
@@ -314,9 +314,6 @@ class Settings(QtCore.QObject):
 
         self.__disable_scroll_on_table = a_enable
         self.__disable_scroll_on_table = utils.bound(self.__disable_scroll_on_table, 0, 1)
-
-    def __restore_next_line_symbols(self, state_bytes):
-        pass
 
     @property
     def template_filepath(self):

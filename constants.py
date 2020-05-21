@@ -5,7 +5,7 @@ from calibrator_constants import SignalType, is_dc_signal
 
 
 FLOAT_EPSILON = 1e-9
-FIRST_POINT_START_DEVIATION_PERCENT = 15
+FIRST_POINT_START_DEVIATION_PERCENT = 10
 
 
 class DeviceSystem(IntEnum):
@@ -43,14 +43,13 @@ class Scale:
                 self.frequency = "50"
 
         def __str__(self):
-            return f"{self.limit}, {self.signal_type}, {self.device_class}"
+            return str(self.limit) + str(self.signal_type) + str(self.device_class)
 
     def __init__(self, a_id=0, a_number=1, a_scale_points: List[float] = None, a_limits: List[Limit] = None):
         self.id = a_id
         self.number = a_number
-        self.points: List[float] = a_scale_points if a_scale_points is not None else []
-        self.limits: List[Scale.Limit] = a_limits if a_limits is not None else [Scale.Limit()]
+        self.points = a_scale_points if a_scale_points is not None else []
+        self.limits = a_limits if a_limits is not None else [Scale.Limit()]
 
     def __str__(self):
-        return f"Points: {self.points}\nLimits: {[str(lim) for lim in self.limits]}"
-
+        return "Points: {0}\nLimits: {1}".format(self.points, [str(lim) for lim in self.limits])

@@ -44,10 +44,12 @@ class StartWindow(QtWidgets.QWidget):
         self.ui.create_protocol_button.clicked.connect(self.create_protocol)
         self.ui.measures_table.doubleClicked.connect(self.create_protocol)
 
-        self.parent.restoreGeometry(self.settings.get_last_geometry(self.__class__.__name__))
         self.parent.show()
-        # По каким то причинам restoreGeometry не восстанавливает размер MainWindow, если оно скрыто
-        self.parent.restoreGeometry(self.settings.get_last_geometry(self.__class__.__name__))
+        geometry = self.settings.get_last_geometry(self.__class__.__name__)
+        if not geometry.isEmpty():
+            self.parent.restoreGeometry(geometry)
+        else:
+            self.parent.resize(self.size())
 
         self.control_db_connection = a_control_db_connection
         self.measure_db = MeasuresDB(a_control_db_connection)
@@ -60,7 +62,7 @@ class StartWindow(QtWidgets.QWidget):
     def config_measure_table(self, a_db_name: str):
         self.display_db_connection.setDatabaseName(a_db_name)
         res = self.display_db_connection.open()
-        assert res, f"Can't open database {a_db_name}!"
+        assert res, "Can't open database {0}!".format(a_db_name)
 
         self.display_db_model.setTable("measures")
         self.display_db_model.setRelation(MeasureColumn.DEVICE_SYSTEM,
@@ -73,7 +75,7 @@ class StartWindow(QtWidgets.QWidget):
         self.ui.measures_table.setModel(self.sort_proxy_model)
 
         # Чтобы был приятный цвет выделения
-        self.ui.measures_table.setItemDelegate(NonOverlappingDoubleClick(self))
+        self.ui.measures_table.setItemDelegate(NonOverlappingDoubleClick(self.ui.measures_table))
 
         self.ui.measures_table.selectionModel().currentChanged.connect(self.current_selection_changed)
         self.ui.measures_table.selectionModel().modelChanged.connect(self.current_selection_changed)

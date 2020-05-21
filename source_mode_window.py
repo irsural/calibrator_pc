@@ -2,7 +2,7 @@ from PyQt5 import QtCore, QtWidgets, QtGui
 from PyQt5.QtCore import pyqtSignal, QTimer
 
 
-from ui.py.source_mode_form import Ui_Form as SourceModeForm
+from ui.py.source_mode_form import Ui_Dialog as SourceModeForm
 import calibrator_constants as clb
 from settings_ini_parser import Settings
 import qt_utils
@@ -10,7 +10,7 @@ import clb_dll
 import utils
 
 
-class SourceModeWindow(QtWidgets.QWidget):
+class SourceModeDialog(QtWidgets.QDialog):
     close_confirmed = pyqtSignal()
 
     def __init__(self, a_settings: Settings, a_calibrator: clb_dll.ClbDrv, a_parent=None):
@@ -19,19 +19,11 @@ class SourceModeWindow(QtWidgets.QWidget):
         self.ui = SourceModeForm()
         self.ui.setupUi(self)
 
-        pause_icon = QtGui.QIcon()
-        pause_icon.addPixmap(QtGui.QPixmap(":/icons/icons/pause.png"), QtGui.QIcon.Normal, QtGui.QIcon.On)
-        pause_icon.addPixmap(QtGui.QPixmap(":/icons/icons/play.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
-        self.ui.enable_button.setIcon(pause_icon)
+        self.pause_icon = QtGui.QIcon(QtGui.QPixmap(":/icons/icons/pause.png"))
+        self.play_icon = QtGui.QIcon(QtGui.QPixmap(":/icons/icons/play.png"))
         self.ui.enable_button.setIconSize(QtCore.QSize(25, 25))
 
-        self.parent = a_parent
         self.settings = a_settings
-
-        self.parent.restoreGeometry(self.settings.get_last_geometry(self.__class__.__name__))
-        self.parent.show()
-        # По каким то причинам restoreGeometry не восстанавливает размер MainWindow, если оно скрыто
-        self.parent.restoreGeometry(self.settings.get_last_geometry(self.__class__.__name__))
 
         self.setWindowTitle("Режим источника")
 
@@ -56,6 +48,8 @@ class SourceModeWindow(QtWidgets.QWidget):
             clb.Mode.FIXED_RANGE: self.ui.fixed_mode_radio,
             clb.Mode.DETUNING: self.ui.detuning_radio,
         }
+
+        self.update_signal_enable_state(self.calibrator.signal_enable)
 
         self.clb_check_timer = QTimer()
         self.clb_check_timer.timeout.connect(self.sync_clb_parameters)
@@ -128,8 +122,10 @@ class SourceModeWindow(QtWidgets.QWidget):
     def update_signal_enable_state(self, a_signal_enabled: bool):
         if a_signal_enabled:
             self.ui.enable_button.setText("Стоп")
+            self.ui.enable_button.setIcon(self.pause_icon)
         else:
             self.ui.enable_button.setText("Старт")
+            self.ui.enable_button.setIcon(self.play_icon)
 
         self.ui.enable_button.setChecked(a_signal_enabled)
 
@@ -237,7 +233,5 @@ class SourceModeWindow(QtWidgets.QWidget):
             self.calibrator.mode = a_mode
             self.mode = a_mode
 
-    def ask_for_close(self):
+    def closeEvent(self, a_event: QtGui.QCloseEvent) -> None:
         self.calibrator.signal_enable = False
-        self.settings.save_geometry(self.__class__.__name__, self.parent.saveGeometry())
-        self.close_confirmed.emit()

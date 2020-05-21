@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file './ui/create_protocol_form.ui'
 #
-# Created by: PyQt5 UI code generator 5.13.1
+# Created by: PyQt5 UI code generator 5.14.1
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -13,7 +13,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_Dialog(object):
     def setupUi(self, Dialog):
         Dialog.setObjectName("Dialog")
-        Dialog.resize(573, 449)
+        Dialog.resize(1052, 595)
         font = QtGui.QFont()
         font.setPointSize(10)
         Dialog.setFont(font)
@@ -185,6 +185,9 @@ class Ui_Dialog(object):
         self.gridLayout_5.setVerticalSpacing(0)
         self.gridLayout_5.setObjectName("gridLayout_5")
         self.points_table = QtWidgets.QTableView(self.points_tab)
+        font = QtGui.QFont()
+        font.setPointSize(9)
+        self.points_table.setFont(font)
         self.points_table.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.points_table.setStyleSheet("selection-color: rgb(0, 0, 0);\n"
 "selection-background-color: rgb(170, 170, 255);")
@@ -205,6 +208,13 @@ class Ui_Dialog(object):
         self.default_button.setDefault(True)
         self.default_button.setObjectName("default_button")
         self.horizontalLayout_2.addWidget(self.default_button)
+        self.to_excel_button = QtWidgets.QPushButton(Dialog)
+        icon = QtGui.QIcon()
+        icon.addPixmap(QtGui.QPixmap(":/icons/icons/excel.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.to_excel_button.setIcon(icon)
+        self.to_excel_button.setIconSize(QtCore.QSize(20, 20))
+        self.to_excel_button.setObjectName("to_excel_button")
+        self.horizontalLayout_2.addWidget(self.to_excel_button)
         spacerItem = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
         self.horizontalLayout_2.addItem(spacerItem)
         self.accept_button = QtWidgets.QPushButton(Dialog)
@@ -218,7 +228,7 @@ class Ui_Dialog(object):
         self.verticalLayout.addLayout(self.horizontalLayout_2)
 
         self.retranslateUi(Dialog)
-        self.marks_and_points_tabwidget.setCurrentIndex(1)
+        self.marks_and_points_tabwidget.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(Dialog)
         Dialog.setTabOrder(self.template_protocol_edit, self.choose_protocol_template_button)
         Dialog.setTabOrder(self.choose_protocol_template_button, self.save_folder_edit)
@@ -255,9 +265,11 @@ class Ui_Dialog(object):
         self.user_label.setText(_translate("Dialog", "<html><head/><body><p>Поверитель (<span style=\" color:#ff557f;\">%user__</span>)</p></body></html>"))
         self.name_label.setText(_translate("Dialog", "<html><head/><body><p>Наименование (<span style=\" color:#ff557f;\">%name__</span>)</p></body></html>"))
         self.device_creator_label.setText(_translate("Dialog", "<html><head/><body><p>Изготовитель (<span style=\" color:#ff557f;\">%creator__</span>)</p></body></html>"))
-        self.comment_label.setText(_translate("Dialog", "<html><head/><body><p>Комментарий(<span style=\" color:#ff557f;\">%comment__</span>)</p></body></html>"))
+        self.comment_label.setText(_translate("Dialog", "<html><head/><body><p>Комментарий (<span style=\" color:#ff557f;\">%comment__</span>)</p></body></html>"))
         self.marks_and_points_tabwidget.setTabText(self.marks_and_points_tabwidget.indexOf(self.marks_widget_tab), _translate("Dialog", "Дополнительные параметры"))
         self.marks_and_points_tabwidget.setTabText(self.marks_and_points_tabwidget.indexOf(self.points_tab), _translate("Dialog", "Результаты измерения"))
         self.default_button.setText(_translate("Dialog", "default"))
+        self.to_excel_button.setText(_translate("Dialog", "Скопировать в формате Excel"))
         self.accept_button.setText(_translate("Dialog", "Сохранить и создать отчет"))
         self.reject_button.setText(_translate("Dialog", "Отмена"))
+import icons_rc

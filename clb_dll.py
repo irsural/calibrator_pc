@@ -1,26 +1,35 @@
 import ctypes
 import enum
 import os.path
+from platform import system as cur_system
 
 import calibrator_constants as clb
 import utils
 
-
-path = "C:\\Users\\503.IRS\\Desktop\\Qt Projects\\clb_driver_dll\\" \
-       "build-clb_driver_dll-Desktop_Qt_5_12_2_MSVC2017_32bit-Release\\release\\clb_driver_dll.dll"
+if cur_system() == "Windows":
+    dll_name = "clb_driver_dll.dll"
+    debug_dll_path = "C:\\Users\\503.IRS\\Desktop\\Qt Projects\\clb_driver_dll\\" \
+                     "build-clb_driver_dll-Desktop_Qt_5_14_1_MSVC2017_32bit-Release\\release\\clb_driver_dll.dll"
+elif cur_system() == "Linux":
+    dll_name = "libclb_driver_dll.so"
+    debug_dll_path = "/home/astra/Загрузки/clb_driver_dll/build-clb_driver_dll-Desktop-Release/libclb_driver_dll.so"
+else:
+    dll_name = ""
+    debug_dll_path = ""
 
 
 # noinspection DuplicatedCode
 def set_up_driver(a_full_path):
     if os.path.exists(a_full_path):
         clb_driver_lib = ctypes.CDLL(a_full_path)
+        print("debug dll")
     else:
-        clb_driver_lib = ctypes.CDLL("clb_driver_dll.dll")
+        clb_driver_lib = ctypes.CDLL("./" + dll_name)
 
     # Возвращает список калибраторов, разделенных ';'
-    clb_driver_lib.get_usb_devices.restype = ctypes.c_wchar_p
+    clb_driver_lib.get_usb_devices.restype = ctypes.c_char_p
 
-    clb_driver_lib.connect_usb.argtypes = [ctypes.c_wchar_p]
+    clb_driver_lib.connect_usb.argtypes = [ctypes.c_char_p]
 
     clb_driver_lib.set_amplitude.argtypes = [ctypes.c_double]
     clb_driver_lib.get_amplitude.restype = ctypes.c_double
@@ -81,7 +90,9 @@ class UsbDrv:
         if self.clb_dll.usb_devices_changed():
             self.clb_dev_list.clear()
 
-            clb_names_list: str = self.clb_dll.get_usb_devices()
+            clb_names_char = self.clb_dll.get_usb_devices()
+            clb_names_list = clb_names_char.decode("ascii")
+
             for clb_name in clb_names_list.split(';'):
                 if clb_name:
                     self.clb_dev_list.append(clb_name)
@@ -135,9 +146,8 @@ class ClbDrv:
         self.__signal_ready = False
 
         if a_clb_name:
-            self.__clb_dll.connect_usb(a_clb_name)
+            self.__clb_dll.connect_usb(a_clb_name.encode("ascii"))
         else:
-            
             self.__clb_dll.disconnect_usb()
 
     def amplitude_changed(self):

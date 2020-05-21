@@ -54,7 +54,7 @@ def parse_input(a_input: str, a_reverse_check=False):
         return 0.
     input_re = check_input_re.match(a_input)
     if not input_re:
-        raise ValueError(f"Wrong units input format: {a_input}")
+        raise ValueError("Wrong units input format: {0}".format(a_input))
 
     number = float(input_re.group('number').replace(",", "."))
     factor = __units_to_factor[input_re.group("units").lower()]
@@ -66,7 +66,7 @@ def parse_input(a_input: str, a_reverse_check=False):
             if value_to_user_with_units("А", False)(result) != a_input:
                 str_no_units = value_to_user_with_units("", False)(result)
                 if a_input != str_no_units:
-                    print(f"S->V reverse check is failed: {a_input} != {str_no_units}")
+                    print("S->V reverse check is failed: {0} != {1}".format(a_input, str_no_units))
 
     return result
 
@@ -93,20 +93,20 @@ def value_to_user_with_units(a_postfix: str, a_reverse_check=False):
             prefix_type = __UnitsPrefix.MILLI
         result = round(a_value, 9)
         result_str = float_to_string(result)
-        result_with_units = f"{result_str} {__enum_to_units[prefix_type]}{a_postfix}"
+        result_with_units = "{0} {1}{2}".format(result_str, __enum_to_units[prefix_type], a_postfix)
 
         # print(f"V->S. Input: {a_value}. Output: {result_str}")
         if a_reverse_check:
             parsed = parse_input(result_with_units, False)
             if result != parsed:
-                print(f"V->S reverse check is failed: {result} != {parsed}")
+                print("V->S reverse check is failed: {0} != {1}".format(result, parsed))
 
         return result_with_units
     return value_to_user
 
 
 def float_to_string(a_number: float):
-    return f"{a_number:.9f}".rstrip('0').rstrip('.').replace(".", ",")
+    return "{0:.9f}".format(a_number).rstrip('0').rstrip('.').replace(".", ",")
 
 
 def absolute_error(a_reference: float, a_value: float):
@@ -169,11 +169,11 @@ def relative_step_change(a_value: float, a_step: float, a_min_step: float, a_nor
         new_step = 5 if absolute_step < math.sqrt(5 * 10) else 10
         test_step = get_new_step(5, 10)
 
-    assert new_step == test_step, f"new: {new_step}, test: {test_step}. dont work"
+    assert new_step == test_step, "new: {0}, test: {1}. don't work".format(new_step, test_step)
 
     new_step *= pow(10., exp)
     new_step /= 100
-    new_step: float = max(new_step, a_min_step)
+    new_step = max(new_step, a_min_step)
 
     a_value += new_step * value_sign
     # Если это преобразование убрать, то шаг будет равномерным на любой амплитуде
@@ -234,9 +234,9 @@ def exception_handler(a_exception):
     filename = frame.f_code.co_filename
     checkcache(filename)
     line = getline(filename, lineno, frame.f_globals)
-    print(f"Exception{type(a_exception)} in {filename}\n"
-          f"Line {lineno}: '{line.strip()}'\n"
-          f"Message: {a_exception}")
+    print("Exception{0} in {1}\n"
+          "Line {2}: '{3}'\n"
+          "Message: {4}".format(type(a_exception), filename, lineno, line.strip(), a_exception))
 
 
 def get_array_min_diff(a_array: list):
