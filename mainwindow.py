@@ -63,9 +63,9 @@ class MainWindow(QtWidgets.QMainWindow):
         else:
             self.close()
 
-    def __del__(self):
-        if hasattr(self, "display_db_connection"):
-            self.db_connection.close()
+    # def __del__(self):
+    #     if hasattr(self, "display_db_connection"):
+    #         self.db_connection.close()
 
     def usb_tick(self):
         self.usb_driver.tick()
