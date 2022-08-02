@@ -88,7 +88,7 @@ class SourceModeDialog(QtWidgets.QDialog):
 
     def update_clb_status(self, a_status: clb.State):
         self.clb_state = a_status
-        self.ui.clb_state_label.setText(clb.enum_to_state[a_status])
+        self.ui.clb_state_label.setText(clb.state_to_text[a_status])
 
     def connect_to_clb(self, a_clb_name):
         self.calibrator.connect(a_clb_name)

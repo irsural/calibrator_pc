@@ -2,7 +2,7 @@ from math import isclose
 
 from PyQt5 import QtCore, QtWidgets, QtGui
 
-import constants
+import irspy.constants as constants
 
 
 QSTYLE_COLOR_WHITE = "background-color: rgb(255, 255, 255);"

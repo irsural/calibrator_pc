@@ -158,7 +158,7 @@ class ScaleLimitsDialog(QtWidgets.QDialog):
 
         signal_type_combobox = QtWidgets.QComboBox(self)
         for s_t in clb.SignalType:
-            signal_type_combobox.addItem(clb.enum_to_signal_type_short[s_t])
+            signal_type_combobox.addItem(clb.signal_type_to_text_short[s_t])
         signal_type_combobox.setCurrentIndex(a_limit.signal_type)
         signal_type_combobox.currentIndexChanged.connect(self.signal_type_changed)
         self.ui.limits_table.setCellWidget(row_idx, ScaleLimitsDialog.Column.SIGNAL_TYPE, signal_type_combobox)
