@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file './ui/marks_widget.ui'
+# Form implementation generated from reading ui file 'marks_widget.ui'
 #
 # Created by: PyQt5 UI code generator 5.14.1
 #
@@ -84,4 +84,4 @@ class Ui_marks_widget(object):
         item = self.marks_table.horizontalHeaderItem(2)
         item.setText(_translate("marks_widget", "Значение\n"
 "по умолчанию"))
-import icons_rc
+import icons

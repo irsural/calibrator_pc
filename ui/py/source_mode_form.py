@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file './ui/source_mode_form.ui'
+# Form implementation generated from reading ui file 'source_mode_form.ui'
 #
 # Created by: PyQt5 UI code generator 5.14.1
 #
@@ -101,11 +101,11 @@ class Ui_Dialog(object):
         self.apply_amplitude_button.setFont(font)
         self.apply_amplitude_button.setText("")
         icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap(":/icons/icons/ok.png"), QtGui.QIcon.Selected, QtGui.QIcon.On)
-        icon.addPixmap(QtGui.QPixmap(":/icons/icons/ok.png"), QtGui.QIcon.Selected, QtGui.QIcon.Off)
-        icon.addPixmap(QtGui.QPixmap(":/icons/icons/ok.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         icon.addPixmap(QtGui.QPixmap(":/icons/icons/ok.png"), QtGui.QIcon.Active, QtGui.QIcon.On)
+        icon.addPixmap(QtGui.QPixmap(":/icons/icons/ok.png"), QtGui.QIcon.Selected, QtGui.QIcon.Off)
         icon.addPixmap(QtGui.QPixmap(":/icons/icons/ok.png"), QtGui.QIcon.Normal, QtGui.QIcon.On)
+        icon.addPixmap(QtGui.QPixmap(":/icons/icons/ok.png"), QtGui.QIcon.Selected, QtGui.QIcon.On)
+        icon.addPixmap(QtGui.QPixmap(":/icons/icons/ok.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.apply_amplitude_button.setIcon(icon)
         self.apply_amplitude_button.setIconSize(QtCore.QSize(35, 35))
         self.apply_amplitude_button.setFlat(False)
@@ -228,4 +228,4 @@ class Ui_Dialog(object):
         self.detuning_radio.setText(_translate("Dialog", "Расстройка"))
         self.enable_button.setText(_translate("Dialog", "Старт"))
 from custom_widgets.CustomLineEdit import QEditCopyButton
-import icons_rc
+import icons

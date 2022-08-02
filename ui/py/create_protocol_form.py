@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file './ui/create_protocol_form.ui'
+# Form implementation generated from reading ui file 'create_protocol_form.ui'
 #
 # Created by: PyQt5 UI code generator 5.14.1
 #
@@ -272,4 +272,4 @@ class Ui_Dialog(object):
         self.to_excel_button.setText(_translate("Dialog", "Скопировать в формате Excel"))
         self.accept_button.setText(_translate("Dialog", "Сохранить и создать отчет"))
         self.reject_button.setText(_translate("Dialog", "Отмена"))
-import icons_rc
+import icons

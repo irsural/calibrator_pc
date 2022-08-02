@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file './ui/variable_template_fields_form.ui'
+# Form implementation generated from reading ui file 'variable_template_fields_form.ui'
 #
 # Created by: PyQt5 UI code generator 5.14.1
 #

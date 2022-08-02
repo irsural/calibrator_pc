@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file './ui/measure_form.ui'
+# Form implementation generated from reading ui file 'measure_form.ui'
 #
 # Created by: PyQt5 UI code generator 5.14.1
 #
@@ -393,9 +393,9 @@ class Ui_main_widget(object):
         self.apply_amplitude_button.setFont(font)
         self.apply_amplitude_button.setText("")
         icon3 = QtGui.QIcon()
+        icon3.addPixmap(QtGui.QPixmap(":/icons/icons/ok.png"), QtGui.QIcon.Active, QtGui.QIcon.On)
         icon3.addPixmap(QtGui.QPixmap(":/icons/icons/ok.png"), QtGui.QIcon.Selected, QtGui.QIcon.Off)
         icon3.addPixmap(QtGui.QPixmap(":/icons/icons/ok.png"), QtGui.QIcon.Normal, QtGui.QIcon.On)
-        icon3.addPixmap(QtGui.QPixmap(":/icons/icons/ok.png"), QtGui.QIcon.Active, QtGui.QIcon.On)
         icon3.addPixmap(QtGui.QPixmap(":/icons/icons/ok.png"), QtGui.QIcon.Selected, QtGui.QIcon.On)
         icon3.addPixmap(QtGui.QPixmap(":/icons/icons/ok.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.apply_amplitude_button.setIcon(icon3)
@@ -577,4 +577,4 @@ class Ui_main_widget(object):
         self.start_stop_button.setText(_translate("main_widget", "Начать\n"
 "поверку"))
 from custom_widgets.CustomLineEdit import QEditCopyButton
-import icons_rc
+import icons

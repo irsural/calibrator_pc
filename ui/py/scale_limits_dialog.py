@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file './ui/scale_limits_dialog.ui'
+# Form implementation generated from reading ui file 'scale_limits_dialog.ui'
 #
 # Created by: PyQt5 UI code generator 5.14.1
 #
@@ -124,4 +124,4 @@ class Ui_Dialog(object):
         self.default_button.setText(_translate("Dialog", "default"))
         self.accept_button.setText(_translate("Dialog", "Принять"))
         self.reject_button.setText(_translate("Dialog", "Отмена"))
-import icons_rc
+import icons

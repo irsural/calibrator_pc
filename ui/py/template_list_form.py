@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file './ui/template_list_form.ui'
+# Form implementation generated from reading ui file 'template_list_form.ui'
 #
 # Created by: PyQt5 UI code generator 5.14.1
 #
@@ -226,4 +226,4 @@ class Ui_Dialog(object):
         self.cancel_edit_template_button.setText(_translate("Dialog", "Отмена"))
         self.save_template_button.setText(_translate("Dialog", "Сохранить"))
         self.label_3.setText(_translate("Dialog", "Шкалы прибора"))
-import icons_rc
+import icons

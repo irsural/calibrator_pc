@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file './ui/new_fast_measure_form.ui'
+# Form implementation generated from reading ui file 'new_fast_measure_form.ui'
 #
 # Created by: PyQt5 UI code generator 5.14.1
 #
