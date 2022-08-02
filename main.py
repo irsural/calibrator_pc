@@ -1,5 +1,3 @@
-import traceback
-
 import ui_to_py
 ui_to_py.convert_ui("./ui", "./ui/py")
 ui_to_py.convert_resources("./resources", ".")
@@ -12,7 +10,6 @@ def main():
     from PyQt5.QtWidgets import QApplication
     
     from mainwindow import MainWindow
-    from utils import exception_handler
 
     app = QApplication(sys.argv)
     app.setStyle("Fusion")
@@ -28,7 +25,7 @@ def main():
 
 if __name__ == "__main__":
     try:
+        import traceback
         main()
     except Exception as err:
         print(traceback.format_exc())
-        input("Error. Press enter to continue...")

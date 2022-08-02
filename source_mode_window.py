@@ -3,10 +3,10 @@ from PyQt5.QtCore import pyqtSignal, QTimer
 
 
 from ui.py.source_mode_form import Ui_Dialog as SourceModeForm
-import calibrator_constants as clb
+import irspy.clb.calibrator_constants as clb
 from settings_ini_parser import Settings
 import qt_utils
-import clb_dll
+import irspy.clb.clb_dll as clb_dll
 import utils
 
 

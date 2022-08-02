@@ -11,10 +11,10 @@ from measure_cases_widget import MeasureCases
 from db_measures import Measure, MeasuresDB
 from settings_ini_parser import Settings
 from MeasureModel import PointData
-import calibrator_constants as clb
+import irspy.clb.calibrator_constants as clb
 import constants as cfg
 import qt_utils
-import clb_dll
+import irspy.clb.clb_dll as clb_dll
 import utils
 
 

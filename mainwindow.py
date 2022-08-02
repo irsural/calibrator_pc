@@ -10,8 +10,8 @@ from source_mode_window import SourceModeDialog
 from settings_dialog import SettingsDialog
 from measure_window import MeasureWindow
 from startwindow import StartWindow
-import calibrator_constants as clb
-import clb_dll
+import irspy.clb.calibrator_constants as clb
+import irspy.clb.clb_dll as clb_dll
 import utils
 
 
@@ -46,8 +46,10 @@ class MainWindow(QtWidgets.QMainWindow):
             self.clb_signal_off_timer.timeout.connect(self.close)
             self.SIGNAL_OFF_TIME_MS = 200
 
-            self.clb_driver = clb_dll.set_up_driver(clb_dll.debug_dll_path)
-            self.usb_driver = clb_dll.UsbDrv(self.clb_driver)
+            self.clb_driver = clb_dll.clb_dll
+
+            modbus_registers_count = 700
+            self.usb_driver = clb_dll.UsbDrv(self.clb_driver, modbus_registers_count * 2)
             self.usb_state = clb_dll.UsbDrv.UsbState.DISABLED
             self.calibrator = clb_dll.ClbDrv(self.clb_driver)
             self.clb_state = clb.State.DISCONNECTED
@@ -62,10 +64,6 @@ class MainWindow(QtWidgets.QMainWindow):
 
         else:
             self.close()
-
-    # def __del__(self):
-    #     if hasattr(self, "display_db_connection"):
-    #         self.db_connection.close()
 
     def usb_tick(self):
         self.usb_driver.tick()

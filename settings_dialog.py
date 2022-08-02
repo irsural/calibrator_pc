@@ -7,7 +7,7 @@ from custom_widgets.EditListDialog import EditedListWithUnits
 from ui.py.settings_form import Ui_Dialog as SettingsForm
 from settings_ini_parser import Settings
 from marks_widget import MarksWidget
-import calibrator_constants as clb
+import irspy.clb.calibrator_constants as clb
 
 
 class SettingsDialog(QtWidgets.QDialog):

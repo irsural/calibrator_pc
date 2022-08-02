@@ -6,7 +6,7 @@ from odf import table as odf_table
 from odf.opendocument import load as odf_load
 from zipfile import BadZipFile
 
-import calibrator_constants as clb
+import irspy.clb.calibrator_constants as clb
 from db_measures import Measure
 import utils
 

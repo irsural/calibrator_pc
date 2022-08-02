@@ -7,7 +7,7 @@ from custom_widgets.QTableDelegates import NonOverlappingDoubleClick
 from ui.py.scale_limits_dialog import Ui_Dialog as ScaleLimitsForm
 from custom_widgets.EditListDialog import OkCancelDialog, EditedListOnlyNumbers
 from constants import Scale
-import calibrator_constants as clb
+import irspy.clb.calibrator_constants as clb
 
 import utils
 

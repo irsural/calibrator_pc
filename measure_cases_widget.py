@@ -6,7 +6,7 @@ from MeasureView import MeasureView
 from MeasureModel import MeasureModel
 from db_measures import Measure
 from edit_case_params_dialog import EditCaseParamsDialog
-import calibrator_constants as clb
+import irspy.clb.calibrator_constants as clb
 import utils
 
 
