@@ -4,7 +4,7 @@ from ui.py.edit_case_params_form import Ui_edit_case_params_dialog as EditCasePa
 from db_measures import Measure
 import irspy.clb.calibrator_constants as clb
 import qt_utils
-import utils
+from irspy import utils
 
 
 class EditCaseParamsDialog(QtWidgets.QDialog):

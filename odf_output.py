@@ -8,7 +8,7 @@ from zipfile import BadZipFile
 
 import irspy.clb.calibrator_constants as clb
 from db_measures import Measure
-import utils
+from irspy import utils
 
 
 class TableToDraw:

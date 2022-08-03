@@ -15,7 +15,7 @@ import irspy.clb.calibrator_constants as clb
 import constants as cfg
 import qt_utils
 import irspy.clb.clb_dll as clb_dll
-import utils
+from irspy import utils
 
 
 class MeasureWindow(QtWidgets.QWidget):

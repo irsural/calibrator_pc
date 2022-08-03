@@ -9,7 +9,7 @@ from custom_widgets.QTableDelegates import NonOverlappingDoubleClick
 from create_protocol_dialog import CreateProtocolDialog
 from irspy.qt.qt_settings_ini_parser import QtSettings
 import qt_utils
-import utils
+from irspy import utils
 
 
 class StartWindow(QtWidgets.QWidget):

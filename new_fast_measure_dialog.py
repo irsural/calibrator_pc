@@ -6,7 +6,7 @@ from PyQt5 import QtWidgets, QtCore
 from ui.py.new_fast_measure_form import Ui_new_fast_measure_dialog as NewFastMeasureForm
 from custom_widgets.EditListDialog import EditedListOnlyNumbers, OkCancelDialog
 import irspy.clb.calibrator_constants as clb
-import utils
+from irspy import utils
 import qt_utils
 
 

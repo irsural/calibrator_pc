@@ -6,7 +6,7 @@ from PyQt5.QtGui import QBrush, QColor
 
 from db_measures import MeasuredPoint
 import irspy.clb.calibrator_constants as clb
-import utils
+from irspy import utils
 
 
 class PointData:

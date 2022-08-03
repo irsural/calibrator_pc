@@ -12,7 +12,7 @@ from db_measures import MeasuresDB
 from marks_widget import MarksWidget
 import constants as cfg
 import odf_output
-import utils
+from irspy import utils
 
 
 class CreateProtocolDialog(QtWidgets.QDialog):

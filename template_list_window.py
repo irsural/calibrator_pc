@@ -5,7 +5,7 @@ from ui.py.template_list_form import Ui_templates_list_dialog as TemplateListFor
 from template_scales_widget import ScalesWidget
 from db_templates import TemplateParams, TemplatesDB
 from irspy.qt.qt_settings_ini_parser import QtSettings
-import utils
+from irspy import utils
 
 
 class TemplateListWindow(QtWidgets.QDialog):

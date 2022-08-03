@@ -7,7 +7,7 @@ from MeasureModel import MeasureModel
 from db_measures import Measure
 from edit_case_params_dialog import EditCaseParamsDialog
 import irspy.clb.calibrator_constants as clb
-import utils
+from irspy import utils
 
 
 class MeasureCases(QtWidgets.QWidget):

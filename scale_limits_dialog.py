@@ -9,7 +9,7 @@ from custom_widgets.EditListDialog import OkCancelDialog, EditedListOnlyNumbers
 from constants import Scale
 import irspy.clb.calibrator_constants as clb
 
-import utils
+from irspy import utils
 
 
 class FrequencyWidget(QtWidgets.QWidget):

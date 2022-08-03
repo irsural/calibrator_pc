@@ -10,7 +10,7 @@ from new_fast_measure_dialog import FastMeasureParams
 from db_templates import TemplateParams
 from constants import DeviceSystem, enum_to_device_system
 import irspy.clb.calibrator_constants as clb
-import utils
+from irspy import utils
 
 
 class MeasureColumn(IntEnum):

@@ -2,7 +2,7 @@ from typing import List, Iterable
 import sqlite3
 
 from constants import DeviceSystem, Scale
-import utils
+from irspy import utils
 
 
 class TemplateParams:

@@ -8,7 +8,7 @@ from custom_widgets.EditListDialog import EditedListOnlyNumbers
 from scale_limits_dialog import ScaleLimitsDialog
 from db_templates import TemplatesDB
 import constants as cfg
-import utils
+from irspy import utils
 
 
 class ScalesWidget(QtWidgets.QWidget):

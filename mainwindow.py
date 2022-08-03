@@ -14,7 +14,7 @@ from startwindow import StartWindow
 import irspy.clb.calibrator_constants as clb
 import irspy.clb.clb_dll as clb_dll
 from settings import get_calibrator_pc_settings
-import utils
+from irspy import utils
 
 
 class MainWindow(QtWidgets.QMainWindow):

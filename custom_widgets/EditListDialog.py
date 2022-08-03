@@ -8,7 +8,7 @@ from PyQt5 import QtWidgets, QtGui, QtCore
 from ui.py.edited_list_widget import Ui_edited_list_widget as EditedListForm
 from ui.py.ok_cancel_dialog import Ui_ok_cancel_dialog as OkCancelForm
 from custom_widgets.CustomLineEdit import QEditDoubleClick
-import utils
+from irspy import utils
 
 
 class EditedListWidget(QtWidgets.QWidget):
