@@ -6,6 +6,8 @@
 *.ini
 icons_rc.py
 /build
+/dist/*
+!/dist/calibrator_pc.exe
 /venv
 /venv3.5
 /Lib
