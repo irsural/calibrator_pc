@@ -339,4 +339,4 @@ class Ui_new_fast_measure_dialog(object):
         self.invisible_default_button.setText(_translate("new_fast_measure_dialog", "default_button"))
         self.accept_button.setText(_translate("new_fast_measure_dialog", "Принять"))
         self.cancel_button.setText(_translate("new_fast_measure_dialog", "Отмена"))
-from custom_widgets.CustomLineEdit import QEditDoubleClick
+from irspy.qt.custom_widgets.CustomLineEdit import QEditDoubleClick

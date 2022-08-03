@@ -100,16 +100,14 @@ class StartWindow(QtWidgets.QWidget):
         self.display_db_model.select()
         self.current_selection_changed()
 
+    @utils.exception_decorator_print
     def create_protocol(self):
-        try:
-            measure_id = self.get_selected_id()
-            assert measure_id is not None, "measure id must not be None!"
-            create_protocol_dialog = CreateProtocolDialog(
-                self.settings, measure_id, self.control_db_connection, self)
-            create_protocol_dialog.exec()
-            self.update_table()
-        except Exception as err:
-            utils.exception_handler(err)
+        measure_id = self.get_selected_id()
+        assert measure_id is not None, "measure id must not be None!"
+        create_protocol_dialog = CreateProtocolDialog(
+            self.settings, measure_id, self.control_db_connection, self)
+        create_protocol_dialog.exec()
+        self.update_table()
 
     def show_table_custom_menu(self, a_position: QtCore.QPoint):
         menu = QtWidgets.QMenu(self)

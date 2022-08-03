@@ -393,17 +393,18 @@ class Ui_measure_dialog(object):
         self.apply_amplitude_button.setFont(font)
         self.apply_amplitude_button.setText("")
         icon3 = QtGui.QIcon()
-        icon3.addPixmap(QtGui.QPixmap(":/icons/icons/ok.png"), QtGui.QIcon.Normal, QtGui.QIcon.On)
-        icon3.addPixmap(QtGui.QPixmap(":/icons/icons/ok.png"), QtGui.QIcon.Active, QtGui.QIcon.On)
-        icon3.addPixmap(QtGui.QPixmap(":/icons/icons/ok.png"), QtGui.QIcon.Selected, QtGui.QIcon.Off)
         icon3.addPixmap(QtGui.QPixmap(":/icons/icons/ok.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         icon3.addPixmap(QtGui.QPixmap(":/icons/icons/ok.png"), QtGui.QIcon.Selected, QtGui.QIcon.On)
+        icon3.addPixmap(QtGui.QPixmap(":/icons/icons/ok.png"), QtGui.QIcon.Selected, QtGui.QIcon.Off)
+        icon3.addPixmap(QtGui.QPixmap(":/icons/icons/ok.png"), QtGui.QIcon.Normal, QtGui.QIcon.On)
+        icon3.addPixmap(QtGui.QPixmap(":/icons/icons/ok.png"), QtGui.QIcon.Active, QtGui.QIcon.On)
         self.apply_amplitude_button.setIcon(icon3)
         self.apply_amplitude_button.setIconSize(QtCore.QSize(35, 35))
         self.apply_amplitude_button.setFlat(False)
         self.apply_amplitude_button.setObjectName("apply_amplitude_button")
         self.gridLayout.addWidget(self.apply_amplitude_button, 3, 1, 1, 1)
         self.frequency_edit = QEditCopyButton(self.layoutWidget)
+        self.frequency_edit.setEnabled(True)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(1)
         sizePolicy.setVerticalStretch(0)
@@ -576,5 +577,5 @@ class Ui_measure_dialog(object):
 "точку"))
         self.start_stop_button.setText(_translate("measure_dialog", "Начать\n"
 "поверку"))
-from custom_widgets.CustomLineEdit import QEditCopyButton
+from irspy.qt.custom_widgets.CustomLineEdit import QEditCopyButton
 import icons

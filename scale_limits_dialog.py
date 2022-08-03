@@ -3,9 +3,9 @@ from enum import IntEnum
 
 from PyQt5 import QtCore, QtWidgets
 
-from custom_widgets.QTableDelegates import NonOverlappingDoubleClick
+from irspy.qt.custom_widgets.EditListDialog import OkCancelDialog, EditedListOnlyNumbers
 from ui.py.scale_limits_dialog import Ui_scale_limits_dialog as ScaleLimitsForm
-from custom_widgets.EditListDialog import OkCancelDialog, EditedListOnlyNumbers
+from custom_widgets.QTableDelegates import NonOverlappingDoubleClick
 from constants import Scale
 import irspy.clb.calibrator_constants as clb
 

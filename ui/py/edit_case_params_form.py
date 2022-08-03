@@ -65,6 +65,7 @@ class Ui_edit_case_params_dialog(object):
         self.signal_type_combobox.addItem("")
         self.gridLayout_4.addWidget(self.signal_type_combobox, 1, 1, 1, 1)
         self.limit_edit = QEditDoubleClick(edit_case_params_dialog)
+        self.limit_edit.setEnabled(True)
         self.limit_edit.setMinimumSize(QtCore.QSize(0, 0))
         self.limit_edit.setMaximumSize(QtCore.QSize(16777215, 16777215))
         font = QtGui.QFont()
@@ -118,4 +119,4 @@ class Ui_edit_case_params_dialog(object):
         self.default_button.setText(_translate("edit_case_params_dialog", "default"))
         self.accept_button.setText(_translate("edit_case_params_dialog", "Принять"))
         self.reject_button.setText(_translate("edit_case_params_dialog", "Отмена"))
-from custom_widgets.CustomLineEdit import QEditDoubleClick
+from irspy.qt.custom_widgets.CustomLineEdit import QEditDoubleClick

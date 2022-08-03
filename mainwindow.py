@@ -113,6 +113,7 @@ class MainWindow(QtWidgets.QMainWindow):
     def attach_calibrator_to_window(self, a_window):
         assert hasattr(a_window, "update_clb_list"), "no method update_clb_list"
         assert hasattr(a_window, "update_clb_status"), "no method update_clb_status"
+        assert hasattr(a_window, "signal_enable_changed"), "no method signal_enable_changed"
 
         self.clb_list_changed.connect(a_window.update_clb_list)
         self.clb_list_changed.emit(self.usb_driver.get_dev_list())
@@ -132,13 +133,11 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.active_window.close_confirmed.connect(self.close_child_widget)
 
+    @utils.exception_decorator_print
     def open_source_mode_window(self):
-        try:
-            source_mode_dialog = SourceModeDialog(self.settings, self.calibrator, self)
-            self.attach_calibrator_to_window(source_mode_dialog)
-            source_mode_dialog.exec()
-        except Exception as err:
-            utils.exception_handler(err)
+        source_mode_dialog = SourceModeDialog(self.settings, self.calibrator, self)
+        self.attach_calibrator_to_window(source_mode_dialog)
+        source_mode_dialog.exec()
 
     def open_config_no_template_mode(self):
         try:

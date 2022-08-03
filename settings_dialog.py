@@ -3,7 +3,7 @@ from sqlite3 import Connection
 from PyQt5 import QtGui, QtWidgets
 from PyQt5.QtCore import pyqtSignal
 
-from custom_widgets.EditListDialog import EditedListWithUnits
+from irspy.qt.custom_widgets.EditListDialog import EditedListWithUnits
 from ui.py.settings_form import Ui_settings_dialog as SettingsForm
 from irspy.qt.qt_settings_ini_parser import QtSettings
 from marks_widget import MarksWidget
