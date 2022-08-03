@@ -68,8 +68,14 @@ class MarksWidget(QtWidgets.QWidget):
 
         self.fill_table_from_db()
 
+    @staticmethod
+    def qtablewidget_clear(a_table: QtWidgets.QTableWidget):
+        for row in reversed(range(a_table.rowCount())):
+            a_table.removeRow(row)
+
     def fill_table_from_db(self):
-        qt_utils.qtablewidget_clear(self.ui.marks_table)
+        self.qtablewidget_clear(self.ui.marks_table)
+
         if self.default_mode:
             self.cursor.execute("select name, tag, default_value from marks")
         else:
