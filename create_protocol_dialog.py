@@ -142,7 +142,7 @@ class CreateProtocolDialog(QtWidgets.QDialog):
             self.ui.save_folder_edit.setText(folder)
 
     @utils.exception_decorator_print
-    def save_pressed(self):
+    def save_pressed(self, _):
         self.save()
         if self.marks_widget.save():
             if self.generate_protocol():

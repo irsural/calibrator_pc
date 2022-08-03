@@ -101,7 +101,7 @@ class StartWindow(QtWidgets.QWidget):
         self.current_selection_changed()
 
     @utils.exception_decorator_print
-    def create_protocol(self):
+    def create_protocol(self, _):
         measure_id = self.get_selected_id()
         assert measure_id is not None, "measure id must not be None!"
         create_protocol_dialog = CreateProtocolDialog(

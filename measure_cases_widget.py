@@ -91,7 +91,7 @@ class MeasureCases(QtWidgets.QWidget):
         self.edit_case_parameters(tab_idx)
 
     @utils.exception_decorator_print
-    def delete_case(self):
+    def delete_case(self, _):
         sender = self.sender()
         tab_idx = self.get_tab_idx(sender)
         self.remove_tab(tab_idx)

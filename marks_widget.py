@@ -101,7 +101,7 @@ class MarksWidget(QtWidgets.QWidget):
             self.ui.marks_table.setItem(row, column, QtWidgets.QTableWidgetItem(""))
 
     @utils.exception_decorator_print
-    def delete_row(self):
+    def delete_row(self, _):
         rows = self.ui.marks_table.selectionModel().selectedRows()
         if rows:
             res = QtWidgets.QMessageBox.question(self, "Подтвердите действие", "Вы уверены, что хотите удалить "

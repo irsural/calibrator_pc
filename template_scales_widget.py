@@ -104,7 +104,7 @@ class ScalesWidget(QtWidgets.QWidget):
                         self.ui.tabWidget.setTabText(tab_idx, actual_tab_name)
 
     @utils.exception_decorator_print
-    def edit_scale_limits(self):
+    def edit_scale_limits(self, _):
         current_scale_number = self.ui.tabWidget.currentIndex() + 1
         scale_id = self.scales_id[current_scale_number]
         limits = self.templates_db.get_limits(scale_id)

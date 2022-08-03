@@ -169,7 +169,7 @@ class TemplateListWindow(QtWidgets.QDialog):
             self.ui.templates_list.takeItem(self.ui.templates_list.currentRow())
 
     @utils.exception_decorator_print
-    def choose_template(self):
+    def choose_template(self, _):
         item = self.ui.templates_list.currentItem()
         if item is not None:
             variable_params_dialog = VariableTemplateFieldsDialog(self)

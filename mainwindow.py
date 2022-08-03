@@ -185,7 +185,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.show_start_window()
 
     @utils.exception_decorator_print
-    def open_settings(self):
+    def open_settings(self, _):
         settings_dialog = SettingsDialog(self.settings, self.db_connection, self)
         settings_dialog.exec()
 

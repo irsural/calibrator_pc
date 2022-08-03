@@ -385,7 +385,7 @@ class MeasureWindow(QtWidgets.QWidget):
         self.current_point.frequency = a_current_frequency
 
     @utils.exception_decorator_print
-    def save_point(self):
+    def save_point(self, _):
         if self.clb_state != clb.State.WAITING_SIGNAL:
             if self.measure_manager.view().is_point_measured(
                     self.current_point.amplitude, self.current_point.frequency,
@@ -554,7 +554,7 @@ class MeasureWindow(QtWidgets.QWidget):
             self.fixed_step = 0
 
     @utils.exception_decorator_print
-    def update_config(self):
+    def update_config(self, _):
         edit_template_params_dialog = EditMeasureParamsDialog(
             self.settings, self.measure_config, self.db_connection, self)
         edit_template_params_dialog.exec()
