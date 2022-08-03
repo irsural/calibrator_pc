@@ -18,7 +18,7 @@ class StartWindow(QtWidgets.QWidget):
     template_mode_chosen = pyqtSignal()
 
     def __init__(self, a_control_db_connection: Connection, a_db_name: str, a_settings: QtSettings,
-                 a_parent=None):
+                 a_parent: QtWidgets.QMainWindow = None):
         """
         Для отображения таблицы измерений используется QSqlRelationalTableModel (это сильно упрощает жизнь)
         При этом для остальных операций (добавление, удаление) используется другое соединение sqlite3.Connection
@@ -46,6 +46,7 @@ class StartWindow(QtWidgets.QWidget):
         self.ui.measures_table.doubleClicked.connect(self.create_protocol)
 
         self.parent.show()
+        self.parent.setObjectName("start_window")
         self.settings.restore_qwidget_state(self.parent)
 
         self.control_db_connection = a_control_db_connection
@@ -137,7 +138,7 @@ class StartWindow(QtWidgets.QWidget):
             return None
 
     def closeEvent(self, a_event: QtGui.QCloseEvent) -> None:
-        self.settings.save_qwidget_state(self)
+        self.settings.save_qwidget_state(self.parent)
         self.settings.save_qwidget_state(self.ui.measures_table)
         self.display_db_connection.close()
         self.header_context.delete_connections()

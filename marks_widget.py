@@ -44,8 +44,13 @@ class MarksWidget(QtWidgets.QWidget):
         self.caller_name = a_caller_name
 
         self.settings = a_settings
-        self.ui.marks_table.horizontalHeader().restoreState(
-            getattr(self.settings, '.'.join([self.caller_name, self.__class__.__name__])))
+
+        try:
+            self.ui.marks_table.horizontalHeader().restoreState(
+                getattr(self.settings, '.'.join([self.caller_name, self.__class__.__name__])))
+        except AttributeError:
+            # Размер marks_widget еще ни разу не был сохранен
+            pass
 
         self.connection = a_db_connection
         self.cursor = self.connection.cursor()

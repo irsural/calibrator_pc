@@ -13,6 +13,7 @@ from measure_window import MeasureWindow
 from startwindow import StartWindow
 import irspy.clb.calibrator_constants as clb
 import irspy.clb.clb_dll as clb_dll
+from settings import get_calibrator_pc_settings
 import utils
 
 
@@ -30,12 +31,13 @@ class MainWindow(QtWidgets.QMainWindow):
         self.active_window = None
 
         try:
-            self.settings = QtSettings("./settings.ini", [])
+            self.settings = get_calibrator_pc_settings()
             ini_ok = True
         except BadIniException:
             ini_ok = False
-            QtWidgets.QMessageBox.critical(self, "Ошибка", 'Файл конфигурации поврежден. Пожалуйста, '
-                                                           'удалите файл "settings.ini" и запустите программу заново')
+            QtWidgets.QMessageBox.critical(
+                self, "Ошибка", 'Файл конфигурации поврежден. Пожалуйста, удалите файл '
+                                '"settings.ini" и запустите программу заново')
         if ini_ok:
             self.db_name = "measures.db"
             self.db_connection = MeasuresDB.create_db(self.db_name)

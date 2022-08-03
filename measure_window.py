@@ -23,7 +23,8 @@ class MeasureWindow(QtWidgets.QWidget):
     close_confirmed = pyqtSignal()
 
     def __init__(self, a_calibrator: clb_dll.ClbDrv, a_measure_config: Measure,
-                 a_db_connection: Connection, a_settings: QtSettings, a_parent=None):
+                 a_db_connection: Connection, a_settings: QtSettings,
+                 a_parent: QtWidgets.QMainWindow = None):
         super().__init__(a_parent)
 
         self.ui = MeasureForm()
@@ -42,6 +43,7 @@ class MeasureWindow(QtWidgets.QWidget):
         self.settings = a_settings
 
         self.parent.show()
+        self.parent.setObjectName("measure_window")
         self.settings.restore_qwidget_state(self.parent)
         # Вызывать после self.parent.show() !!! Иначе состояние столбцов не восстановится
         self.settings.restore_qwidget_state(self.ui.measure_table)
@@ -131,8 +133,6 @@ class MeasureWindow(QtWidgets.QWidget):
 
     # noinspection DuplicatedCode
     def connect_signals(self):
-        self.settings.fixed_step_changed.connect(self.fill_fixed_step_combobox)
-
         self.ui.clb_list_combobox.currentTextChanged.connect(self.connect_to_clb)
 
         self.ui.start_stop_button.clicked.connect(self.start_stop_measure)
@@ -178,7 +178,7 @@ class MeasureWindow(QtWidgets.QWidget):
     @pyqtSlot(clb.State)
     def update_clb_status(self, a_status: clb.State):
         self.clb_state = a_status
-        self.ui.clb_state_label.setText(clb.enum_to_state[a_status])
+        self.ui.clb_state_label.setText(clb.state_to_text[a_status])
 
     def connect_to_clb(self, a_clb_name):
         self.calibrator.connect(a_clb_name)
@@ -193,6 +193,10 @@ class MeasureWindow(QtWidgets.QWidget):
         if self.calibrator.signal_type_changed():
             if self.calibrator.signal_type != self.current_case.signal_type:
                 self.calibrator.signal_type = self.current_case.signal_type
+
+        if self.fixed_step_list != self.settings.fixed_step_list:
+            self.fixed_step_list = self.settings.fixed_step_list
+            self.fill_fixed_step_combobox()
 
     def signal_enable_changed(self, a_enable):
         if not self.started and self.calibrator.signal_enable:
@@ -222,13 +226,13 @@ class MeasureWindow(QtWidgets.QWidget):
                   "Режим измерения: Фиксированный диапазон\n" \
                   "Тип сигнала: {0}\n" \
                   "Амплитуда: {1}".format(
-            clb.enum_to_signal_type[self.current_case.signal_type], self.value_to_user(self.highest_amplitude))
+            clb.signal_type_to_text[self.current_case.signal_type], self.value_to_user(self.highest_amplitude))
 
         if clb.is_ac_signal[self.current_case.signal_type]:
             message += "\nЧастота: {0} Гц".format(utils.float_to_string(self.calibrator.frequency))
 
-        reply = QMessageBox.question(self, "Подтвердите действие", message, QMessageBox.Yes | QMessageBox.No,
-                                     QMessageBox.No)
+        reply = QMessageBox.question(self, "Подтвердите действие", message,
+                                     QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
 
         if reply == QMessageBox.Yes:
             return True

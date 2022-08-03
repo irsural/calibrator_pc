@@ -1,0 +1,45 @@
+from irspy.qt.qt_settings_ini_parser import QtSettings
+
+
+def get_calibrator_pc_settings():
+    settings = QtSettings("settings.ini", [
+        QtSettings.VariableInfo(a_name="fixed_step_list",
+                                a_section="PARAMETERS",
+                                a_type=QtSettings.ValueType.LIST_FLOAT,
+                                a_default=[0.0001, 0.01, 0.1, 1, 10, 20, 100]),
+        QtSettings.VariableInfo(a_name="fixed_step_idx",
+                                a_section="PARAMETERS",
+                                a_type=QtSettings.ValueType.INT,
+                                a_default=0),
+        QtSettings.VariableInfo(a_name="rough_step",
+                                a_section="PARAMETERS",
+                                a_type=QtSettings.ValueType.FLOAT,
+                                a_default=0.5),
+        QtSettings.VariableInfo(a_name="common_step",
+                                a_section="PARAMETERS",
+                                a_type=QtSettings.ValueType.FLOAT,
+                                a_default=0.05),
+        QtSettings.VariableInfo(a_name="exact_step",
+                                a_section="PARAMETERS",
+                                a_type=QtSettings.ValueType.FLOAT,
+                                a_default=0.002),
+        QtSettings.VariableInfo(a_name="start_deviation",
+                                a_section="PARAMETERS",
+                                a_type=QtSettings.ValueType.INT,
+                                a_default=5),
+        QtSettings.VariableInfo(a_name="mouse_inversion",
+                                a_section="PARAMETERS",
+                                a_type=QtSettings.ValueType.INT,
+                                a_default=0),
+        QtSettings.VariableInfo(a_name="disable_scroll_on_table",
+                                a_section="PARAMETERS",
+                                a_type=QtSettings.ValueType.INT,
+                                a_default=0),
+        QtSettings.VariableInfo(a_name="template_filepath",
+                                a_section="PARAMETERS",
+                                a_type=QtSettings.ValueType.STRING),
+        QtSettings.VariableInfo(a_name="save_folder",
+                                a_section="PARAMETERS",
+                                a_type=QtSettings.ValueType.STRING)
+    ])
+    return settings

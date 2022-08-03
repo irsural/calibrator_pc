@@ -115,17 +115,17 @@ class MeasureCases(QtWidgets.QWidget):
 
     @staticmethod
     def create_tab_name(a_case: Measure.Case):
-        return " " + clb.enum_to_signal_type_short[a_case.signal_type] + "; " + \
+        return " " + clb.signal_type_to_text_short[a_case.signal_type] + "; " + \
                utils.value_to_user_with_units(clb.signal_type_to_units[a_case.signal_type])(a_case.limit)
 
     def remove_tab(self, a_idx: int):
         try:
             if self.cases_bar.count() > 2:
                 tab_name = self.cases_bar.tabText(self.cases_bar.currentIndex())
-                res = QtWidgets.QMessageBox.question(self, "Подтвердите действие",
-                                                     "Вы действительно хотите удалить измерение {0}?".format(tab_name),
-                                                     QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
-                                                     QtWidgets.QMessageBox.No)
+                res = QtWidgets.QMessageBox.question(
+                    self, "Подтвердите действие",
+                    "Вы действительно хотите удалить измерение {0}?".format(tab_name),
+                    QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)
                 if res == QtWidgets.QMessageBox.Yes:
                     if a_idx == self.cases_bar.count() - 2 and a_idx == self.cases_bar.currentIndex():
                         # Если удаляемая вкладка активна, меняем активную на предыдущую
