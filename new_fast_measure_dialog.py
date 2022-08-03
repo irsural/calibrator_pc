@@ -2,12 +2,13 @@ import enum
 
 from PyQt5.QtWidgets import QDialog, QMessageBox
 from PyQt5 import QtWidgets, QtCore
+import numpy as np
 
 from ui.py.new_fast_measure_form import Ui_new_fast_measure_dialog as NewFastMeasureForm
 from irspy.qt.custom_widgets.EditListDialog import EditedListOnlyNumbers, OkCancelDialog
 import irspy.clb.calibrator_constants as clb
-from irspy import utils
 from irspy.qt import qt_utils
+from irspy import utils
 
 
 class FastMeasureParams:
@@ -252,9 +253,22 @@ class NewFastMeasureDialog(QDialog):
         self.normalize_edit_value(self.ui.step_edit)
         self.normalize_edit_value(self.ui.minimal_discrete)
 
+    @staticmethod
+    def auto_calc_points(a_start: float, a_stop: float, a_step: float):
+        if a_start == a_stop or a_step == 0:
+            return []
+        if a_stop < a_start:
+            a_step *= -1
+
+        points = np.arange(a_start, a_stop, a_step)
+        points = np.append(a_stop, points)
+        sorted_list = (-np.sort(-points)).tolist()
+        rounded_list = [round(elem, 9) for elem in sorted_list]
+        return rounded_list
+
     def calc_points(self):
         lower_point, upper_point = (self.fast_params.lower_bound, self.fast_params.upper_bound) if \
             self.fast_params.start_point_side == FastMeasureParams.StartPoint.LOWER else \
             (self.fast_params.upper_bound, self.fast_params.lower_bound)
 
-        return utils.auto_calc_points(lower_point, upper_point, self.fast_params.points_step)
+        return self.auto_calc_points(lower_point, upper_point, self.fast_params.points_step)
