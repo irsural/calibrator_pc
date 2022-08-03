@@ -7,7 +7,7 @@ from ui.py.new_fast_measure_form import Ui_new_fast_measure_dialog as NewFastMea
 from custom_widgets.EditListDialog import EditedListOnlyNumbers, OkCancelDialog
 import irspy.clb.calibrator_constants as clb
 from irspy import utils
-import qt_utils
+from irspy.qt import qt_utils
 
 
 class FastMeasureParams:

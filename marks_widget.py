@@ -7,7 +7,7 @@ from PyQt5.QtCore import pyqtSignal
 
 from ui.py.marks_widget import Ui_marks_widget as MarksWidgetForm
 from irspy.qt.qt_settings_ini_parser import QtSettings
-import qt_utils
+from irspy.qt import qt_utils
 from irspy import utils
 
 

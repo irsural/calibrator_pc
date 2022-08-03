@@ -176,7 +176,8 @@ class MainWindow(QtWidgets.QMainWindow):
         except Exception as err:
             utils.exception_handler(err)
 
-    def start_template_measure(self, a_template_params: TemplateParams, a_variable_params: VariableTemplateParams):
+    def start_template_measure(self, a_template_params: TemplateParams,
+                               a_variable_params: VariableTemplateParams):
         try:
             measure_config = Measure.from_template(a_template_params, a_variable_params)
 

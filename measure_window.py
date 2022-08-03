@@ -13,7 +13,7 @@ from irspy.qt.qt_settings_ini_parser import QtSettings
 from MeasureModel import PointData
 import irspy.clb.calibrator_constants as clb
 import constants as cfg
-import qt_utils
+from irspy.qt import qt_utils
 import irspy.clb.clb_dll as clb_dll
 from irspy import utils
 

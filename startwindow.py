@@ -8,7 +8,7 @@ from db_measures import MeasureColumn, MEASURE_COLUMN_TO_NAME, MeasuresDB
 from custom_widgets.QTableDelegates import NonOverlappingDoubleClick
 from create_protocol_dialog import CreateProtocolDialog
 from irspy.qt.qt_settings_ini_parser import QtSettings
-import qt_utils
+from irspy.qt import qt_utils
 from irspy import utils
 
 

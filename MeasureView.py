@@ -4,7 +4,7 @@ from custom_widgets.QTableDelegates import NonOverlappingDoubleClick
 from MeasureModel import MeasureModel, PointData
 from db_measures import Measure
 import irspy.clb.calibrator_constants as clb
-import qt_utils
+from irspy.qt import qt_utils
 
 
 class CornerButtonPainter(NonOverlappingDoubleClick):
