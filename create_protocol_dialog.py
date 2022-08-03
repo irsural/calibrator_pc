@@ -141,16 +141,14 @@ class CreateProtocolDialog(QtWidgets.QDialog):
         if folder:
             self.ui.save_folder_edit.setText(folder)
 
+    @utils.exception_decorator_print
     def save_pressed(self):
-        try:
-            self.save()
-            if self.marks_widget.save():
-                if self.generate_protocol():
-                    self.close()
-            else:
-                self.ui.marks_and_points_tabwidget.setCurrentIndex(0)
-        except Exception as err:
-            utils.exception_handler(err)
+        self.save()
+        if self.marks_widget.save():
+            if self.generate_protocol():
+                self.close()
+        else:
+            self.ui.marks_and_points_tabwidget.setCurrentIndex(0)
 
     # noinspection DuplicatedCode
     def save(self):

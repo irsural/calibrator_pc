@@ -57,76 +57,69 @@ class ScalesWidget(QtWidgets.QWidget):
             self.add_new_tab(self.template_id, scale)
         self.ui.tabWidget.setCurrentIndex(0)
 
+    @utils.exception_decorator_print
     def add_new_tab(self, a_template_id: int, a_scale: cfg.Scale = None):
-        try:
-            new_tab_index = self.ui.tabWidget.count() - 1
+        new_tab_index = self.ui.tabWidget.count() - 1
 
-            if a_scale is None:
-                a_scale = self.templates_db.new_scale(a_template_id, a_scale)
-                a_scale.number = new_tab_index
+        if a_scale is None:
+            a_scale = self.templates_db.new_scale(a_template_id, a_scale)
+            a_scale.number = new_tab_index
 
-            config_scale_button = QtWidgets.QPushButton("Пределы", self)
-            config_scale_button.clicked.connect(self.edit_scale_limits)
-            scale_list = EditedListOnlyNumbers(parent=self, a_init_items=(p for p in a_scale.points),
-                                               a_min_value=-float_info.max, a_max_value=float_info.max,
-                                               a_optional_widget=config_scale_button,
-                                               a_list_header="Числовые отметки шкалы, деление")
+        config_scale_button = QtWidgets.QPushButton("Пределы", self)
+        config_scale_button.clicked.connect(self.edit_scale_limits)
+        scale_list = EditedListOnlyNumbers(parent=self, a_init_items=(p for p in a_scale.points),
+                                           a_min_value=-float_info.max, a_max_value=float_info.max,
+                                           a_optional_widget=config_scale_button,
+                                           a_list_header="Числовые отметки шкалы, деление")
 
-            self.ui.tabWidget.insertTab(new_tab_index, scale_list, str(self.ui.tabWidget.count()))
-            self.ui.tabWidget.setCurrentIndex(new_tab_index)
+        self.ui.tabWidget.insertTab(new_tab_index, scale_list, str(self.ui.tabWidget.count()))
+        self.ui.tabWidget.setCurrentIndex(new_tab_index)
 
-            self.scales_id[new_tab_index + 1] = a_scale.id
+        self.scales_id[new_tab_index + 1] = a_scale.id
 
-        except Exception as err:
-            utils.exception_handler(err)
-
+    @utils.exception_decorator_print
     def remove_tab(self, a_idx: int):
-        try:
-            if self.ui.tabWidget.count() > 2:
-                res = QtWidgets.QMessageBox.question(self, "Подтвердите действие",
-                                                     "Вы действительно хотите удалить шкалу №{0}?".format(a_idx + 1),
-                                                     QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
-                                                     QtWidgets.QMessageBox.No)
-                if res == QtWidgets.QMessageBox.Yes:
-                    if a_idx == self.ui.tabWidget.count() - 2 and a_idx == self.ui.tabWidget.currentIndex():
-                        # Если удаляемая вкладка активна, меняем активную на предыдущую
-                        self.ui.tabWidget.setCurrentIndex(self.ui.tabWidget.count() - 3)
-                    self.ui.tabWidget.removeTab(a_idx)
-                    self.templates_db.delete_scale(self.scales_id[a_idx + 1])
+        if self.ui.tabWidget.count() > 2:
+            res = QtWidgets.QMessageBox.question(self, "Подтвердите действие",
+                                                 "Вы действительно хотите удалить шкалу №{0}?".format(a_idx + 1),
+                                                 QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
+                                                 QtWidgets.QMessageBox.No)
+            if res == QtWidgets.QMessageBox.Yes:
+                if a_idx == self.ui.tabWidget.count() - 2 and a_idx == self.ui.tabWidget.currentIndex():
+                    # Если удаляемая вкладка активна, меняем активную на предыдущую
+                    self.ui.tabWidget.setCurrentIndex(self.ui.tabWidget.count() - 3)
+                self.ui.tabWidget.removeTab(a_idx)
+                self.templates_db.delete_scale(self.scales_id[a_idx + 1])
 
-                    # Последнюю вкладку с плюсиком не переименовываем
-                    for tab_idx in range(self.ui.tabWidget.count() - 1):
-                        old_scale_number = int(self.ui.tabWidget.tabText(tab_idx))
-                        actual_scale_number = tab_idx + 1
-                        actual_tab_name = str(actual_scale_number)
-                        if self.ui.tabWidget.tabText(tab_idx) != actual_tab_name:
-                            scale_id = self.scales_id[old_scale_number]
-                            del self.scales_id[old_scale_number]
-                            self.scales_id[actual_scale_number] = scale_id
+                # Последнюю вкладку с плюсиком не переименовываем
+                for tab_idx in range(self.ui.tabWidget.count() - 1):
+                    old_scale_number = int(self.ui.tabWidget.tabText(tab_idx))
+                    actual_scale_number = tab_idx + 1
+                    actual_tab_name = str(actual_scale_number)
+                    if self.ui.tabWidget.tabText(tab_idx) != actual_tab_name:
+                        scale_id = self.scales_id[old_scale_number]
+                        del self.scales_id[old_scale_number]
+                        self.scales_id[actual_scale_number] = scale_id
 
-                            self.ui.tabWidget.setTabText(tab_idx, actual_tab_name)
-        except Exception as err:
-            utils.exception_handler(err)
+                        self.ui.tabWidget.setTabText(tab_idx, actual_tab_name)
 
+    @utils.exception_decorator_print
     def edit_scale_limits(self):
-        try:
-            current_scale_number = self.ui.tabWidget.currentIndex() + 1
-            scale_id = self.scales_id[current_scale_number]
-            limits = self.templates_db.get_limits(scale_id)
+        current_scale_number = self.ui.tabWidget.currentIndex() + 1
+        scale_id = self.scales_id[current_scale_number]
+        limits = self.templates_db.get_limits(scale_id)
 
-            scale_limits_dialog = ScaleLimitsDialog(limits, self)
+        scale_limits_dialog = ScaleLimitsDialog(limits, self)
 
-            new_limits, deleted_ids = scale_limits_dialog.exec_and_get_limits()
-            if new_limits is not None:
-                # Вносим изменения в базу, только если пользователь подтвердил ввод
-                self.templates_db.delete_limits(deleted_ids)
-                for limit in new_limits:
-                    if limit.id != 0:
-                        self.templates_db.update_limit(limit)
-                    else:
-                        self.templates_db.new_limit(scale_id, limit)
-        except Exception as err:
-            utils.exception_handler(err)
+        new_limits, deleted_ids = scale_limits_dialog.exec_and_get_limits()
+        if new_limits is not None:
+            # Вносим изменения в базу, только если пользователь подтвердил ввод
+            self.templates_db.delete_limits(deleted_ids)
+            for limit in new_limits:
+                if limit.id != 0:
+                    self.templates_db.update_limit(limit)
+                else:
+                    self.templates_db.new_limit(scale_id, limit)
 
     def get_scales(self) -> List[cfg.Scale]:
         scales = [self.get_scale_by_tab_idx(tab_idx) for tab_idx in range(self.ui.tabWidget.count() - 1)]

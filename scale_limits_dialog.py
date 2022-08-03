@@ -112,37 +112,33 @@ class ScaleLimitsDialog(QtWidgets.QDialog):
         for limit in a_limits:
             self.add_limit_to_table(limit)
 
+    @utils.exception_decorator_print
     def signal_type_changed(self, a_idx):
-        try:
-            sender_table_row = self.ui.limits_table.currentRow()
-            row_limit_item = self.ui.limits_table.item(sender_table_row, ScaleLimitsDialog.Column.LIMIT)
+        sender_table_row = self.ui.limits_table.currentRow()
+        row_limit_item = self.ui.limits_table.item(sender_table_row, ScaleLimitsDialog.Column.LIMIT)
 
-            value_f = utils.parse_input(row_limit_item.text())
-            signal_type = clb.SignalType(a_idx)
-            units = clb.signal_type_to_units[signal_type]
+        value_f = utils.parse_input(row_limit_item.text())
+        signal_type = clb.SignalType(a_idx)
+        units = clb.signal_type_to_units[signal_type]
 
-            value_str = utils.value_to_user_with_units(units)(value_f)
-            row_limit_item.setText(value_str)
-        except Exception as err:
-            utils.exception_handler(err)
+        value_str = utils.value_to_user_with_units(units)(value_f)
+        row_limit_item.setText(value_str)
 
+    @utils.exception_decorator_print
     def extract_params(self) -> List[Scale.Limit]:
-        try:
-            scales = []
-            for row_idx in range(self.ui.limits_table.rowCount()):
-                limit = utils.parse_input(self.ui.limits_table.item(row_idx, ScaleLimitsDialog.Column.LIMIT).text())
-                device_class = self.ui.limits_table.cellWidget(row_idx, ScaleLimitsDialog.Column.CLASS).value()
-                signal_type = \
-                    self.ui.limits_table.cellWidget(row_idx, ScaleLimitsDialog.Column.SIGNAL_TYPE).currentIndex()
-                frequency = \
-                    self.ui.limits_table.cellWidget(row_idx, ScaleLimitsDialog.Column.FREQUENCY).get_frequency_text()
-                limit_id = int(self.ui.limits_table.item(row_idx, ScaleLimitsDialog.Column.ID).text())
+        scales = []
+        for row_idx in range(self.ui.limits_table.rowCount()):
+            limit = utils.parse_input(self.ui.limits_table.item(row_idx, ScaleLimitsDialog.Column.LIMIT).text())
+            device_class = self.ui.limits_table.cellWidget(row_idx, ScaleLimitsDialog.Column.CLASS).value()
+            signal_type = \
+                self.ui.limits_table.cellWidget(row_idx, ScaleLimitsDialog.Column.SIGNAL_TYPE).currentIndex()
+            frequency = \
+                self.ui.limits_table.cellWidget(row_idx, ScaleLimitsDialog.Column.FREQUENCY).get_frequency_text()
+            limit_id = int(self.ui.limits_table.item(row_idx, ScaleLimitsDialog.Column.ID).text())
 
-                scales.append(Scale.Limit(a_id=limit_id, a_limit=limit, a_device_class=device_class,
-                                          a_signal_type=clb.SignalType(signal_type), a_frequency=frequency))
-            return scales
-        except Exception as err:
-            utils.exception_handler(err)
+            scales.append(Scale.Limit(a_id=limit_id, a_limit=limit, a_device_class=device_class,
+                                      a_signal_type=clb.SignalType(signal_type), a_frequency=frequency))
+        return scales
 
     def add_limit_to_table(self, a_limit: Scale.Limit):
         row_idx = self.ui.limits_table.rowCount()

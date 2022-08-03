@@ -263,32 +263,29 @@ class MeasureWindow(QtWidgets.QWidget):
             self.start_measure_timer.stop()
 
     # Вызывается по таймауту stop_measure_timer и по изменению параметров сигнала в self.measure_manager
+    @utils.exception_decorator_print
     def current_case_changed(self):
         """
         Вызывается каждый раз, когда меняются параметры сигнала
         """
-        try:
-            if not self.calibrator.signal_enable:
-                self.current_case = self.measure_manager.current_case()
-                self.set_window_elements()
-                self.update_case_params()
+        if not self.calibrator.signal_enable:
+            self.current_case = self.measure_manager.current_case()
+            self.set_window_elements()
+            self.update_case_params()
 
-                # Чтобы обновились единицы измерения
-                self.set_amplitude(self.calibrator.amplitude)
-                self.set_frequency(self.calibrator.frequency)
-                self.calibrator.signal_type = self.current_case.signal_type
-                self.fill_fixed_step_combobox()
+            # Чтобы обновились единицы измерения
+            self.set_amplitude(self.calibrator.amplitude)
+            self.set_frequency(self.calibrator.frequency)
+            self.calibrator.signal_type = self.current_case.signal_type
+            self.fill_fixed_step_combobox()
 
-                self.stop_measure_timer.stop()
-                self.close_wait_dialog()
+            self.stop_measure_timer.stop()
+            self.close_wait_dialog()
 
-            else:
-                self.enable_signal(False)
-                self.stop_measure_timer.start(1100)
-                self.show_wait_dialog()
-
-        except AssertionError as err:
-            utils.exception_handler(err)
+        else:
+            self.enable_signal(False)
+            self.stop_measure_timer.start(1100)
+            self.show_wait_dialog()
 
     def show_wait_dialog(self):
         if self.wait_dialog is None:
@@ -387,41 +384,40 @@ class MeasureWindow(QtWidgets.QWidget):
     def update_current_frequency(self, a_current_frequency):
         self.current_point.frequency = a_current_frequency
 
+    @utils.exception_decorator_print
     def save_point(self):
         if self.clb_state != clb.State.WAITING_SIGNAL:
-            try:
-                if self.measure_manager.view().is_point_measured(self.current_point.amplitude, self.current_point.frequency,
-                                                                 self.current_point.approach_side):
+            if self.measure_manager.view().is_point_measured(
+                    self.current_point.amplitude, self.current_point.frequency,
+                    self.current_point.approach_side):
 
-                    side_text = "СНИЗУ" if self.current_point.approach_side == PointData.ApproachSide.DOWN \
-                        else "СВЕРХУ"
+                side_text = "СНИЗУ" if self.current_point.approach_side == PointData.ApproachSide.DOWN \
+                    else "СВЕРХУ"
 
-                    point_text = "{0}".format(self.value_to_user(self.current_point.amplitude))
-                    if clb.is_ac_signal[self.current_case.signal_type]:
-                        point_text += " : {0} Гц".format(utils.float_to_string(self.current_point.frequency))
+                point_text = "{0}".format(self.value_to_user(self.current_point.amplitude))
+                if clb.is_ac_signal[self.current_case.signal_type]:
+                    point_text += " : {0} Гц".format(utils.float_to_string(self.current_point.frequency))
 
-                    ask_dlg = QMessageBox(self)
-                    ask_dlg.setWindowTitle("Выберите действие")
-                    ask_dlg.setText("Значение {0} уже измерено для точки {1}.\n"
-                                    "Выберите действие для точки {3}({2})".format(side_text, point_text,
-                                                                                   side_text, point_text))
-                    average_btn = ask_dlg.addButton("Усреднить", QMessageBox.YesRole)
-                    overwrite_btn = ask_dlg.addButton("Перезаписать", QMessageBox.YesRole)
-                    ask_dlg.addButton("Отменить", QMessageBox.NoRole)
-                    ask_dlg.exec()
+                ask_dlg = QMessageBox(self)
+                ask_dlg.setWindowTitle("Выберите действие")
+                ask_dlg.setText("Значение {0} уже измерено для точки {1}.\n"
+                                "Выберите действие для точки {3}({2})".format(
+                                    side_text, point_text, side_text, point_text))
+                average_btn = ask_dlg.addButton("Усреднить", QMessageBox.YesRole)
+                overwrite_btn = ask_dlg.addButton("Перезаписать", QMessageBox.YesRole)
+                ask_dlg.addButton("Отменить", QMessageBox.NoRole)
+                ask_dlg.exec()
 
-                    if ask_dlg.clickedButton() == overwrite_btn:
-                        self.measure_manager.view().append(self.current_point)
-                    elif ask_dlg.clickedButton() == average_btn:
-                        self.measure_manager.view().append(self.current_point, a_average=True)
+                if ask_dlg.clickedButton() == overwrite_btn:
+                    self.measure_manager.view().append(self.current_point)
+                elif ask_dlg.clickedButton() == average_btn:
+                    self.measure_manager.view().append(self.current_point, a_average=True)
+            else:
+                if self.clb_state == clb.State.READY:
+                    self.measure_manager.view().append(self.current_point)
                 else:
-                    if self.clb_state == clb.State.READY:
-                        self.measure_manager.view().append(self.current_point)
-                    else:
-                        self.measure_manager.view().append(PointData(a_point=self.current_point.amplitude,
-                                                                     a_frequency=self.current_point.frequency))
-            except AssertionError as err:
-                utils.exception_handler(err)
+                    self.measure_manager.view().append(PointData(
+                        a_point=self.current_point.amplitude, a_frequency=self.current_point.frequency))
         else:
             self.clb_not_ready_warning()
 
@@ -557,33 +553,29 @@ class MeasureWindow(QtWidgets.QWidget):
         except ValueError:
             self.fixed_step = 0
 
+    @utils.exception_decorator_print
     def update_config(self):
-        try:
-            edit_template_params_dialog = EditMeasureParamsDialog(self.settings, self.measure_config,
-                                                                  self.db_connection, self)
-            edit_template_params_dialog.exec()
-        except AssertionError as err:
-            utils.exception_handler(err)
+        edit_template_params_dialog = EditMeasureParamsDialog(
+            self.settings, self.measure_config, self.db_connection, self)
+        edit_template_params_dialog.exec()
 
+    @utils.exception_decorator_print
     def ask_for_close(self):
-        try:
-            reply = QMessageBox.question(self, "Подтвердите действие", "Завершить поверку?", QMessageBox.Yes |
-                                         QMessageBox.No, QMessageBox.No)
-            if reply == QMessageBox.Yes:
-                self.enable_signal(False)
-                # После закрытия measure_manager все кейсы синхронизированы с данными в таблицах
-                self.measure_manager.close()
+        reply = QMessageBox.question(self, "Подтвердите действие", "Завершить поверку?", QMessageBox.Yes |
+                                     QMessageBox.No, QMessageBox.No)
+        if reply == QMessageBox.Yes:
+            self.enable_signal(False)
+            # После закрытия measure_manager все кейсы синхронизированы с данными в таблицах
+            self.measure_manager.close()
 
-                if self.started:
-                    self.measures_db.save_measure(self.measure_config)
-                else:
-                    self.measures_db.delete(self.measure_config.id)
+            if self.started:
+                self.measures_db.save_measure(self.measure_config)
+            else:
+                self.measures_db.delete(self.measure_config.id)
 
-                self.save_settings()
+            self.save_settings()
 
-                self.close_confirmed.emit()
-        except AssertionError as err:
-            utils.exception_handler(err)
+            self.close_confirmed.emit()
 
     def save_settings(self):
         self.settings.fixed_step_idx = self.ui.fixed_step_combobox.currentIndex()

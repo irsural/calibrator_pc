@@ -20,11 +20,6 @@ enum_to_device_system = {
 }
 
 
-class OperationDB(IntEnum):
-    ADD = 0
-    EDIT = 1
-
-
 class Scale:
     class Limit:
         def __init__(self, a_id=0, a_limit: float = 1, a_device_class: float = 1,

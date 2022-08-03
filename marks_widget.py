@@ -100,23 +100,21 @@ class MarksWidget(QtWidgets.QWidget):
         for column in range(self.MarkColumns.COUNT):
             self.ui.marks_table.setItem(row, column, QtWidgets.QTableWidgetItem(""))
 
+    @utils.exception_decorator_print
     def delete_row(self):
-        try:
-            rows = self.ui.marks_table.selectionModel().selectedRows()
-            if rows:
-                res = QtWidgets.QMessageBox.question(self, "Подтвердите действие", "Вы уверены, что хотите удалить "
-                                                     "выбранные параметры?\nВыбранные параметры также будут удалены из "
-                                                     "всех УЖЕ ПРОВЕДЕННЫХ измерений.", QtWidgets.QMessageBox.Yes |
-                                                     QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)
-                if res == QtWidgets.QMessageBox.Yes:
-                    for idx_model in reversed(rows):
-                        row = idx_model.row()
-                        if self.is_row_in_db(row):
-                            self.deleted_names.append((self.ui.marks_table.item(row, self.MarkColumns.NAME).text(),))
-                        self.ui.marks_table.removeRow(row)
-                    self.items_changed = True
-        except Exception as err:
-            utils.exception_handler(err)
+        rows = self.ui.marks_table.selectionModel().selectedRows()
+        if rows:
+            res = QtWidgets.QMessageBox.question(self, "Подтвердите действие", "Вы уверены, что хотите удалить "
+                                                 "выбранные параметры?\nВыбранные параметры также будут удалены из "
+                                                 "всех УЖЕ ПРОВЕДЕННЫХ измерений.", QtWidgets.QMessageBox.Yes |
+                                                 QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)
+            if res == QtWidgets.QMessageBox.Yes:
+                for idx_model in reversed(rows):
+                    row = idx_model.row()
+                    if self.is_row_in_db(row):
+                        self.deleted_names.append((self.ui.marks_table.item(row, self.MarkColumns.NAME).text(),))
+                    self.ui.marks_table.removeRow(row)
+                self.items_changed = True
 
     def mark_items_as_changed(self):
         self.items_changed = True

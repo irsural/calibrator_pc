@@ -168,17 +168,15 @@ class TemplateListWindow(QtWidgets.QDialog):
             self.templates_db.delete(self.current_template)
             self.ui.templates_list.takeItem(self.ui.templates_list.currentRow())
 
+    @utils.exception_decorator_print
     def choose_template(self):
-        try:
-            item = self.ui.templates_list.currentItem()
-            if item is not None:
-                variable_params_dialog = VariableTemplateFieldsDialog(self)
-                params = variable_params_dialog.exec_and_get_params()
-                if params is not None:
-                    self.config_ready.emit(self.current_template, params)
-                    self.reject()
-        except Exception as err:
-            utils.exception_handler(err)
+        item = self.ui.templates_list.currentItem()
+        if item is not None:
+            variable_params_dialog = VariableTemplateFieldsDialog(self)
+            params = variable_params_dialog.exec_and_get_params()
+            if params is not None:
+                self.config_ready.emit(self.current_template, params)
+                self.reject()
 
     def filter_templates(self, a_text):
         for row in range(self.ui.templates_list.count()):
