@@ -10,17 +10,17 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 
-class Ui_Form(object):
-    def setupUi(self, Form):
-        Form.setObjectName("Form")
-        Form.resize(310, 304)
+class Ui_measure_cases_tabwidget_2(object):
+    def setupUi(self, measure_cases_tabwidget_2):
+        measure_cases_tabwidget_2.setObjectName("measure_cases_tabwidget_2")
+        measure_cases_tabwidget_2.resize(310, 304)
         font = QtGui.QFont()
         font.setPointSize(10)
-        Form.setFont(font)
-        self.verticalLayout = QtWidgets.QVBoxLayout(Form)
+        measure_cases_tabwidget_2.setFont(font)
+        self.verticalLayout = QtWidgets.QVBoxLayout(measure_cases_tabwidget_2)
         self.verticalLayout.setContentsMargins(0, 5, 0, 0)
         self.verticalLayout.setObjectName("verticalLayout")
-        self.measure_cases_tabwidget = QtWidgets.QTabWidget(Form)
+        self.measure_cases_tabwidget = QtWidgets.QTabWidget(measure_cases_tabwidget_2)
         self.measure_cases_tabwidget.setStyleSheet("QTabBar::tab::last\n"
 "{\n"
 "    margin-right: 2px;\n"
@@ -38,10 +38,10 @@ class Ui_Form(object):
         self.measure_cases_tabwidget.setObjectName("measure_cases_tabwidget")
         self.verticalLayout.addWidget(self.measure_cases_tabwidget)
 
-        self.retranslateUi(Form)
+        self.retranslateUi(measure_cases_tabwidget_2)
         self.measure_cases_tabwidget.setCurrentIndex(-1)
-        QtCore.QMetaObject.connectSlotsByName(Form)
+        QtCore.QMetaObject.connectSlotsByName(measure_cases_tabwidget_2)
 
-    def retranslateUi(self, Form):
+    def retranslateUi(self, measure_cases_tabwidget_2):
         _translate = QtCore.QCoreApplication.translate
-        Form.setWindowTitle(_translate("Form", "Form"))
+        measure_cases_tabwidget_2.setWindowTitle(_translate("measure_cases_tabwidget_2", "Form"))

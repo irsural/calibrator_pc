@@ -2,14 +2,14 @@ from sqlite3 import Connection
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 
-from ui.py.edit_measure_parameters_form import Ui_Dialog as EditMeasureParamsForm
+from ui.py.edit_measure_parameters_form import Ui_edit_measure_params_dialog as EditMeasureParamsForm
 from marks_widget import MarksWidget
 from db_measures import Measure
-from settings_ini_parser import Settings
+from irspy.qt.qt_settings_ini_parser import QtSettings
 
 
 class EditMeasureParamsDialog(QtWidgets.QDialog):
-    def __init__(self, a_settings: Settings, a_measure_config: Measure, a_db_connection: Connection,
+    def __init__(self, a_settings: QtSettings, a_measure_config: Measure, a_db_connection: Connection,
                  a_parent=None):
         super().__init__(a_parent)
 
@@ -18,7 +18,7 @@ class EditMeasureParamsDialog(QtWidgets.QDialog):
         self.ui.default_button.setHidden(True)
 
         self.settings = a_settings
-        self.restoreGeometry(self.settings.get_last_geometry(self.__class__.__name__))
+        self.settings.restore_qwidget_state(self)
 
         self.measure_config = a_measure_config
 
@@ -67,7 +67,7 @@ class EditMeasureParamsDialog(QtWidgets.QDialog):
         self.measure_config.comment = self.ui.comment_edit.text()
 
     def save_geometry(self):
-        self.settings.save_geometry(self.__class__.__name__, self.saveGeometry())
+        self.settings.save_qwidget_state(self)
         # Вызывается вручную, чтобы marks_widget сохранил состояние своего хэдера
         self.marks_widget.close()
 

@@ -6,10 +6,10 @@ from PyQt5.QtWidgets import QMessageBox
 from PyQt5.QtGui import QWheelEvent
 
 from edit_measure_parameters_dialog import EditMeasureParamsDialog
-from ui.py.measure_form import Ui_main_widget as MeasureForm
+from ui.py.measure_form import Ui_measure_dialog as MeasureForm
 from measure_cases_widget import MeasureCases
 from db_measures import Measure, MeasuresDB
-from settings_ini_parser import Settings
+from irspy.qt.qt_settings_ini_parser import QtSettings
 from MeasureModel import PointData
 import irspy.clb.calibrator_constants as clb
 import constants as cfg
@@ -22,8 +22,8 @@ class MeasureWindow(QtWidgets.QWidget):
     remove_points = pyqtSignal(list)
     close_confirmed = pyqtSignal()
 
-    def __init__(self, a_calibrator: clb_dll.ClbDrv, a_measure_config: Measure, a_db_connection: Connection,
-                 a_settings: Settings, a_parent=None):
+    def __init__(self, a_calibrator: clb_dll.ClbDrv, a_measure_config: Measure,
+                 a_db_connection: Connection, a_settings: QtSettings, a_parent=None):
         super().__init__(a_parent)
 
         self.ui = MeasureForm()
@@ -42,15 +42,9 @@ class MeasureWindow(QtWidgets.QWidget):
         self.settings = a_settings
 
         self.parent.show()
-        geometry = self.settings.get_last_geometry(self.__class__.__name__)
-        if not geometry.isEmpty():
-            self.parent.restoreGeometry(geometry)
-        else:
-            self.parent.resize(self.size())
-
+        self.settings.restore_qwidget_state(self.parent)
         # Вызывать после self.parent.show() !!! Иначе состояние столбцов не восстановится
-        self.ui.measure_table.horizontalHeader().restoreState(self.settings.get_last_header_state(
-            self.__class__.__name__))
+        self.settings.restore_qwidget_state(self.ui.measure_table)
 
         self.db_connection = a_db_connection
 
@@ -63,7 +57,8 @@ class MeasureWindow(QtWidgets.QWidget):
         # Нужно создать заранее, чтобы было id для сохранения меток
         self.measure_config.id = self.measures_db.new_measure(self.measure_config)
 
-        self.measure_manager = MeasureCases(self.ui.measure_table, self.measure_config.cases, a_allow_editing=True)
+        self.measure_manager = MeasureCases(self.ui.measure_table, self.measure_config.cases,
+                                            a_allow_editing=True)
         self.ui.cases_bar_layout.addWidget(self.measure_manager.cases_bar)
 
         # --------------------Создение переменных
@@ -588,8 +583,8 @@ class MeasureWindow(QtWidgets.QWidget):
 
     def save_settings(self):
         self.settings.fixed_step_idx = self.ui.fixed_step_combobox.currentIndex()
-        self.settings.save_geometry(self.__class__.__name__, self.parent.saveGeometry())
-        self.settings.save_header_state(self.__class__.__name__, self.ui.measure_table.horizontalHeader().saveState())
+        self.settings.save_qwidget_state(self.parent)
+        self.settings.save_qwidget_state(self.ui.measure_table)
 
     def __del__(self):
         print(self.__class__.__name__, "deleted")

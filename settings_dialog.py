@@ -4,8 +4,8 @@ from PyQt5 import QtGui, QtWidgets
 from PyQt5.QtCore import pyqtSignal
 
 from custom_widgets.EditListDialog import EditedListWithUnits
-from ui.py.settings_form import Ui_Dialog as SettingsForm
-from settings_ini_parser import Settings
+from ui.py.settings_form import Ui_settings_dialog as SettingsForm
+from irspy.qt.qt_settings_ini_parser import QtSettings
 from marks_widget import MarksWidget
 import irspy.clb.calibrator_constants as clb
 
@@ -22,14 +22,14 @@ class SettingsDialog(QtWidgets.QDialog):
 
     fixed_range_changed = pyqtSignal()
 
-    def __init__(self, a_settings: Settings, a_db_connection: Connection, a_parent=None):
+    def __init__(self, a_settings: QtSettings, a_db_connection: Connection, a_parent=None):
         super().__init__(a_parent)
 
         self.ui = SettingsForm()
         self.ui.setupUi(self)
 
         self.settings = a_settings
-        self.restoreGeometry(self.settings.get_last_geometry(self.__class__.__name__))
+        self.settings.restore_qwidget_state(self)
 
         self.ui.save_and_exit_button.clicked.connect(self.save_and_exit)
         self.ui.save_button.clicked.connect(self.save)
@@ -96,7 +96,7 @@ class SettingsDialog(QtWidgets.QDialog):
             self.close()
 
     def closeEvent(self, a_event: QtGui.QCloseEvent) -> None:
-        self.settings.save_geometry(self.__class__.__name__, self.saveGeometry())
+        self.settings.save_qwidget_state(self)
         # Вызывается вручную, чтобы marks_widget сохранил состояние своего хэдера
         self.marks_widget.close()
         a_event.accept()

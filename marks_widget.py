@@ -6,7 +6,7 @@ from PyQt5.QtCore import pyqtSignal
 
 
 from ui.py.marks_widget import Ui_marks_widget as MarksWidgetForm
-from settings_ini_parser import Settings
+from irspy.qt.qt_settings_ini_parser import QtSettings
 import qt_utils
 import utils
 
@@ -20,7 +20,7 @@ class MarksWidget(QtWidgets.QWidget):
         VALUE = 2
         COUNT = 3
 
-    def __init__(self, a_caller_name: str, a_settings: Settings, a_db_connection: sqlite3.Connection, a_measure_id=None,
+    def __init__(self, a_caller_name: str, a_settings: QtSettings, a_db_connection: sqlite3.Connection, a_measure_id=None,
                  a_parent=None):
         """
         Виджет, который управляет дополнительными параметрами измерений
@@ -44,8 +44,8 @@ class MarksWidget(QtWidgets.QWidget):
         self.caller_name = a_caller_name
 
         self.settings = a_settings
-        self.ui.marks_table.horizontalHeader().restoreState(self.settings.get_last_header_state(
-            '.'.join([self.caller_name, self.__class__.__name__])))
+        self.ui.marks_table.horizontalHeader().restoreState(
+            getattr(self.settings, '.'.join([self.caller_name, self.__class__.__name__])))
 
         self.connection = a_db_connection
         self.cursor = self.connection.cursor()
@@ -216,5 +216,5 @@ class MarksWidget(QtWidgets.QWidget):
         QtWidgets.QApplication.clipboard().setText(text)
 
     def closeEvent(self, a_event: QtGui.QCloseEvent) -> None:
-        self.settings.save_header_state('.'.join([self.caller_name, self.__class__.__name__]),
-                                        self.ui.marks_table.horizontalHeader().saveState())
+        setattr(self.settings, '.'.join([self.caller_name, self.__class__.__name__]),
+                self.ui.marks_table.horizontalHeader().saveState())

@@ -1,6 +1,6 @@
 from PyQt5 import QtCore, QtWidgets
 
-from ui.py.edit_case_params_form import Ui_Dialog as EditCaseParamsForm
+from ui.py.edit_case_params_form import Ui_edit_case_params_dialog as EditCaseParamsForm
 from db_measures import Measure
 import irspy.clb.calibrator_constants as clb
 import qt_utils

@@ -5,15 +5,15 @@ from collections import OrderedDict
 from PyQt5.QtCore import pyqtSignal
 from PyQt5 import QtWidgets, QtGui, QtCore
 
-from ui.py.edited_list_widget import Ui_Form as EditedListForm
-from ui.py.ok_cancel_dialog import Ui_Dialog as OkCancelForm
+from ui.py.edited_list_widget import Ui_edited_list_widget as EditedListForm
+from ui.py.ok_cancel_dialog import Ui_ok_cancel_dialog as OkCancelForm
 from custom_widgets.CustomLineEdit import QEditDoubleClick
 import utils
 
 
 class EditedListWidget(QtWidgets.QWidget):
-    def __init__(self, parent=None, a_init_items=(), a_min_value=None, a_max_value=None, a_optional_widget=None,
-                 a_list_header=""):
+    def __init__(self, parent=None, a_init_items=(), a_min_value=None, a_max_value=None,
+                 a_optional_widget=None, a_list_header=""):
         super().__init__(parent)
 
         self.ui = EditedListForm()

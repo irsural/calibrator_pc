@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>Dialog</class>
- <widget class="QDialog" name="Dialog">
+ <class>variable_template_fields_dialog</class>
+ <widget class="QDialog" name="variable_template_fields_dialog">
   <property name="geometry">
    <rect>
     <x>0</x>

@@ -3,7 +3,8 @@ from PyQt5 import QtWidgets, QtCore, QtGui
 from new_fast_measure_dialog import NewFastMeasureDialog, FastMeasureParams
 from template_list_window import TemplateParams, TemplateListWindow
 from variable_template_fields_dialog import VariableTemplateParams
-from settings_ini_parser import Settings, BadIniException
+from irspy.qt.qt_settings_ini_parser import QtSettings
+from irspy.settings_ini_parser import BadIniException
 from ui.py.mainwindow import Ui_MainWindow as MainForm
 from db_measures import Measure, MeasuresDB
 from source_mode_window import SourceModeDialog
@@ -29,7 +30,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.active_window = None
 
         try:
-            self.settings = Settings(self)
+            self.settings = QtSettings("./settings.ini", [])
             ini_ok = True
         except BadIniException:
             ini_ok = False

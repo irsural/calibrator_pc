@@ -10,18 +10,18 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 
-class Ui_Dialog(object):
-    def setupUi(self, Dialog):
-        Dialog.setObjectName("Dialog")
-        Dialog.resize(668, 236)
+class Ui_scale_limits_dialog(object):
+    def setupUi(self, scale_limits_dialog):
+        scale_limits_dialog.setObjectName("scale_limits_dialog")
+        scale_limits_dialog.resize(668, 236)
         font = QtGui.QFont()
         font.setPointSize(10)
-        Dialog.setFont(font)
-        self.verticalLayout = QtWidgets.QVBoxLayout(Dialog)
+        scale_limits_dialog.setFont(font)
+        self.verticalLayout = QtWidgets.QVBoxLayout(scale_limits_dialog)
         self.verticalLayout.setObjectName("verticalLayout")
         self.horizontalLayout_3 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_3.setObjectName("horizontalLayout_3")
-        self.limits_table = QtWidgets.QTableWidget(Dialog)
+        self.limits_table = QtWidgets.QTableWidget(scale_limits_dialog)
         font = QtGui.QFont()
         font.setPointSize(9)
         self.limits_table.setFont(font)
@@ -47,7 +47,7 @@ class Ui_Dialog(object):
         self.horizontalLayout_3.addWidget(self.limits_table)
         self.verticalLayout_2 = QtWidgets.QVBoxLayout()
         self.verticalLayout_2.setObjectName("verticalLayout_2")
-        self.add_limit_button = QtWidgets.QPushButton(Dialog)
+        self.add_limit_button = QtWidgets.QPushButton(scale_limits_dialog)
         self.add_limit_button.setMinimumSize(QtCore.QSize(35, 0))
         self.add_limit_button.setMaximumSize(QtCore.QSize(35, 16777215))
         font = QtGui.QFont()
@@ -62,7 +62,7 @@ class Ui_Dialog(object):
         self.add_limit_button.setAutoDefault(False)
         self.add_limit_button.setObjectName("add_limit_button")
         self.verticalLayout_2.addWidget(self.add_limit_button)
-        self.remove_limit_button = QtWidgets.QPushButton(Dialog)
+        self.remove_limit_button = QtWidgets.QPushButton(scale_limits_dialog)
         self.remove_limit_button.setMinimumSize(QtCore.QSize(35, 0))
         self.remove_limit_button.setMaximumSize(QtCore.QSize(35, 16777215))
         font = QtGui.QFont()
@@ -83,45 +83,45 @@ class Ui_Dialog(object):
         self.verticalLayout.addLayout(self.horizontalLayout_3)
         self.horizontalLayout = QtWidgets.QHBoxLayout()
         self.horizontalLayout.setObjectName("horizontalLayout")
-        self.default_button = QtWidgets.QPushButton(Dialog)
+        self.default_button = QtWidgets.QPushButton(scale_limits_dialog)
         self.default_button.setEnabled(False)
         self.default_button.setDefault(True)
         self.default_button.setObjectName("default_button")
         self.horizontalLayout.addWidget(self.default_button)
         spacerItem1 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
         self.horizontalLayout.addItem(spacerItem1)
-        self.accept_button = QtWidgets.QPushButton(Dialog)
+        self.accept_button = QtWidgets.QPushButton(scale_limits_dialog)
         self.accept_button.setAutoDefault(False)
         self.accept_button.setObjectName("accept_button")
         self.horizontalLayout.addWidget(self.accept_button)
-        self.reject_button = QtWidgets.QPushButton(Dialog)
+        self.reject_button = QtWidgets.QPushButton(scale_limits_dialog)
         self.reject_button.setAutoDefault(False)
         self.reject_button.setObjectName("reject_button")
         self.horizontalLayout.addWidget(self.reject_button)
         self.verticalLayout.addLayout(self.horizontalLayout)
 
-        self.retranslateUi(Dialog)
-        QtCore.QMetaObject.connectSlotsByName(Dialog)
-        Dialog.setTabOrder(self.limits_table, self.accept_button)
-        Dialog.setTabOrder(self.accept_button, self.reject_button)
-        Dialog.setTabOrder(self.reject_button, self.default_button)
+        self.retranslateUi(scale_limits_dialog)
+        QtCore.QMetaObject.connectSlotsByName(scale_limits_dialog)
+        scale_limits_dialog.setTabOrder(self.limits_table, self.accept_button)
+        scale_limits_dialog.setTabOrder(self.accept_button, self.reject_button)
+        scale_limits_dialog.setTabOrder(self.reject_button, self.default_button)
 
-    def retranslateUi(self, Dialog):
+    def retranslateUi(self, scale_limits_dialog):
         _translate = QtCore.QCoreApplication.translate
-        Dialog.setWindowTitle(_translate("Dialog", "Изменение пределов шкалы"))
+        scale_limits_dialog.setWindowTitle(_translate("scale_limits_dialog", "Изменение пределов шкалы"))
         item = self.limits_table.horizontalHeaderItem(0)
-        item.setText(_translate("Dialog", "Предел"))
+        item.setText(_translate("scale_limits_dialog", "Предел"))
         item = self.limits_table.horizontalHeaderItem(1)
-        item.setText(_translate("Dialog", "Класс\n"
+        item.setText(_translate("scale_limits_dialog", "Класс\n"
 "точности"))
         item = self.limits_table.horizontalHeaderItem(2)
-        item.setText(_translate("Dialog", "Тип\n"
+        item.setText(_translate("scale_limits_dialog", "Тип\n"
 "сигнала"))
         item = self.limits_table.horizontalHeaderItem(3)
-        item.setText(_translate("Dialog", "Частота, Гц"))
+        item.setText(_translate("scale_limits_dialog", "Частота, Гц"))
         item = self.limits_table.horizontalHeaderItem(4)
-        item.setText(_translate("Dialog", "ID"))
-        self.default_button.setText(_translate("Dialog", "default"))
-        self.accept_button.setText(_translate("Dialog", "Принять"))
-        self.reject_button.setText(_translate("Dialog", "Отмена"))
+        item.setText(_translate("scale_limits_dialog", "ID"))
+        self.default_button.setText(_translate("scale_limits_dialog", "default"))
+        self.accept_button.setText(_translate("scale_limits_dialog", "Принять"))
+        self.reject_button.setText(_translate("scale_limits_dialog", "Отмена"))
 import icons

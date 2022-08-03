@@ -2,9 +2,9 @@ from PyQt5 import QtCore, QtWidgets, QtGui
 from PyQt5.QtCore import pyqtSignal, QTimer
 
 
-from ui.py.source_mode_form import Ui_Dialog as SourceModeForm
+from ui.py.source_mode_form import Ui_source_mode_dialog as SourceModeForm
 import irspy.clb.calibrator_constants as clb
-from settings_ini_parser import Settings
+from irspy.qt.qt_settings_ini_parser import QtSettings
 import qt_utils
 import irspy.clb.clb_dll as clb_dll
 import utils
@@ -13,7 +13,7 @@ import utils
 class SourceModeDialog(QtWidgets.QDialog):
     close_confirmed = pyqtSignal()
 
-    def __init__(self, a_settings: Settings, a_calibrator: clb_dll.ClbDrv, a_parent=None):
+    def __init__(self, a_settings: QtSettings, a_calibrator: clb_dll.ClbDrv, a_parent=None):
         super().__init__(a_parent)
 
         self.ui = SourceModeForm()

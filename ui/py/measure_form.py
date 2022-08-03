@@ -10,17 +10,17 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 
-class Ui_main_widget(object):
-    def setupUi(self, main_widget):
-        main_widget.setObjectName("main_widget")
-        main_widget.resize(1131, 566)
+class Ui_measure_dialog(object):
+    def setupUi(self, measure_dialog):
+        measure_dialog.setObjectName("measure_dialog")
+        measure_dialog.resize(1131, 566)
         font = QtGui.QFont()
         font.setPointSize(10)
-        main_widget.setFont(font)
-        self.verticalLayout_4 = QtWidgets.QVBoxLayout(main_widget)
+        measure_dialog.setFont(font)
+        self.verticalLayout_4 = QtWidgets.QVBoxLayout(measure_dialog)
         self.verticalLayout_4.setSpacing(3)
         self.verticalLayout_4.setObjectName("verticalLayout_4")
-        self.frame_3 = QtWidgets.QFrame(main_widget)
+        self.frame_3 = QtWidgets.QFrame(measure_dialog)
         self.frame_3.setAutoFillBackground(False)
         self.frame_3.setFrameShape(QtWidgets.QFrame.StyledPanel)
         self.frame_3.setFrameShadow(QtWidgets.QFrame.Plain)
@@ -77,7 +77,7 @@ class Ui_main_widget(object):
         self.pause_button.setObjectName("pause_button")
         self.horizontalLayout_3.addWidget(self.pause_button)
         self.verticalLayout_4.addWidget(self.frame_3)
-        self.splitter = QtWidgets.QSplitter(main_widget)
+        self.splitter = QtWidgets.QSplitter(measure_dialog)
         self.splitter.setOrientation(QtCore.Qt.Vertical)
         self.splitter.setChildrenCollapsible(False)
         self.splitter.setObjectName("splitter")
@@ -393,11 +393,11 @@ class Ui_main_widget(object):
         self.apply_amplitude_button.setFont(font)
         self.apply_amplitude_button.setText("")
         icon3 = QtGui.QIcon()
+        icon3.addPixmap(QtGui.QPixmap(":/icons/icons/ok.png"), QtGui.QIcon.Normal, QtGui.QIcon.On)
         icon3.addPixmap(QtGui.QPixmap(":/icons/icons/ok.png"), QtGui.QIcon.Active, QtGui.QIcon.On)
         icon3.addPixmap(QtGui.QPixmap(":/icons/icons/ok.png"), QtGui.QIcon.Selected, QtGui.QIcon.Off)
-        icon3.addPixmap(QtGui.QPixmap(":/icons/icons/ok.png"), QtGui.QIcon.Normal, QtGui.QIcon.On)
-        icon3.addPixmap(QtGui.QPixmap(":/icons/icons/ok.png"), QtGui.QIcon.Selected, QtGui.QIcon.On)
         icon3.addPixmap(QtGui.QPixmap(":/icons/icons/ok.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon3.addPixmap(QtGui.QPixmap(":/icons/icons/ok.png"), QtGui.QIcon.Selected, QtGui.QIcon.On)
         self.apply_amplitude_button.setIcon(icon3)
         self.apply_amplitude_button.setIconSize(QtCore.QSize(35, 35))
         self.apply_amplitude_button.setFlat(False)
@@ -535,46 +535,46 @@ class Ui_main_widget(object):
         self.gridLayout_2.addLayout(self.verticalLayout, 1, 1, 1, 1)
         self.verticalLayout_4.addWidget(self.splitter)
 
-        self.retranslateUi(main_widget)
+        self.retranslateUi(measure_dialog)
         self.fixed_step_combobox.setCurrentIndex(-1)
-        QtCore.QMetaObject.connectSlotsByName(main_widget)
-        main_widget.setTabOrder(self.clb_list_combobox, self.edit_parameters_button)
-        main_widget.setTabOrder(self.edit_parameters_button, self.pause_button)
-        main_widget.setTabOrder(self.pause_button, self.amplitude_edit)
-        main_widget.setTabOrder(self.amplitude_edit, self.apply_amplitude_button)
-        main_widget.setTabOrder(self.apply_amplitude_button, self.frequency_edit)
-        main_widget.setTabOrder(self.frequency_edit, self.apply_frequency_button)
-        main_widget.setTabOrder(self.apply_frequency_button, self.save_point_button)
-        main_widget.setTabOrder(self.save_point_button, self.go_to_point_button)
-        main_widget.setTabOrder(self.go_to_point_button, self.delete_point_button)
-        main_widget.setTabOrder(self.delete_point_button, self.start_stop_button)
+        QtCore.QMetaObject.connectSlotsByName(measure_dialog)
+        measure_dialog.setTabOrder(self.clb_list_combobox, self.edit_parameters_button)
+        measure_dialog.setTabOrder(self.edit_parameters_button, self.pause_button)
+        measure_dialog.setTabOrder(self.pause_button, self.amplitude_edit)
+        measure_dialog.setTabOrder(self.amplitude_edit, self.apply_amplitude_button)
+        measure_dialog.setTabOrder(self.apply_amplitude_button, self.frequency_edit)
+        measure_dialog.setTabOrder(self.frequency_edit, self.apply_frequency_button)
+        measure_dialog.setTabOrder(self.apply_frequency_button, self.save_point_button)
+        measure_dialog.setTabOrder(self.save_point_button, self.go_to_point_button)
+        measure_dialog.setTabOrder(self.go_to_point_button, self.delete_point_button)
+        measure_dialog.setTabOrder(self.delete_point_button, self.start_stop_button)
 
-    def retranslateUi(self, main_widget):
+    def retranslateUi(self, measure_dialog):
         _translate = QtCore.QCoreApplication.translate
-        main_widget.setWindowTitle(_translate("main_widget", "Form"))
-        self.label_4.setText(_translate("main_widget", "Статус:"))
-        self.clb_state_label.setText(_translate("main_widget", "Остановлен"))
-        self.edit_parameters_button.setText(_translate("main_widget", "Изменить параметры поверки"))
-        self.pause_button.setText(_translate("main_widget", "Возобновить"))
-        self.groupBox.setTitle(_translate("main_widget", "Шаг"))
-        self.label_3.setToolTip(_translate("main_widget", "Shift + колесо мыши"))
-        self.label_3.setText(_translate("main_widget", "Точный"))
-        self.label_8.setToolTip(_translate("main_widget", "Колесо мыши"))
-        self.label_8.setText(_translate("main_widget", "Обычный"))
-        self.label_2.setToolTip(_translate("main_widget", "Ctrl + колесо мыши"))
-        self.label_2.setText(_translate("main_widget", "Грубый"))
-        self.fixed_step_combobox.setToolTip(_translate("main_widget", "Ctrl + Shift + Колесо мыши"))
-        self.frequency_edit.setText(_translate("main_widget", "0"))
-        self.amplitude_edit.setText(_translate("main_widget", "0"))
-        self.label_6.setText(_translate("main_widget", "Частота, Гц"))
-        self.label_5.setText(_translate("main_widget", "Амплитуда"))
-        self.save_point_button.setText(_translate("main_widget", "Сохранить\n"
+        measure_dialog.setWindowTitle(_translate("measure_dialog", "Form"))
+        self.label_4.setText(_translate("measure_dialog", "Статус:"))
+        self.clb_state_label.setText(_translate("measure_dialog", "Остановлен"))
+        self.edit_parameters_button.setText(_translate("measure_dialog", "Изменить параметры поверки"))
+        self.pause_button.setText(_translate("measure_dialog", "Возобновить"))
+        self.groupBox.setTitle(_translate("measure_dialog", "Шаг"))
+        self.label_3.setToolTip(_translate("measure_dialog", "Shift + колесо мыши"))
+        self.label_3.setText(_translate("measure_dialog", "Точный"))
+        self.label_8.setToolTip(_translate("measure_dialog", "Колесо мыши"))
+        self.label_8.setText(_translate("measure_dialog", "Обычный"))
+        self.label_2.setToolTip(_translate("measure_dialog", "Ctrl + колесо мыши"))
+        self.label_2.setText(_translate("measure_dialog", "Грубый"))
+        self.fixed_step_combobox.setToolTip(_translate("measure_dialog", "Ctrl + Shift + Колесо мыши"))
+        self.frequency_edit.setText(_translate("measure_dialog", "0"))
+        self.amplitude_edit.setText(_translate("measure_dialog", "0"))
+        self.label_6.setText(_translate("measure_dialog", "Частота, Гц"))
+        self.label_5.setText(_translate("measure_dialog", "Амплитуда"))
+        self.save_point_button.setText(_translate("measure_dialog", "Сохранить\n"
 "точку"))
-        self.go_to_point_button.setText(_translate("main_widget", "Перейти\n"
+        self.go_to_point_button.setText(_translate("measure_dialog", "Перейти\n"
 "к точке"))
-        self.delete_point_button.setText(_translate("main_widget", "Удалить\n"
+        self.delete_point_button.setText(_translate("measure_dialog", "Удалить\n"
 "точку"))
-        self.start_stop_button.setText(_translate("main_widget", "Начать\n"
+        self.start_stop_button.setText(_translate("measure_dialog", "Начать\n"
 "поверку"))
 from custom_widgets.CustomLineEdit import QEditCopyButton
 import icons

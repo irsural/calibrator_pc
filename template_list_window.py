@@ -1,17 +1,17 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 from variable_template_fields_dialog import VariableTemplateFieldsDialog, VariableTemplateParams
-from ui.py.template_list_form import Ui_Dialog as TemplateListForm
+from ui.py.template_list_form import Ui_templates_list_dialog as TemplateListForm
 from template_scales_widget import ScalesWidget
 from db_templates import TemplateParams, TemplatesDB
-from settings_ini_parser import Settings
+from irspy.qt.qt_settings_ini_parser import QtSettings
 import utils
 
 
 class TemplateListWindow(QtWidgets.QDialog):
     config_ready = QtCore.pyqtSignal(TemplateParams, VariableTemplateParams)
 
-    def __init__(self, a_settings: Settings, a_parent=None):
+    def __init__(self, a_settings: QtSettings, a_parent=None):
         super().__init__(a_parent)
 
         self.ui = TemplateListForm()
@@ -25,7 +25,7 @@ class TemplateListWindow(QtWidgets.QDialog):
         self.ui.scales_layout.addWidget(self.scales_widget)
 
         self.settings = a_settings
-        self.restoreGeometry(self.settings.get_last_geometry(self.__class__.__name__))
+        self.settings.restore_qwidget_state(self)
 
         self.current_template = TemplateParams()
 
@@ -186,6 +186,6 @@ class TemplateListWindow(QtWidgets.QDialog):
             item.setHidden(a_text.lower() not in item.text().lower())
 
     def closeEvent(self, a_event: QtGui.QCloseEvent) -> None:
-        self.settings.save_geometry(self.__class__.__name__, self.saveGeometry())
+        self.settings.restore_qwidget_state(self)
         self.scales_widget.close()
         a_event.accept()

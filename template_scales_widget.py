@@ -3,7 +3,7 @@ from typing import List
 
 from PyQt5 import QtCore, QtWidgets, QtGui
 
-from ui.py.template_scales_tabwidget import Ui_Form as ScalesWidgetForm
+from ui.py.template_scales_tabwidget import Ui_template_scales_tabwidget as ScalesWidgetForm
 from custom_widgets.EditListDialog import EditedListOnlyNumbers
 from scale_limits_dialog import ScaleLimitsDialog
 from db_templates import TemplatesDB

@@ -5,10 +5,10 @@ import os
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 
-from ui.py.create_protocol_form import Ui_Dialog as CreateProtocolForm
+from ui.py.create_protocol_form import Ui_create_protocol_dialog as CreateProtocolForm
+from irspy.qt.qt_settings_ini_parser import QtSettings
 from measure_cases_widget import MeasureCases
 from db_measures import MeasuresDB
-from settings_ini_parser import Settings
 from marks_widget import MarksWidget
 import constants as cfg
 import odf_output
@@ -18,7 +18,7 @@ import utils
 class CreateProtocolDialog(QtWidgets.QDialog):
     GET_MARK_RE = re_compile(r"%.*__")
 
-    def __init__(self, a_settings: Settings, a_measure_id: int, a_db_connection: Connection, a_parent=None):
+    def __init__(self, a_settings: QtSettings, a_measure_id: int, a_db_connection: Connection, a_parent=None):
         super().__init__(a_parent)
 
         self.ui = CreateProtocolForm()
@@ -28,7 +28,7 @@ class CreateProtocolDialog(QtWidgets.QDialog):
         assert a_measure_id != 0, "Measure id must not be zero!"
 
         self.settings = a_settings
-        self.restoreGeometry(self.settings.get_last_geometry(self.__class__.__name__))
+        self.settings.restore_qwidget_state(self)
 
         self.measure_db = MeasuresDB(a_db_connection)
         self.measure_config = self.measure_db.get(a_measure_id)
@@ -40,8 +40,7 @@ class CreateProtocolDialog(QtWidgets.QDialog):
         self.default_marks_widgets = self.get_default_marks_widgets()
         self.set_up_params_to_ui()
 
-        self.ui.points_table.horizontalHeader().restoreState(self.settings.get_last_header_state(
-            self.__class__.__name__))
+        self.settings.restore_qwidget_state(self.ui.points_table)
         self.ui.points_table.horizontalHeader().setSectionsMovable(True)
 
         self.measure_manager = MeasureCases(self.ui.points_table, self.measure_config.cases, a_allow_editing=False)
@@ -257,8 +256,8 @@ class CreateProtocolDialog(QtWidgets.QDialog):
         QtWidgets.QApplication.clipboard().setText(parameters)
 
     def closeEvent(self, a_event: QtGui.QCloseEvent) -> None:
-        self.settings.save_geometry(self.__class__.__name__, self.saveGeometry())
-        self.settings.save_header_state(self.__class__.__name__, self.ui.points_table.horizontalHeader().saveState())
+        self.settings.save_qwidget_state(self)
+        self.settings.save_qwidget_state(self.ui.points_table)
 
         self.measure_manager.close()
         # Вызывается вручную, чтобы marks_widget сохранил состояние своего хэдера
