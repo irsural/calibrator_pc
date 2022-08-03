@@ -41,16 +41,12 @@ class MarksWidget(QtWidgets.QWidget):
         self.ui.delete_mark_button.setIcon(QtGui.QIcon(QtGui.QPixmap(":/icons/icons/minus2.png")))
 
         self.parent = a_parent
-        self.caller_name = a_caller_name
+        self.settings_geometry_name = '.'.join([a_caller_name, self.__class__.__name__])
 
         self.settings = a_settings
 
-        try:
-            self.ui.marks_table.horizontalHeader().restoreState(
-                getattr(self.settings, '.'.join([self.caller_name, self.__class__.__name__])))
-        except AttributeError:
-            # Размер marks_widget еще ни разу не был сохранен
-            pass
+        self.ui.marks_table.horizontalHeader().restoreState(
+            self.settings.read_bytes(self.settings_geometry_name))
 
         self.connection = a_db_connection
         self.cursor = self.connection.cursor()
@@ -221,5 +217,5 @@ class MarksWidget(QtWidgets.QWidget):
         QtWidgets.QApplication.clipboard().setText(text)
 
     def closeEvent(self, a_event: QtGui.QCloseEvent) -> None:
-        setattr(self.settings, '.'.join([self.caller_name, self.__class__.__name__]),
-                self.ui.marks_table.horizontalHeader().saveState())
+        self.settings.save_bytes(
+            self.settings_geometry_name, self.ui.marks_table.horizontalHeader().saveState())

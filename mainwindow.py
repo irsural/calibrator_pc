@@ -3,7 +3,6 @@ from PyQt5 import QtWidgets, QtCore, QtGui
 from new_fast_measure_dialog import NewFastMeasureDialog, FastMeasureParams
 from template_list_window import TemplateParams, TemplateListWindow
 from variable_template_fields_dialog import VariableTemplateParams
-from irspy.qt.qt_settings_ini_parser import QtSettings
 from irspy.settings_ini_parser import BadIniException
 from ui.py.mainwindow import Ui_MainWindow as MainForm
 from db_measures import Measure, MeasuresDB

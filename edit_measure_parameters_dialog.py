@@ -9,8 +9,8 @@ from irspy.qt.qt_settings_ini_parser import QtSettings
 
 
 class EditMeasureParamsDialog(QtWidgets.QDialog):
-    def __init__(self, a_settings: QtSettings, a_measure_config: Measure, a_db_connection: Connection,
-                 a_parent=None):
+    def __init__(self, a_settings: QtSettings, a_measure_config: Measure,
+                 a_db_connection: Connection, a_parent=None):
         super().__init__(a_parent)
 
         self.ui = EditMeasureParamsForm()
