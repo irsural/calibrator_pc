@@ -101,7 +101,7 @@ class Measure:
 
                 if scale.points:
                     scale_coef = limit.limit / max(scale.points)
-                    minimal_discrete = round(utils.get_array_min_diff(sorted(scale.points)) * scale_coef, 9)
+                    minimal_discrete = round(utils.get_array_min_diff(scale.points) * scale_coef, 9)
 
                     points = [MeasuredPoint(scale_point=p,
                                             amplitude=clb.bound_amplitude(p * scale_coef, limit.signal_type),

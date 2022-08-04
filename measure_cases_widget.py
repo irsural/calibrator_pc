@@ -15,7 +15,8 @@ class MeasureCases(QtWidgets.QWidget):
     case_removed = QtCore.pyqtSignal(int)
     current_case_changed = QtCore.pyqtSignal()
 
-    def __init__(self, a_case_table: QtWidgets.QTableView, a_cases: List[Measure.Case], a_allow_editing, a_parent=None):
+    def __init__(self, a_case_table: QtWidgets.QTableView, a_cases: List[Measure.Case],
+                 a_allow_editing, a_parent=None):
         super().__init__(a_parent)
 
         self.allow_editing = a_allow_editing
@@ -91,7 +92,7 @@ class MeasureCases(QtWidgets.QWidget):
         self.edit_case_parameters(tab_idx)
 
     @utils.exception_decorator_print
-    def delete_case(self, _):
+    def delete_case(self):
         sender = self.sender()
         tab_idx = self.get_tab_idx(sender)
         self.remove_tab(tab_idx)

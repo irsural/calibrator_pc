@@ -194,6 +194,8 @@ class MeasureWindow(QtWidgets.QWidget):
             if self.calibrator.signal_type != self.current_case.signal_type:
                 self.calibrator.signal_type = self.current_case.signal_type
 
+        self.calibrator.mode_changed()
+
         if self.fixed_step_list != self.settings.fixed_step_list:
             self.fixed_step_list = self.settings.fixed_step_list
             self.fill_fixed_step_combobox()
