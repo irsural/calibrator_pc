@@ -105,7 +105,7 @@ class TemplateListWindow(QtWidgets.QDialog):
     def add_template_clicked(self):
         self.create_new_template()
 
-    def create_new_template(self, a_template_params=None):
+    def create_new_template(self, a_template_params: TemplateParams = None):
         self.current_template = a_template_params if \
             a_template_params is not None else TemplateParams(a_name="Новый шаблон")
 
@@ -184,6 +184,6 @@ class TemplateListWindow(QtWidgets.QDialog):
             item.setHidden(a_text.lower() not in item.text().lower())
 
     def closeEvent(self, a_event: QtGui.QCloseEvent) -> None:
-        self.settings.restore_qwidget_state(self)
+        self.settings.save_qwidget_state(self)
         self.scales_widget.close()
         a_event.accept()

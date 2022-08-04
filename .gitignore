@@ -8,6 +8,7 @@ icons_rc.py
 /build
 /dist/*
 !/dist/calibrator_pc.exe
+/results
 /venv
 /venv3.5
 /Lib
