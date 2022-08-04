@@ -1,6 +1,8 @@
 from re import compile as re_compile
 from sqlite3 import Connection
 from typing import Tuple, Union
+import subprocess
+import platform
 import os
 
 from PyQt5 import QtCore, QtGui, QtWidgets
@@ -205,6 +207,12 @@ class CreateProtocolDialog(QtWidgets.QDialog):
 
             if odf_output.replace_text_in_odt(src_file, dst_file, marks_map, self.create_tables_to_export()):
                 QtWidgets.QMessageBox.information(self, "Успех", "Протокол успешно сгенерирован")
+
+                if platform.system() == 'Windows':
+                    os.startfile('"{}"'.format(dst_file))
+                else:  # Linux
+                    subprocess.run(['xdg-open', '"{}"'.format(dst_file)])
+
                 return True
             else:
                 QtWidgets.QMessageBox.critical(self, "Ошибка", "При создании протокола произошла ошибка")
