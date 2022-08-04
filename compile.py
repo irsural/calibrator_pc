@@ -4,14 +4,15 @@ import app_info
 
 
 if __name__ == "__main__":
-    app_info = py_build.AppInfo(a_app_name=app_info.SHORT_NAME,
+    app_info = py_build.AppInfo(a_app_name=app_info.FULL_NAME,
                                 a_version=app_info.VERSION,
                                 a_company_name='ООО "РЭС"',
-                                a_file_description=app_info.FULL_NAME,
+                                a_file_description="ПО для поверки средств измерений "
+                                                   "с помощью калибратора N4-25",
                                 a_internal_name=app_info.SHORT_NAME,
-                                a_copyright='ООО РЭС(c)',
+                                a_copyright='ООО "РЭС"(c)',
                                 a_original_filename=app_info.FULL_NAME,
-                                a_product_name=app_info.FULL_NAME)
+                                a_product_name=app_info.SHORT_NAME)
 
     libs = [
         ('C:\\Windows\\System32\\vcruntime140d.dll', '.'),

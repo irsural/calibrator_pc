@@ -7,7 +7,7 @@
 icons_rc.py
 /build
 /dist/*
-!/dist/calibrator_pc.exe
+!/dist/Калибратор N4-25 Поверка.exe
 /results
 /venv
 /venv3.5
