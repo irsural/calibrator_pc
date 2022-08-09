@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>Form</class>
- <widget class="QWidget" name="Form">
+ <class>measure_cases_tabwidget_2</class>
+ <widget class="QWidget" name="measure_cases_tabwidget_2">
   <property name="geometry">
    <rect>
     <x>0</x>

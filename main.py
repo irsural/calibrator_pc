@@ -1,17 +1,16 @@
-import ui_to_py
+from irspy.qt import ui_to_py
 ui_to_py.convert_ui("./ui", "./ui/py")
 ui_to_py.convert_resources("./resources", ".")
 
-import sys
 
-from PyQt5 import QtCore
-from PyQt5.QtWidgets import QApplication
+def main():
+    import sys
+    
+    from PyQt5 import QtCore
+    from PyQt5.QtWidgets import QApplication
+    
+    from mainwindow import MainWindow
 
-from mainwindow import MainWindow
-from utils import exception_handler
-
-
-if __name__ == "__main__":
     app = QApplication(sys.argv)
     app.setStyle("Fusion")
 
@@ -20,8 +19,13 @@ if __name__ == "__main__":
     translator.load("/".join([path, "qtbase_ru.qm"]))
     app.installTranslator(translator)
 
+    w = MainWindow()
+    sys.exit(app.exec())
+
+
+if __name__ == "__main__":
     try:
-        w = MainWindow()
-        sys.exit(app.exec())
+        import traceback
+        main()
     except Exception as err:
-        print("MAIN: ", exception_handler(err))
+        print(traceback.format_exc())

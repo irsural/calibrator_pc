@@ -3,16 +3,17 @@ from PyQt5 import QtWidgets, QtCore, QtGui
 from new_fast_measure_dialog import NewFastMeasureDialog, FastMeasureParams
 from template_list_window import TemplateParams, TemplateListWindow
 from variable_template_fields_dialog import VariableTemplateParams
-from settings_ini_parser import Settings, BadIniException
+from irspy.settings_ini_parser import BadIniException
 from ui.py.mainwindow import Ui_MainWindow as MainForm
 from db_measures import Measure, MeasuresDB
 from source_mode_window import SourceModeDialog
 from settings_dialog import SettingsDialog
 from measure_window import MeasureWindow
 from startwindow import StartWindow
-import calibrator_constants as clb
-import clb_dll
-import utils
+import irspy.clb.calibrator_constants as clb
+import irspy.clb.clb_dll as clb_dll
+from settings import get_calibrator_pc_settings
+from irspy import utils
 
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -29,12 +30,13 @@ class MainWindow(QtWidgets.QMainWindow):
         self.active_window = None
 
         try:
-            self.settings = Settings(self)
+            self.settings = get_calibrator_pc_settings()
             ini_ok = True
         except BadIniException:
             ini_ok = False
-            QtWidgets.QMessageBox.critical(self, "Ошибка", 'Файл конфигурации поврежден. Пожалуйста, '
-                                                           'удалите файл "settings.ini" и запустите программу заново')
+            QtWidgets.QMessageBox.critical(
+                self, "Ошибка", 'Файл конфигурации поврежден. Пожалуйста, удалите файл '
+                                '"settings.ini" и запустите программу заново')
         if ini_ok:
             self.db_name = "measures.db"
             self.db_connection = MeasuresDB.create_db(self.db_name)
@@ -46,8 +48,10 @@ class MainWindow(QtWidgets.QMainWindow):
             self.clb_signal_off_timer.timeout.connect(self.close)
             self.SIGNAL_OFF_TIME_MS = 200
 
-            self.clb_driver = clb_dll.set_up_driver(clb_dll.debug_dll_path)
-            self.usb_driver = clb_dll.UsbDrv(self.clb_driver)
+            self.clb_driver = clb_dll.clb_dll
+
+            modbus_registers_count = 700
+            self.usb_driver = clb_dll.UsbDrv(self.clb_driver, modbus_registers_count * 2)
             self.usb_state = clb_dll.UsbDrv.UsbState.DISABLED
             self.calibrator = clb_dll.ClbDrv(self.clb_driver)
             self.clb_state = clb.State.DISCONNECTED
@@ -62,10 +66,6 @@ class MainWindow(QtWidgets.QMainWindow):
 
         else:
             self.close()
-
-    def __del__(self):
-        if hasattr(self, "display_db_connection"):
-            self.db_connection.close()
 
     def usb_tick(self):
         self.usb_driver.tick()
@@ -97,22 +97,21 @@ class MainWindow(QtWidgets.QMainWindow):
         if self.active_window is not None:
             self.active_window.close()
 
+    @utils.exception_decorator_print
     def show_start_window(self):
-        try:
-            self.close_active_window()
+        self.close_active_window()
 
-            self.active_window = StartWindow(self.db_connection, self.db_name, self.settings, self)
-            self.setCentralWidget(self.active_window)
-            self.active_window.source_mode_chosen.connect(self.open_source_mode_window)
-            self.active_window.no_template_mode_chosen.connect(self.open_config_no_template_mode)
-            self.active_window.template_mode_chosen.connect(self.template_mode_chosen)
-            self.setWindowTitle(self.active_window.windowTitle())
-        except Exception as err:
-            utils.exception_handler(err)
+        self.active_window = StartWindow(self.db_connection, self.db_name, self.settings, self)
+        self.setCentralWidget(self.active_window)
+        self.active_window.source_mode_chosen.connect(self.open_source_mode_window)
+        self.active_window.no_template_mode_chosen.connect(self.open_config_no_template_mode)
+        self.active_window.template_mode_chosen.connect(self.template_mode_chosen)
+        self.setWindowTitle(self.active_window.windowTitle())
 
     def attach_calibrator_to_window(self, a_window):
         assert hasattr(a_window, "update_clb_list"), "no method update_clb_list"
         assert hasattr(a_window, "update_clb_status"), "no method update_clb_status"
+        assert hasattr(a_window, "signal_enable_changed"), "no method signal_enable_changed"
 
         self.clb_list_changed.connect(a_window.update_clb_list)
         self.clb_list_changed.emit(self.usb_driver.get_dev_list())
@@ -132,13 +131,11 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.active_window.close_confirmed.connect(self.close_child_widget)
 
+    @utils.exception_decorator_print
     def open_source_mode_window(self):
-        try:
-            source_mode_dialog = SourceModeDialog(self.settings, self.calibrator, self)
-            self.attach_calibrator_to_window(source_mode_dialog)
-            source_mode_dialog.exec()
-        except Exception as err:
-            utils.exception_handler(err)
+        source_mode_dialog = SourceModeDialog(self.settings, self.calibrator, self)
+        self.attach_calibrator_to_window(source_mode_dialog)
+        source_mode_dialog.exec()
 
     def open_config_no_template_mode(self):
         try:
@@ -155,49 +152,42 @@ class MainWindow(QtWidgets.QMainWindow):
     def save_no_template_config(self, a_config: FastMeasureParams):
         self.fast_config = a_config
 
+    @utils.exception_decorator_print
     def start_fast_measure(self):
-        try:
-            measure_config = Measure.from_fast_params(self.fast_config)
+        measure_config = Measure.from_fast_params(self.fast_config)
 
-            self.close_active_window()
-            self.change_window(MeasureWindow(a_calibrator=self.calibrator,
-                                             a_measure_config=measure_config,
-                                             a_db_connection=self.db_connection,
-                                             a_settings=self.settings,
-                                             a_parent=self))
-        except Exception as err:
-            utils.exception_handler(err)
+        self.close_active_window()
+        self.change_window(MeasureWindow(a_calibrator=self.calibrator,
+                                         a_measure_config=measure_config,
+                                         a_db_connection=self.db_connection,
+                                         a_settings=self.settings,
+                                         a_parent=self))
 
+    @utils.exception_decorator_print
     def template_mode_chosen(self):
-        try:
-            template_list_dialog = TemplateListWindow(self.settings, self)
-            template_list_dialog.config_ready.connect(self.start_template_measure)
-            template_list_dialog.exec()
-        except Exception as err:
-            utils.exception_handler(err)
+        template_list_dialog = TemplateListWindow(self.settings, self)
+        template_list_dialog.config_ready.connect(self.start_template_measure)
+        template_list_dialog.exec()
 
-    def start_template_measure(self, a_template_params: TemplateParams, a_variable_params: VariableTemplateParams):
-        try:
-            measure_config = Measure.from_template(a_template_params, a_variable_params)
+    @utils.exception_decorator_print
+    def start_template_measure(self, a_template_params: TemplateParams,
+                               a_variable_params: VariableTemplateParams):
+        measure_config = Measure.from_template(a_template_params, a_variable_params)
 
-            self.close_active_window()
-            self.change_window(MeasureWindow(a_calibrator=self.calibrator,
-                                             a_measure_config=measure_config,
-                                             a_db_connection=self.db_connection,
-                                             a_settings=self.settings,
-                                             a_parent=self))
-        except Exception as err:
-            utils.exception_handler(err)
+        self.close_active_window()
+        self.change_window(MeasureWindow(a_calibrator=self.calibrator,
+                                         a_measure_config=measure_config,
+                                         a_db_connection=self.db_connection,
+                                         a_settings=self.settings,
+                                         a_parent=self))
 
     def close_child_widget(self):
         self.show_start_window()
 
-    def open_settings(self):
-        try:
-            settings_dialog = SettingsDialog(self.settings, self.db_connection, self)
-            settings_dialog.exec()
-        except Exception as err:
-            utils.exception_handler(err)
+    @utils.exception_decorator_print
+    def open_settings(self, _):
+        settings_dialog = SettingsDialog(self.settings, self.db_connection, self)
+        settings_dialog.exec()
 
     def closeEvent(self, a_event: QtGui.QCloseEvent):
         try:

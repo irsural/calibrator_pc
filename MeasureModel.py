@@ -5,8 +5,8 @@ from PyQt5.QtCore import QAbstractTableModel, QModelIndex, Qt, QVariant, pyqtSlo
 from PyQt5.QtGui import QBrush, QColor
 
 from db_measures import MeasuredPoint
-import calibrator_constants as clb
-import utils
+import irspy.clb.calibrator_constants as clb
+from irspy import utils
 
 
 class PointData:

@@ -1,7 +1,7 @@
 from PyQt5 import QtGui, QtCore, QtWidgets
 from PyQt5.QtWidgets import QWidget
 
-from custom_widgets.CustomLineEdit import QEditDoubleClick
+from irspy.qt.custom_widgets.CustomLineEdit import QEditDoubleClick
 
 
 class NonOverlappingPainter(QtWidgets.QStyledItemDelegate):

@@ -6,9 +6,9 @@ from PyQt5.QtCore import pyqtSignal
 
 
 from ui.py.marks_widget import Ui_marks_widget as MarksWidgetForm
-from settings_ini_parser import Settings
-import qt_utils
-import utils
+from irspy.qt.qt_settings_ini_parser import QtSettings
+from irspy.qt import qt_utils
+from irspy import utils
 
 
 class MarksWidget(QtWidgets.QWidget):
@@ -20,7 +20,7 @@ class MarksWidget(QtWidgets.QWidget):
         VALUE = 2
         COUNT = 3
 
-    def __init__(self, a_caller_name: str, a_settings: Settings, a_db_connection: sqlite3.Connection, a_measure_id=None,
+    def __init__(self, a_caller_name: str, a_settings: QtSettings, a_db_connection: sqlite3.Connection, a_measure_id=None,
                  a_parent=None):
         """
         Виджет, который управляет дополнительными параметрами измерений
@@ -41,11 +41,12 @@ class MarksWidget(QtWidgets.QWidget):
         self.ui.delete_mark_button.setIcon(QtGui.QIcon(QtGui.QPixmap(":/icons/icons/minus2.png")))
 
         self.parent = a_parent
-        self.caller_name = a_caller_name
+        self.settings_geometry_name = '.'.join([a_caller_name, self.__class__.__name__])
 
         self.settings = a_settings
-        self.ui.marks_table.horizontalHeader().restoreState(self.settings.get_last_header_state(
-            '.'.join([self.caller_name, self.__class__.__name__])))
+
+        self.ui.marks_table.horizontalHeader().restoreState(
+            self.settings.read_bytes(self.settings_geometry_name))
 
         self.connection = a_db_connection
         self.cursor = self.connection.cursor()
@@ -67,8 +68,14 @@ class MarksWidget(QtWidgets.QWidget):
 
         self.fill_table_from_db()
 
+    @staticmethod
+    def qtablewidget_clear(a_table: QtWidgets.QTableWidget):
+        for row in reversed(range(a_table.rowCount())):
+            a_table.removeRow(row)
+
     def fill_table_from_db(self):
-        qt_utils.qtablewidget_clear(self.ui.marks_table)
+        self.qtablewidget_clear(self.ui.marks_table)
+
         if self.default_mode:
             self.cursor.execute("select name, tag, default_value from marks")
         else:
@@ -99,23 +106,21 @@ class MarksWidget(QtWidgets.QWidget):
         for column in range(self.MarkColumns.COUNT):
             self.ui.marks_table.setItem(row, column, QtWidgets.QTableWidgetItem(""))
 
-    def delete_row(self):
-        try:
-            rows = self.ui.marks_table.selectionModel().selectedRows()
-            if rows:
-                res = QtWidgets.QMessageBox.question(self, "Подтвердите действие", "Вы уверены, что хотите удалить "
-                                                     "выбранные параметры?\nВыбранные параметры также будут удалены из "
-                                                     "всех УЖЕ ПРОВЕДЕННЫХ измерений.", QtWidgets.QMessageBox.Yes |
-                                                     QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)
-                if res == QtWidgets.QMessageBox.Yes:
-                    for idx_model in reversed(rows):
-                        row = idx_model.row()
-                        if self.is_row_in_db(row):
-                            self.deleted_names.append((self.ui.marks_table.item(row, self.MarkColumns.NAME).text(),))
-                        self.ui.marks_table.removeRow(row)
-                    self.items_changed = True
-        except Exception as err:
-            utils.exception_handler(err)
+    @utils.exception_decorator_print
+    def delete_row(self, _):
+        rows = self.ui.marks_table.selectionModel().selectedRows()
+        if rows:
+            res = QtWidgets.QMessageBox.question(self, "Подтвердите действие", "Вы уверены, что хотите удалить "
+                                                 "выбранные параметры?\nВыбранные параметры также будут удалены из "
+                                                 "всех УЖЕ ПРОВЕДЕННЫХ измерений.", QtWidgets.QMessageBox.Yes |
+                                                 QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)
+            if res == QtWidgets.QMessageBox.Yes:
+                for idx_model in reversed(rows):
+                    row = idx_model.row()
+                    if self.is_row_in_db(row):
+                        self.deleted_names.append((self.ui.marks_table.item(row, self.MarkColumns.NAME).text(),))
+                    self.ui.marks_table.removeRow(row)
+                self.items_changed = True
 
     def mark_items_as_changed(self):
         self.items_changed = True
@@ -216,5 +221,5 @@ class MarksWidget(QtWidgets.QWidget):
         QtWidgets.QApplication.clipboard().setText(text)
 
     def closeEvent(self, a_event: QtGui.QCloseEvent) -> None:
-        self.settings.save_header_state('.'.join([self.caller_name, self.__class__.__name__]),
-                                        self.ui.marks_table.horizontalHeader().saveState())
+        self.settings.save_bytes(
+            self.settings_geometry_name, self.ui.marks_table.horizontalHeader().saveState())

@@ -1,17 +1,17 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 from variable_template_fields_dialog import VariableTemplateFieldsDialog, VariableTemplateParams
-from ui.py.template_list_form import Ui_Dialog as TemplateListForm
+from ui.py.template_list_form import Ui_templates_list_dialog as TemplateListForm
 from template_scales_widget import ScalesWidget
 from db_templates import TemplateParams, TemplatesDB
-from settings_ini_parser import Settings
-import utils
+from irspy.qt.qt_settings_ini_parser import QtSettings
+from irspy import utils
 
 
 class TemplateListWindow(QtWidgets.QDialog):
     config_ready = QtCore.pyqtSignal(TemplateParams, VariableTemplateParams)
 
-    def __init__(self, a_settings: Settings, a_parent=None):
+    def __init__(self, a_settings: QtSettings, a_parent=None):
         super().__init__(a_parent)
 
         self.ui = TemplateListForm()
@@ -25,7 +25,7 @@ class TemplateListWindow(QtWidgets.QDialog):
         self.ui.scales_layout.addWidget(self.scales_widget)
 
         self.settings = a_settings
-        self.restoreGeometry(self.settings.get_last_geometry(self.__class__.__name__))
+        self.settings.restore_qwidget_state(self)
 
         self.current_template = TemplateParams()
 
@@ -105,7 +105,7 @@ class TemplateListWindow(QtWidgets.QDialog):
     def add_template_clicked(self):
         self.create_new_template()
 
-    def create_new_template(self, a_template_params=None):
+    def create_new_template(self, a_template_params: TemplateParams = None):
         self.current_template = a_template_params if \
             a_template_params is not None else TemplateParams(a_name="Новый шаблон")
 
@@ -168,17 +168,15 @@ class TemplateListWindow(QtWidgets.QDialog):
             self.templates_db.delete(self.current_template)
             self.ui.templates_list.takeItem(self.ui.templates_list.currentRow())
 
-    def choose_template(self):
-        try:
-            item = self.ui.templates_list.currentItem()
-            if item is not None:
-                variable_params_dialog = VariableTemplateFieldsDialog(self)
-                params = variable_params_dialog.exec_and_get_params()
-                if params is not None:
-                    self.config_ready.emit(self.current_template, params)
-                    self.reject()
-        except Exception as err:
-            utils.exception_handler(err)
+    @utils.exception_decorator_print
+    def choose_template(self, _):
+        item = self.ui.templates_list.currentItem()
+        if item is not None:
+            variable_params_dialog = VariableTemplateFieldsDialog(self)
+            params = variable_params_dialog.exec_and_get_params()
+            if params is not None:
+                self.config_ready.emit(self.current_template, params)
+                self.reject()
 
     def filter_templates(self, a_text):
         for row in range(self.ui.templates_list.count()):
@@ -186,6 +184,6 @@ class TemplateListWindow(QtWidgets.QDialog):
             item.setHidden(a_text.lower() not in item.text().lower())
 
     def closeEvent(self, a_event: QtGui.QCloseEvent) -> None:
-        self.settings.save_geometry(self.__class__.__name__, self.saveGeometry())
+        self.settings.save_qwidget_state(self)
         self.scales_widget.close()
         a_event.accept()

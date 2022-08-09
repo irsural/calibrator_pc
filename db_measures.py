@@ -9,8 +9,8 @@ from variable_template_fields_dialog import VariableTemplateParams
 from new_fast_measure_dialog import FastMeasureParams
 from db_templates import TemplateParams
 from constants import DeviceSystem, enum_to_device_system
-import calibrator_constants as clb
-import utils
+import irspy.clb.calibrator_constants as clb
+from irspy import utils
 
 
 class MeasureColumn(IntEnum):
@@ -101,7 +101,7 @@ class Measure:
 
                 if scale.points:
                     scale_coef = limit.limit / max(scale.points)
-                    minimal_discrete = round(utils.get_array_min_diff(sorted(scale.points)) * scale_coef, 9)
+                    minimal_discrete = round(utils.get_array_min_diff(scale.points) * scale_coef, 9)
 
                     points = [MeasuredPoint(scale_point=p,
                                             amplitude=clb.bound_amplitude(p * scale_coef, limit.signal_type),
@@ -162,7 +162,7 @@ class MeasuresDB:
             cursor.executemany("insert or ignore into system (id, name) values (?, ?)", systems_table)
 
             cursor.execute("CREATE TABLE IF NOT EXISTS signal_type (id integer primary key, name text unique)")
-            signal_types = [(signal_type, clb.enum_to_signal_type_short[signal_type]) for signal_type in clb.SignalType]
+            signal_types = [(signal_type, clb.signal_type_to_text_short[signal_type]) for signal_type in clb.SignalType]
             cursor.executemany("insert or ignore into signal_type (id, name) values (?, ?)", signal_types)
 
         return connection

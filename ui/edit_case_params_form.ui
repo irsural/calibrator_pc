@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>Dialog</class>
- <widget class="QDialog" name="Dialog">
+ <class>edit_case_params_dialog</class>
+ <widget class="QDialog" name="edit_case_params_dialog">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -129,6 +129,9 @@
      </item>
      <item row="1" column="0">
       <widget class="QEditDoubleClick" name="limit_edit">
+       <property name="enabled">
+        <bool>true</bool>
+       </property>
        <property name="minimumSize">
         <size>
          <width>0</width>
@@ -212,7 +215,7 @@
   <customwidget>
    <class>QEditDoubleClick</class>
    <extends>QLineEdit</extends>
-   <header>custom_widgets.CustomLineEdit</header>
+   <header>irspy.qt.custom_widgets.CustomLineEdit</header>
   </customwidget>
  </customwidgets>
  <tabstops>

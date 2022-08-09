@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file './ui/template_scales_tabwidget.ui'
+# Form implementation generated from reading ui file 'template_scales_tabwidget.ui'
 #
 # Created by: PyQt5 UI code generator 5.14.1
 #
@@ -10,17 +10,17 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 
-class Ui_Form(object):
-    def setupUi(self, Form):
-        Form.setObjectName("Form")
-        Form.resize(231, 284)
+class Ui_template_scales_tabwidget(object):
+    def setupUi(self, template_scales_tabwidget):
+        template_scales_tabwidget.setObjectName("template_scales_tabwidget")
+        template_scales_tabwidget.resize(231, 284)
         font = QtGui.QFont()
         font.setPointSize(10)
-        Form.setFont(font)
-        self.verticalLayout = QtWidgets.QVBoxLayout(Form)
+        template_scales_tabwidget.setFont(font)
+        self.verticalLayout = QtWidgets.QVBoxLayout(template_scales_tabwidget)
         self.verticalLayout.setContentsMargins(0, 5, 0, 0)
         self.verticalLayout.setObjectName("verticalLayout")
-        self.tabWidget = QtWidgets.QTabWidget(Form)
+        self.tabWidget = QtWidgets.QTabWidget(template_scales_tabwidget)
         self.tabWidget.setStyleSheet("QTabBar::tab::last\n"
 "{\n"
 "    margin-right: 2px;\n"
@@ -38,10 +38,10 @@ class Ui_Form(object):
         self.tabWidget.setObjectName("tabWidget")
         self.verticalLayout.addWidget(self.tabWidget)
 
-        self.retranslateUi(Form)
+        self.retranslateUi(template_scales_tabwidget)
         self.tabWidget.setCurrentIndex(-1)
-        QtCore.QMetaObject.connectSlotsByName(Form)
+        QtCore.QMetaObject.connectSlotsByName(template_scales_tabwidget)
 
-    def retranslateUi(self, Form):
+    def retranslateUi(self, template_scales_tabwidget):
         _translate = QtCore.QCoreApplication.translate
-        Form.setWindowTitle(_translate("Form", "Form"))
+        template_scales_tabwidget.setWindowTitle(_translate("template_scales_tabwidget", "Form"))

@@ -6,8 +6,8 @@ from MeasureView import MeasureView
 from MeasureModel import MeasureModel
 from db_measures import Measure
 from edit_case_params_dialog import EditCaseParamsDialog
-import calibrator_constants as clb
-import utils
+import irspy.clb.calibrator_constants as clb
+from irspy import utils
 
 
 class MeasureCases(QtWidgets.QWidget):
@@ -15,7 +15,8 @@ class MeasureCases(QtWidgets.QWidget):
     case_removed = QtCore.pyqtSignal(int)
     current_case_changed = QtCore.pyqtSignal()
 
-    def __init__(self, a_case_table: QtWidgets.QTableView, a_cases: List[Measure.Case], a_allow_editing, a_parent=None):
+    def __init__(self, a_case_table: QtWidgets.QTableView, a_cases: List[Measure.Case],
+                 a_allow_editing, a_parent=None):
         super().__init__(a_parent)
 
         self.allow_editing = a_allow_editing
@@ -62,50 +63,43 @@ class MeasureCases(QtWidgets.QWidget):
     def plus_button_clicked(self):
         self.add_new_tab()
 
+    @utils.exception_decorator_print
     def select_case(self, a_idx):
-        try:
-            self.cases_bar.setCurrentIndex(a_idx)
-            self.measure_view.reset(self.cases[a_idx])
-            self.current_case_changed.emit()
-        except Exception as err:
-            utils.exception_handler(err)
+        self.cases_bar.setCurrentIndex(a_idx)
+        self.measure_view.reset(self.cases[a_idx])
+        self.current_case_changed.emit()
 
+    @utils.exception_decorator_print
     def add_new_tab(self, a_case: Measure.Case = None):
-        try:
-            if a_case is None:
-                a_case = Measure.Case()
-                self.cases.append(a_case)
+        if a_case is None:
+            a_case = Measure.Case()
+            self.cases.append(a_case)
 
-            settings_close_widget = SettingsCloseWidget(self.cases_bar)
-            settings_close_widget.settings_clicked.connect(self.open_case_settings)
-            settings_close_widget.close_clicked.connect(self.delete_case)
-            settings_close_widget.setEnabled(self.allow_editing)
+        settings_close_widget = SettingsCloseWidget(self.cases_bar)
+        settings_close_widget.settings_clicked.connect(self.open_case_settings)
+        settings_close_widget.close_clicked.connect(self.delete_case)
+        settings_close_widget.setEnabled(self.allow_editing)
 
-            new_tab_index = self.cases_bar.count() - 1
-            self.cases_bar.insertTab(new_tab_index, self.create_tab_name(a_case))
-            self.cases_bar.setTabButton(new_tab_index, QtWidgets.QTabBar.RightSide, settings_close_widget)
+        new_tab_index = self.cases_bar.count() - 1
+        self.cases_bar.insertTab(new_tab_index, self.create_tab_name(a_case))
+        self.cases_bar.setTabButton(new_tab_index, QtWidgets.QTabBar.RightSide, settings_close_widget)
 
-            self.cases_bar.setCurrentIndex(new_tab_index)
-        except Exception as err:
-            utils.exception_handler(err)
+        self.cases_bar.setCurrentIndex(new_tab_index)
 
     def open_case_settings(self):
         sender = self.sender()
         tab_idx = self.get_tab_idx(sender)
         self.edit_case_parameters(tab_idx)
 
+    @utils.exception_decorator_print
     def delete_case(self):
-        try:
-            sender = self.sender()
-            tab_idx = self.get_tab_idx(sender)
-            self.remove_tab(tab_idx)
+        sender = self.sender()
+        tab_idx = self.get_tab_idx(sender)
+        self.remove_tab(tab_idx)
 
-            if self.cases_bar.currentIndex() == tab_idx:
-                # В этих случаях cases_bar.currentChanged не эмитится
-                self.select_case(tab_idx)
-
-        except AssertionError as err:
-            utils.exception_handler(err)
+        if self.cases_bar.currentIndex() == tab_idx:
+            # В этих случаях cases_bar.currentChanged не эмитится
+            self.select_case(tab_idx)
 
     def get_tab_idx(self, a_widget):
         for tab_idx in range(self.cases_bar.count() - 1):
@@ -115,42 +109,36 @@ class MeasureCases(QtWidgets.QWidget):
 
     @staticmethod
     def create_tab_name(a_case: Measure.Case):
-        return " " + clb.enum_to_signal_type_short[a_case.signal_type] + "; " + \
+        return " " + clb.signal_type_to_text_short[a_case.signal_type] + "; " + \
                utils.value_to_user_with_units(clb.signal_type_to_units[a_case.signal_type])(a_case.limit)
 
+    @utils.exception_decorator_print
     def remove_tab(self, a_idx: int):
-        try:
-            if self.cases_bar.count() > 2:
-                tab_name = self.cases_bar.tabText(self.cases_bar.currentIndex())
-                res = QtWidgets.QMessageBox.question(self, "Подтвердите действие",
-                                                     "Вы действительно хотите удалить измерение {0}?".format(tab_name),
-                                                     QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
-                                                     QtWidgets.QMessageBox.No)
-                if res == QtWidgets.QMessageBox.Yes:
-                    if a_idx == self.cases_bar.count() - 2 and a_idx == self.cases_bar.currentIndex():
-                        # Если удаляемая вкладка активна, меняем активную на предыдущую
-                        self.cases_bar.setCurrentIndex(self.cases_bar.count() - 3)
+        if self.cases_bar.count() > 2:
+            tab_name = self.cases_bar.tabText(self.cases_bar.currentIndex())
+            res = QtWidgets.QMessageBox.question(
+                self, "Подтвердите действие",
+                "Вы действительно хотите удалить измерение {0}?".format(tab_name),
+                QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)
+            if res == QtWidgets.QMessageBox.Yes:
+                if a_idx == self.cases_bar.count() - 2 and a_idx == self.cases_bar.currentIndex():
+                    # Если удаляемая вкладка активна, меняем активную на предыдущую
+                    self.cases_bar.setCurrentIndex(self.cases_bar.count() - 3)
 
-                    self.cases_bar.removeTab(a_idx)
-                    self.cases.pop(a_idx)
+                self.cases_bar.removeTab(a_idx)
+                self.cases.pop(a_idx)
 
-        except Exception as err:
-            utils.exception_handler(err)
-
+    @utils.exception_decorator_print
     def edit_case_parameters(self, a_case_number):
-        try:
-            case = self.cases[a_case_number]
-            case_params_dialog = EditCaseParamsDialog(case, self)
+        case = self.cases[a_case_number]
+        case_params_dialog = EditCaseParamsDialog(case, self)
 
-            if case_params_dialog.exec() == QtWidgets.QDialog.Accepted:
-                self.cases_bar.setTabText(a_case_number, self.create_tab_name(case))
+        if case_params_dialog.exec() == QtWidgets.QDialog.Accepted:
+            self.cases_bar.setTabText(a_case_number, self.create_tab_name(case))
 
-                if self.cases_bar.currentIndex() == a_case_number:
-                    # Обновляем параметры измерения
-                    self.select_case(a_case_number)
-
-        except Exception as err:
-            utils.exception_handler(err)
+            if self.cases_bar.currentIndex() == a_case_number:
+                # Обновляем параметры измерения
+                self.select_case(a_case_number)
 
     def current_case(self):
         return self.cases[self.cases_bar.currentIndex()]

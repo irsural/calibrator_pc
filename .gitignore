@@ -6,7 +6,9 @@
 *.ini
 icons_rc.py
 /build
-/dist
+/dist/*
+!/dist/Калибратор N4-25 Поверка.exe
+/results
 /venv
 /venv3.5
 /Lib

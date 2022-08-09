@@ -2,7 +2,7 @@ from typing import List, Iterable
 import sqlite3
 
 from constants import DeviceSystem, Scale
-import utils
+from irspy import utils
 
 
 class TemplateParams:
@@ -59,35 +59,33 @@ class TemplatesDB:
         for scale in a_params.scales:
             self.new_scale(a_params.id, scale)
 
+    @utils.exception_decorator_print
     def get(self, a_id: int) -> TemplateParams:
-        try:
-            self.cursor.execute("select * from templates WHERE id={0}".format(a_id))
-            template_rec = self.cursor.fetchone()
+        self.cursor.execute("select * from templates WHERE id={0}".format(a_id))
+        template_rec = self.cursor.fetchone()
 
-            template_id = template_rec[0]
+        template_id = template_rec[0]
 
-            self.cursor.execute("select * from scales WHERE template_id={0}".format(template_id))
-            scales_recs = self.cursor.fetchall()
+        self.cursor.execute("select * from scales WHERE template_id={0}".format(template_id))
+        scales_recs = self.cursor.fetchall()
 
-            template_scales = []
-            for s_id, s_number, s_points, _ in scales_recs:
-                points = s_points.split(';')
-                scale_points = [float(p) for p in points] if points[0] else []
+        template_scales = []
+        for s_id, s_number, s_points, _ in scales_recs:
+            points = s_points.split(';')
+            scale_points = [float(p) for p in points] if points[0] else []
 
-                self.cursor.execute("select * from limits WHERE scale_id={0}".format(s_id))
-                scale_limits = [Scale.Limit(*rec[0:-1]) for rec in self.cursor.fetchall()]
+            self.cursor.execute("select * from limits WHERE scale_id={0}".format(s_id))
+            scale_limits = [Scale.Limit(*rec[0:-1]) for rec in self.cursor.fetchall()]
 
-                template_scales.append(Scale(s_id, s_number, scale_points, scale_limits))
+            template_scales.append(Scale(s_id, s_number, scale_points, scale_limits))
 
-            assert template_scales, "Every template must have at least one scale!!!"
+        assert template_scales, "Every template must have at least one scale!!!"
 
-            template_params = (TemplateParams(a_id=template_rec[0], a_name=template_rec[1],
-                                              a_device_name=template_rec[2], a_device_creator=template_rec[3],
-                                              a_device_system=template_rec[4], a_scales=template_scales))
+        template_params = (TemplateParams(a_id=template_rec[0], a_name=template_rec[1],
+                                          a_device_name=template_rec[2], a_device_creator=template_rec[3],
+                                          a_device_system=template_rec[4], a_scales=template_scales))
 
-            return template_params
-        except Exception as err:
-            utils.exception_handler(err)
+        return template_params
 
     def save(self, a_params: TemplateParams):
         """

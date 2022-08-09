@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>Form</class>
- <widget class="QWidget" name="Form">
+ <class>template_scales_tabwidget</class>
+ <widget class="QWidget" name="template_scales_tabwidget">
   <property name="geometry">
    <rect>
     <x>0</x>

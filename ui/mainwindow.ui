@@ -36,7 +36,7 @@
     <property name="title">
      <string>Справка</string>
     </property>
-    <addaction name="action"/>
+    <addaction name="help_action"/>
    </widget>
    <addaction name="settings_menu"/>
    <addaction name="menu"/>
@@ -51,7 +51,7 @@
     <string>Настройки...</string>
    </property>
   </action>
-  <action name="action">
+  <action name="help_action">
    <property name="text">
     <string>О программе</string>
    </property>

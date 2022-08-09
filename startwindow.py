@@ -3,13 +3,13 @@ from sqlite3 import Connection
 from PyQt5.QtCore import pyqtSignal
 from PyQt5 import QtGui, QtWidgets, QtCore, QtSql
 
-from ui.py.startform import Ui_Form as StartForm
+from ui.py.startform import Ui_start_dialog as StartForm
 from db_measures import MeasureColumn, MEASURE_COLUMN_TO_NAME, MeasuresDB
 from custom_widgets.QTableDelegates import NonOverlappingDoubleClick
 from create_protocol_dialog import CreateProtocolDialog
-from settings_ini_parser import Settings
-import qt_utils
-import utils
+from irspy.qt.qt_settings_ini_parser import QtSettings
+from irspy.qt import qt_utils
+from irspy import utils
 
 
 class StartWindow(QtWidgets.QWidget):
@@ -17,7 +17,8 @@ class StartWindow(QtWidgets.QWidget):
     no_template_mode_chosen = pyqtSignal()
     template_mode_chosen = pyqtSignal()
 
-    def __init__(self, a_control_db_connection: Connection, a_db_name: str, a_settings: Settings, a_parent=None):
+    def __init__(self, a_control_db_connection: Connection, a_db_name: str, a_settings: QtSettings,
+                 a_parent: QtWidgets.QMainWindow = None):
         """
         Для отображения таблицы измерений используется QSqlRelationalTableModel (это сильно упрощает жизнь)
         При этом для остальных операций (добавление, удаление) используется другое соединение sqlite3.Connection
@@ -45,11 +46,8 @@ class StartWindow(QtWidgets.QWidget):
         self.ui.measures_table.doubleClicked.connect(self.create_protocol)
 
         self.parent.show()
-        geometry = self.settings.get_last_geometry(self.__class__.__name__)
-        if not geometry.isEmpty():
-            self.parent.restoreGeometry(geometry)
-        else:
-            self.parent.resize(self.size())
+        self.parent.setObjectName("start_window")
+        self.settings.restore_qwidget_state(self.parent)
 
         self.control_db_connection = a_control_db_connection
         self.measure_db = MeasuresDB(a_control_db_connection)
@@ -81,8 +79,7 @@ class StartWindow(QtWidgets.QWidget):
         self.ui.measures_table.selectionModel().modelChanged.connect(self.current_selection_changed)
         self.ui.measures_table.selectionModel().selectionChanged.connect(self.current_selection_changed)
 
-        self.ui.measures_table.horizontalHeader().restoreState(self.settings.get_last_header_state(
-            self.__class__.__name__))
+        self.settings.restore_qwidget_state(self.ui.measures_table)
         self.ui.measures_table.setColumnHidden(MeasureColumn.ID, True)
 
         header_context = qt_utils.TableHeaderContextMenu(self, self.ui.measures_table, True)
@@ -103,15 +100,14 @@ class StartWindow(QtWidgets.QWidget):
         self.display_db_model.select()
         self.current_selection_changed()
 
-    def create_protocol(self):
-        try:
-            measure_id = self.get_selected_id()
-            assert measure_id is not None, "measure id must not be None!"
-            create_protocol_dialog = CreateProtocolDialog(self.settings, measure_id, self.control_db_connection, self)
-            create_protocol_dialog.exec()
-            self.update_table()
-        except Exception as err:
-            utils.exception_handler(err)
+    @utils.exception_decorator_print
+    def create_protocol(self, _):
+        measure_id = self.get_selected_id()
+        assert measure_id is not None, "measure id must not be None!"
+        create_protocol_dialog = CreateProtocolDialog(
+            self.settings, measure_id, self.control_db_connection, self)
+        create_protocol_dialog.exec()
+        self.update_table()
 
     def show_table_custom_menu(self, a_position: QtCore.QPoint):
         menu = QtWidgets.QMenu(self)
@@ -140,8 +136,8 @@ class StartWindow(QtWidgets.QWidget):
             return None
 
     def closeEvent(self, a_event: QtGui.QCloseEvent) -> None:
-        self.settings.save_geometry(self.__class__.__name__, self.parent.saveGeometry())
-        self.settings.save_header_state(self.__class__.__name__, self.ui.measures_table.horizontalHeader().saveState())
+        self.settings.save_qwidget_state(self.parent)
+        self.settings.save_qwidget_state(self.ui.measures_table)
         self.display_db_connection.close()
         self.header_context.delete_connections()
         a_event.accept()

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file './ui/startform.ui'
+# Form implementation generated from reading ui file 'startform.ui'
 #
 # Created by: PyQt5 UI code generator 5.14.1
 #
@@ -10,22 +10,22 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 
-class Ui_Form(object):
-    def setupUi(self, Form):
-        Form.setObjectName("Form")
-        Form.resize(1027, 458)
+class Ui_start_dialog(object):
+    def setupUi(self, start_dialog):
+        start_dialog.setObjectName("start_dialog")
+        start_dialog.resize(1027, 458)
         font = QtGui.QFont()
         font.setPointSize(13)
-        Form.setFont(font)
-        self.verticalLayout = QtWidgets.QVBoxLayout(Form)
+        start_dialog.setFont(font)
+        self.verticalLayout = QtWidgets.QVBoxLayout(start_dialog)
         self.verticalLayout.setObjectName("verticalLayout")
         self.horizontalLayout = QtWidgets.QHBoxLayout()
         self.horizontalLayout.setSpacing(7)
         self.horizontalLayout.setObjectName("horizontalLayout")
-        self.label = QtWidgets.QLabel(Form)
+        self.label = QtWidgets.QLabel(start_dialog)
         self.label.setObjectName("label")
         self.horizontalLayout.addWidget(self.label)
-        self.create_protocol_button = QtWidgets.QToolButton(Form)
+        self.create_protocol_button = QtWidgets.QToolButton(start_dialog)
         self.create_protocol_button.setEnabled(False)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
@@ -37,12 +37,12 @@ class Ui_Form(object):
         self.create_protocol_button.setArrowType(QtCore.Qt.NoArrow)
         self.create_protocol_button.setObjectName("create_protocol_button")
         self.horizontalLayout.addWidget(self.create_protocol_button)
-        self.line_2 = QtWidgets.QFrame(Form)
+        self.line_2 = QtWidgets.QFrame(start_dialog)
         self.line_2.setFrameShape(QtWidgets.QFrame.VLine)
         self.line_2.setFrameShadow(QtWidgets.QFrame.Sunken)
         self.line_2.setObjectName("line_2")
         self.horizontalLayout.addWidget(self.line_2)
-        self.source_mode_button = QtWidgets.QToolButton(Form)
+        self.source_mode_button = QtWidgets.QToolButton(start_dialog)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -54,12 +54,12 @@ class Ui_Form(object):
         self.source_mode_button.setAutoRaise(True)
         self.source_mode_button.setObjectName("source_mode_button")
         self.horizontalLayout.addWidget(self.source_mode_button)
-        self.line_3 = QtWidgets.QFrame(Form)
+        self.line_3 = QtWidgets.QFrame(start_dialog)
         self.line_3.setFrameShape(QtWidgets.QFrame.VLine)
         self.line_3.setFrameShadow(QtWidgets.QFrame.Sunken)
         self.line_3.setObjectName("line_3")
         self.horizontalLayout.addWidget(self.line_3)
-        self.no_template_mode_button = QtWidgets.QToolButton(Form)
+        self.no_template_mode_button = QtWidgets.QToolButton(start_dialog)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -71,12 +71,12 @@ class Ui_Form(object):
         self.no_template_mode_button.setAutoRaise(True)
         self.no_template_mode_button.setObjectName("no_template_mode_button")
         self.horizontalLayout.addWidget(self.no_template_mode_button)
-        self.line_4 = QtWidgets.QFrame(Form)
+        self.line_4 = QtWidgets.QFrame(start_dialog)
         self.line_4.setFrameShape(QtWidgets.QFrame.VLine)
         self.line_4.setFrameShadow(QtWidgets.QFrame.Sunken)
         self.line_4.setObjectName("line_4")
         self.horizontalLayout.addWidget(self.line_4)
-        self.template_mode_button = QtWidgets.QToolButton(Form)
+        self.template_mode_button = QtWidgets.QToolButton(start_dialog)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -88,7 +88,7 @@ class Ui_Form(object):
         self.template_mode_button.setObjectName("template_mode_button")
         self.horizontalLayout.addWidget(self.template_mode_button)
         self.verticalLayout.addLayout(self.horizontalLayout)
-        self.measures_table = QtWidgets.QTableView(Form)
+        self.measures_table = QtWidgets.QTableView(start_dialog)
         font = QtGui.QFont()
         font.setPointSize(9)
         self.measures_table.setFont(font)
@@ -109,22 +109,22 @@ class Ui_Form(object):
         self.measures_table.verticalHeader().setVisible(False)
         self.verticalLayout.addWidget(self.measures_table)
 
-        self.retranslateUi(Form)
-        QtCore.QMetaObject.connectSlotsByName(Form)
-        Form.setTabOrder(self.create_protocol_button, self.source_mode_button)
-        Form.setTabOrder(self.source_mode_button, self.no_template_mode_button)
-        Form.setTabOrder(self.no_template_mode_button, self.template_mode_button)
-        Form.setTabOrder(self.template_mode_button, self.measures_table)
+        self.retranslateUi(start_dialog)
+        QtCore.QMetaObject.connectSlotsByName(start_dialog)
+        start_dialog.setTabOrder(self.create_protocol_button, self.source_mode_button)
+        start_dialog.setTabOrder(self.source_mode_button, self.no_template_mode_button)
+        start_dialog.setTabOrder(self.no_template_mode_button, self.template_mode_button)
+        start_dialog.setTabOrder(self.template_mode_button, self.measures_table)
 
-    def retranslateUi(self, Form):
+    def retranslateUi(self, start_dialog):
         _translate = QtCore.QCoreApplication.translate
-        Form.setWindowTitle(_translate("Form", "Form"))
-        self.label.setText(_translate("Form", "Последние измерения"))
-        self.create_protocol_button.setText(_translate("Form", "Создать\n"
+        start_dialog.setWindowTitle(_translate("start_dialog", "Form"))
+        self.label.setText(_translate("start_dialog", "Последние измерения"))
+        self.create_protocol_button.setText(_translate("start_dialog", "Создать\n"
 "отчет"))
-        self.source_mode_button.setText(_translate("Form", "Режим\n"
+        self.source_mode_button.setText(_translate("start_dialog", "Режим\n"
 "источника"))
-        self.no_template_mode_button.setText(_translate("Form", "Быстрая\n"
+        self.no_template_mode_button.setText(_translate("start_dialog", "Быстрая\n"
 "поверка"))
-        self.template_mode_button.setText(_translate("Form", "Шаблоны\n"
+        self.template_mode_button.setText(_translate("start_dialog", "Шаблоны\n"
 "поверки"))

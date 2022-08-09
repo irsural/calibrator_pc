@@ -1,24 +1,26 @@
 from re import compile as re_compile
 from sqlite3 import Connection
 from typing import Tuple, Union
+import subprocess
+import platform
 import os
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 
-from ui.py.create_protocol_form import Ui_Dialog as CreateProtocolForm
+from ui.py.create_protocol_form import Ui_create_protocol_dialog as CreateProtocolForm
+from irspy.qt.qt_settings_ini_parser import QtSettings
 from measure_cases_widget import MeasureCases
 from db_measures import MeasuresDB
-from settings_ini_parser import Settings
 from marks_widget import MarksWidget
 import constants as cfg
 import odf_output
-import utils
+from irspy import utils
 
 
 class CreateProtocolDialog(QtWidgets.QDialog):
     GET_MARK_RE = re_compile(r"%.*__")
 
-    def __init__(self, a_settings: Settings, a_measure_id: int, a_db_connection: Connection, a_parent=None):
+    def __init__(self, a_settings: QtSettings, a_measure_id: int, a_db_connection: Connection, a_parent=None):
         super().__init__(a_parent)
 
         self.ui = CreateProtocolForm()
@@ -28,7 +30,7 @@ class CreateProtocolDialog(QtWidgets.QDialog):
         assert a_measure_id != 0, "Measure id must not be zero!"
 
         self.settings = a_settings
-        self.restoreGeometry(self.settings.get_last_geometry(self.__class__.__name__))
+        self.settings.restore_qwidget_state(self)
 
         self.measure_db = MeasuresDB(a_db_connection)
         self.measure_config = self.measure_db.get(a_measure_id)
@@ -40,8 +42,7 @@ class CreateProtocolDialog(QtWidgets.QDialog):
         self.default_marks_widgets = self.get_default_marks_widgets()
         self.set_up_params_to_ui()
 
-        self.ui.points_table.horizontalHeader().restoreState(self.settings.get_last_header_state(
-            self.__class__.__name__))
+        self.settings.restore_qwidget_state(self.ui.points_table)
         self.ui.points_table.horizontalHeader().setSectionsMovable(True)
 
         self.measure_manager = MeasureCases(self.ui.points_table, self.measure_config.cases, a_allow_editing=False)
@@ -142,16 +143,14 @@ class CreateProtocolDialog(QtWidgets.QDialog):
         if folder:
             self.ui.save_folder_edit.setText(folder)
 
-    def save_pressed(self):
-        try:
-            self.save()
-            if self.marks_widget.save():
-                if self.generate_protocol():
-                    self.close()
-            else:
-                self.ui.marks_and_points_tabwidget.setCurrentIndex(0)
-        except Exception as err:
-            utils.exception_handler(err)
+    @utils.exception_decorator_print
+    def save_pressed(self, _):
+        self.save()
+        if self.marks_widget.save():
+            if self.generate_protocol():
+                self.close()
+        else:
+            self.ui.marks_and_points_tabwidget.setCurrentIndex(0)
 
     # noinspection DuplicatedCode
     def save(self):
@@ -208,6 +207,12 @@ class CreateProtocolDialog(QtWidgets.QDialog):
 
             if odf_output.replace_text_in_odt(src_file, dst_file, marks_map, self.create_tables_to_export()):
                 QtWidgets.QMessageBox.information(self, "Успех", "Протокол успешно сгенерирован")
+
+                if platform.system() == 'Windows':
+                    os.startfile('"{}"'.format(dst_file))
+                else:  # Linux
+                    subprocess.run(['xdg-open', '"{}"'.format(dst_file)])
+
                 return True
             else:
                 QtWidgets.QMessageBox.critical(self, "Ошибка", "При создании протокола произошла ошибка")
@@ -257,8 +262,8 @@ class CreateProtocolDialog(QtWidgets.QDialog):
         QtWidgets.QApplication.clipboard().setText(parameters)
 
     def closeEvent(self, a_event: QtGui.QCloseEvent) -> None:
-        self.settings.save_geometry(self.__class__.__name__, self.saveGeometry())
-        self.settings.save_header_state(self.__class__.__name__, self.ui.points_table.horizontalHeader().saveState())
+        self.settings.save_qwidget_state(self)
+        self.settings.save_qwidget_state(self.ui.points_table)
 
         self.measure_manager.close()
         # Вызывается вручную, чтобы marks_widget сохранил состояние своего хэдера

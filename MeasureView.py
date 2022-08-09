@@ -3,8 +3,8 @@ from PyQt5 import QtCore, QtWidgets, QtGui
 from custom_widgets.QTableDelegates import NonOverlappingDoubleClick
 from MeasureModel import MeasureModel, PointData
 from db_measures import Measure
-import calibrator_constants as clb
-import qt_utils
+import irspy.clb.calibrator_constants as clb
+from irspy.qt import qt_utils
 
 
 class CornerButtonPainter(NonOverlappingDoubleClick):

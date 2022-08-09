@@ -1,6 +1,6 @@
 from PyQt5 import QtCore, QtWidgets
 
-from ui.py.variable_template_fields_form import Ui_Dialog as VariableTemplateFieldsForm
+from ui.py.variable_template_fields_form import Ui_variable_template_fields_dialog as VariableTemplateFieldsForm
 
 
 class VariableTemplateParams:

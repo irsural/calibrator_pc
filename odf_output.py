@@ -6,9 +6,9 @@ from odf import table as odf_table
 from odf.opendocument import load as odf_load
 from zipfile import BadZipFile
 
-import calibrator_constants as clb
+import irspy.clb.calibrator_constants as clb
 from db_measures import Measure
-import utils
+from irspy import utils
 
 
 class TableToDraw:
@@ -19,7 +19,7 @@ class TableToDraw:
         self.value_to_user = utils.value_to_user_with_units(clb.signal_type_to_units[a_case.signal_type])
 
         self.limit = self.value_to_user(a_case.limit)
-        self.signal_type = clb.enum_to_signal_type[a_case.signal_type]
+        self.signal_type = clb.signal_type_to_text[a_case.signal_type]
         self.error_limit = self.value_to_user(utils.absolute_error_limit(a_normalize_value=a_case.limit,
                                                                          a_error_percent=a_case.device_class))
         self.points = defaultdict(list)
